@@ -1,8 +1,6 @@
 (*Version 1.2 - 20-03-2020
   Definitions split up in sub-definitions
-  Complement defined using library, not Setminus
-  Assume extensionality to use = instead of Same_set
-  Definitions of (disjoint) countable union fixed
+  Definitions of countable union fixed
   Second part of trivial_salgebra simplified (yet to do)
 *)
 Require Import Sets.Ensembles.
