@@ -1,7 +1,6 @@
-(*Version 1.2 - 20-03-2020
-  Definitions split up in sub-definitions
-  Definitions of countable union fixed
-  Second part of trivial_salgebra simplified (yet to do)
+(*Version 1.3 - 22-03-2020
+  Definition of disjoint countable union fixed
+  Notation fixed (unicode characters for readability)
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -11,48 +10,57 @@ Require Import Sets.Powerset.
 
 Variable Ω : Type.
 
-Definition is_pi_system (Π : Ensemble (Ensemble Ω)): Prop := 
-  ∀ A : Ensemble Ω, In _ Π A ⇒ 
-    ∀ B : Ensemble Ω, In (Ensemble Ω) Π B ⇒ 
-      In (Ensemble Ω) Π (Intersection Ω A B).  
+Definition is_pi_system (Π : Ensemble (Ensemble Ω)) 
+  : Prop := 
+    ∀ A : Ensemble Ω, In _ Π A ⇒ 
+      ∀ B : Ensemble Ω, In (Ensemble Ω) Π B ⇒ 
+       In (Ensemble Ω) Π (Intersection Ω A B).  
 
-Definition Countable_union (A : (ℕ → Ensemble Ω)) : Ensemble Ω := 
-  fun (x:Ω) ↦ ∃n : ℕ, In Ω (A n) x.
+Definition Countable_union (A : (ℕ → Ensemble Ω)) 
+  : Ensemble Ω := 
+    fun (x:Ω) ↦ ∃n : ℕ, In Ω (A n) x.
 
-Definition full_set_in_set (Λ : Ensemble (Ensemble Ω)) : Prop :=
-  In _ Λ (Full_set Ω). 
+Definition full_set_in_set (Λ : Ensemble (Ensemble Ω)) 
+  : Prop :=
+    In _ Λ (Full_set Ω). 
 
-Definition complement_in_set (Λ : Ensemble (Ensemble Ω)) : Prop := 
-  ∀A  : Ensemble Ω, In _ Λ A 
-    ⇒ In _ Λ (Setminus _ (Full_set Ω) A). 
+Definition complement_in_set (Λ : Ensemble (Ensemble Ω)) 
+  : Prop := 
+    ∀A  : Ensemble Ω, In _ Λ A 
+      ⇒ In _ Λ (Setminus _ (Full_set Ω) A). 
 
-Definition disjoint_countable_union_in_set (Λ : Ensemble (Ensemble Ω)) : Prop :=  (*nog aanpassen, zie hieronder *)
-  ∀C : (ℕ → (Ensemble Ω)), 
-    (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
-      ⇒ (∀ n : ℕ, In _ Λ (C n)) ⇒  In _ Λ ( Countable_union C).
+Definition closed_under_disjoint_countable_union (Λ : Ensemble (Ensemble Ω)) 
+  : Prop :=
+    ∀C : (ℕ → (Ensemble Ω)), 
+      (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
+        ⇒ (∀ n : ℕ, In _ Λ (C n)) ⇒  In _ Λ ( Countable_union C).
 
-Definition closed_under_countable_union (Λ : Ensemble (Ensemble Ω)) : Prop :=  
-  ∀C : (ℕ → (Ensemble Ω)), (∀ n : ℕ, In _ Λ (C n)) 
-    ⇒  In _ Λ ( Countable_union C).
+Definition closed_under_countable_union (Λ : Ensemble (Ensemble Ω)) 
+  : Prop :=  
+    ∀C : (ℕ → (Ensemble Ω)), (∀ n : ℕ, In _ Λ (C n)) 
+      ⇒  In _ Λ ( Countable_union C).
 
 
-Definition is_lambda_system (Λ : Ensemble (Ensemble Ω)) : Prop :=
-  full_set_in_set Λ /\ 
-  complement_in_set Λ /\
-  disjoint_countable_union_in_set Λ. 
-  
-  
-Definition is_sigma_algebra (Λ : Ensemble (Ensemble Ω)) : Prop := 
-  full_set_in_set Λ /\ 
-  complement_in_set Λ /\
-  disjoint_countable_union_in_set Λ.
+Definition is_lambda_system (Λ : Ensemble (Ensemble Ω)) 
+  : Prop :=
+    full_set_in_set Λ ∧ 
+    complement_in_set Λ ∧
+    closed_under_disjoint_countable_union Λ. 
 
-Definition empty_and_full (A : Ensemble Ω) : Prop := 
-  (Same_set _ A (Full_set Ω)) \/ (Same_set _ A (Empty_set Ω)).  
+Definition is_σ_algebra (Λ : Ensemble (Ensemble Ω)) 
+  : Prop := 
+    full_set_in_set Λ ∧ 
+    complement_in_set Λ ∧
+    closed_under_countable_union Λ.
+
+Definition empty_and_full (A : Ensemble Ω) 
+  : Prop := 
+    (Same_set _ A (Full_set Ω)) 
+    ∨ (Same_set _ A (Empty_set Ω)).  
 
 
 Lemma complement_full_is_empty : 
-  (*forall A B : Ensemble Ω, Same_set _ A (Full_set Ω) -> Same_set _ B (Full_set Ω) -> *)
+  (*∀ A B : Ensemble Ω, Same_set _ A (Full_set Ω) -> Same_set _ B (Full_set Ω) -> *)
   Same_set _ (Empty_set Ω) (Setminus _ (Full_set Ω) (Full_set Ω)). 
 (*complement_full_is_empty niet commutatief?*)
 
@@ -136,10 +144,10 @@ Expand the definition of empty_and_full.
 Qed. 
 
 
-Lemma trivial_salgebra : is_sigma_algebra empty_and_full. 
+Lemma trivial_salgebra : is_σ_algebra empty_and_full. 
 
 Proof. 
-Expand the definition of is_sigma_algebra. 
+Expand the definition of is_σ_algebra. 
 split. 
 Expand the definition of full_set_in_set. 
 It holds that (In _ empty_and_full (Full_set Ω)).
@@ -149,7 +157,7 @@ Expand the definition of complement_in_set.
 Take A : (Ensemble Ω). 
 Assume A_in_F : (In _ empty_and_full A). 
 Write A_in_F as ( (Same_set _ A (Full_set Ω)) 
-  \/ (Same_set _ A (Empty_set Ω)) ).
+  ∨ (Same_set _ A (Empty_set Ω)) ).
 Because A_in_F either A_is_full or A_is_empty. 
 We claim that (A = (Full_set Ω)) (A_equals_full). 
 Apply Extensionality_Ensembles. 
