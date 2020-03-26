@@ -1,9 +1,11 @@
-(*Version 1.4 - 26-03-2020
+(*Version 1.4.1 - 26-03-2020
   Assume extensionality to use = instead of Same_set
+  Second part of trivial_salgebra proof now correct
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
 Require Import wplib.Tactics.Tactics.
+Require Import wplib.Tactics.TacticsContra.
 Require Import wplib.Notations.Notations.
 Require Import Sets.Powerset.
 
@@ -113,105 +115,50 @@ contradiction.
 Qed.
 
 
-
-
-(* Dit is het derde deel van het bewijs van trivial_salgebra, maar staat
-   hierboven zodat het gecontroleerd kan worden terwijl het tweede deel
-   nog niet af is.
-*) 
-(*
-Lemma empty_and_full_countable_union : 
-  closed_under_countable_union empty_and_full. 
-
-Proof. 
-Expand the definition of closed_under_countable_union. 
-(*dit is wat je eigenlijk wil, maar 'niet convertible':*)
-(*Assume C_n_in_empty_and_full : 
-  (for all n : ℕ, In _ empty_and_full (C n)). *)
-(*of: *)
-(*Choose (C : (ℕ → (Ensemble Ω))) such that 
-  (for all n : ℕ, In _ empty_and_full (C n)). *)
-
-(*maar in plaats daarvan, nu maar het voor de hand liggende: *)
-Take C : (ℕ → (Ensemble Ω)). 
-Assume C_n_in_empty_and_full : (for all n : ℕ,
-   In (Ensemble Ω) empty_and_full (C n)). 
-(*probleem: later komt n0, maar dan geldt niet 
-  per se dat In _ empty_and_full (C n0). 
-*) 
-
-Expand the definition of Countable_union. 
-Expand the definition of In. 
-Expand the definition of empty_and_full. 
-(*hoe nu verder?
-  Gebruik tacticsContra. *)
-Qed. 
-*)
-
 Lemma trivial_salgebra : is_σ_algebra empty_and_full. 
 
 Proof. 
 Expand the definition of is_σ_algebra. 
 split. 
+
+(* First point: Prove that Omega in empty_and_full *)
 Expand the definition of full_set_in_set. 
 It holds that (In _ empty_and_full (Full_set Ω)).
 split.
 
+(* Second point: Prove that empty_and_full is closed under complement*)
 Expand the definition of complement_in_set. 
 Take A : (Ensemble Ω). 
 Assume A_in_F : (In _ empty_and_full A). 
-Write A_in_F as ( (Same_set _ A (Full_set Ω)) 
-  ∨ (Same_set _ A (Empty_set Ω)) ).
+Write A_in_F as ( (A = (Full_set Ω)) 
+  ∨ (A = (Empty_set Ω)) ).
 Because A_in_F either A_is_full or A_is_empty. 
-We claim that (A = (Full_set Ω)) (A_equals_full). 
-Apply Extensionality_Ensembles. 
-Apply A_is_full. 
-Write goal using (A = (Full_set Ω)) as 
-  (In (Ensemble Ω) empty_and_full (Setminus Ω (Full_set Ω) (Full_set Ω))). 
-(* Apply *) (*... gebruik gelijkheden ipv Same_set*)
-(*
-We claim that ((Same_set _ A (Full_set Ω)) 
-  -> In _ empty_and_full 
-      (Setminus _ (Full_set Ω) A)) (comp_full_in_F).
-
-Assume A_is_full : (Same_set _ A (Full_set Ω)). *)
-replace A with (Full_set Ω). 
-(* ^ creates extra subgoal; how to avoid this?*)
+rewrite -> A_is_full. 
+(*does the same as: 
+  Write goal using (A = (Full_set Ω)) as 
+    (In (Ensemble Ω) empty_and_full (Setminus Ω (Full_set Ω) (Full_set Ω))). 
+*) 
 replace (Setminus Ω (Full_set Ω) (Full_set Ω)) 
   with (Empty_set Ω). 
 It holds that (In _ empty_and_full (Empty_set Ω)). 
-Apply Extensionality_Ensembles. 
-(*We need to show that (Same_set Ω (Empty_set Ω) (Setminus Ω (Full_set Ω) (Full_set Ω))). *)
 Apply complement_full_is_empty. 
-(* ^ complement_full_is_empty is blijkbaar niet commutatief*)
-Apply Extensionality_Ensembles. 
-It holds that (Same_set Ω (Full_set Ω) A). (*only there to resolve remaining goal*)
 
-We claim that ((Same_set _ A (Empty_set Ω)) 
-  -> In _ empty_and_full 
-      (Setminus _ (Full_set Ω) A)) (comp_empty_in_F).
-Assume A_is_empty : (Same_set _ A (Empty_set Ω)). 
-replace A with (Empty_set Ω). 
-(* ^ creates extra subgoal; how to avoid this?*)
+rewrite -> A_is_empty. 
 replace (Setminus Ω (Full_set Ω) (Empty_set Ω)) 
   with (Full_set Ω). 
-(* ^ now replaced, later proven. Shorter way?*)
 It holds that (In _ empty_and_full (Full_set Ω)). 
-Apply Extensionality_Ensembles. 
-(*We need to show that (Same_set Ω (Empty_set Ω) (Setminus Ω (Full_set Ω) (Full_set Ω))). *)
 Apply complement_empty_is_full. 
-Apply Extensionality_Ensembles. 
-It holds that (Same_set Ω (Empty_set Ω) A). (*only there to resolve remaining goal. Avoidable?*) 
 
-(*A_in_F, comp_full_in_F en comp_empty_in_F zou nu genoeg 
-  moeten zijn, maar het lukt me niet ze te combineren. 
-*)
+(* Third point: Prove that empty_and_full is closed under countable union*)
+Expand the definition of closed_under_countable_union. 
+Take C : (ℕ → (Ensemble Ω)). 
+Assume C_n_in_empty_and_full : (for all n : ℕ,
+   In (Ensemble Ω) empty_and_full (C n)).
 
-(*Verder, zijn If .. then .. (else ..) statements mogelijk 
-  in deze situatie? Ik heb wat voorbeelden gevonden op  
-  internet, maar het is me niet gelukt de tactic te gebruiken 
-(*   zonder error. Bijvoorbeeld: 
-*) *)
-If (Same_set _ A (Empty_set Ω)) then (In (Ensemble Ω) empty_and_full (Setminus Ω (Full_set Ω) A)). 
+Expand the definition of Countable_union. 
+Expand the definition of In. 
+Expand the definition of empty_and_full. 
+
+We argue by contradiction.  
 
 Qed. 
