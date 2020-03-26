@@ -1,6 +1,5 @@
-(*Version 1.3 - 22-03-2020
-  Definition of disjoint countable union fixed
-  Notation fixed (unicode characters for readability)
+(*Version 1.4 - 26-03-2020
+  Assume extensionality to use = instead of Same_set
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -55,45 +54,14 @@ Definition is_σ_algebra (Λ : Ensemble (Ensemble Ω))
 
 Definition empty_and_full (A : Ensemble Ω) 
   : Prop := 
-    (Same_set _ A (Full_set Ω)) 
-    ∨ (Same_set _ A (Empty_set Ω)).  
-
-
-Lemma complement_full_is_empty : 
-  (*∀ A B : Ensemble Ω, Same_set _ A (Full_set Ω) -> Same_set _ B (Full_set Ω) -> *)
-  Same_set _ (Empty_set Ω) (Setminus _ (Full_set Ω) (Full_set Ω)). 
-(*complement_full_is_empty niet commutatief?*)
-
-Proof. 
-Expand the definition of Setminus. 
-(*Apply Extensionality_Ensembles.  (only necessary when using = instead of Same_set)*)
-Expand the definition of Same_set. 
-split. 
-Expand the definition of Included. 
-Take x : Ω.
-Assume x_in_empty.
-contradiction. 
-(*alternatively: 
-Expand the definition of Included. 
-Take x : Ω. 
-Assume x_in_empty. 
-Expand the definition of In in x_in_empty. 
-Check Empty_set_ind.  (* not necessary, but good to remember this is possible*)
-induction x_in_empty.  (* or 'destruct'*) *)
-
-Expand the definition of Included. 
-Take x : Ω.
-Assume x_in_complement_full.
-Expand the definition of In in x_in_complement_full. 
-Because x_in_complement_full both x_in_full and not_x_in_full. 
-contradiction. 
-Qed. 
-
+    (A = (Full_set Ω)) 
+    ∨ (A = (Empty_set Ω)).  
 
 Lemma complement_empty_is_full : 
-  Same_set _ (Full_set Ω) (Setminus _ (Full_set Ω ) (Empty_set Ω)). 
+  (Full_set Ω) = (Setminus _ (Full_set Ω ) (Empty_set Ω)). 
 
 Proof. 
+Apply Extensionality_Ensembles. 
 Expand the definition of Same_set. 
 Expand the definition of Setminus. 
 split. 
@@ -112,10 +80,46 @@ It holds that (In _ (Full_set Ω) x).
 Qed. 
 
 
+Lemma complement_full_is_empty : 
+  (*∀ A B : Ensemble Ω, Same_set _ A (Full_set Ω) -> Same_set _ B (Full_set Ω) -> *)
+  (Empty_set Ω) = (Setminus _ (Full_set Ω) (Full_set Ω)). 
+(*complement_full_is_empty niet commutatief?*)
+
+Proof. 
+Apply Extensionality_Ensembles.
+Expand the definition of Same_set. 
+split. 
+Expand the definition of Included. 
+Take x : Ω.
+Assume x_in_empty.
+contradiction. 
+(*alternatively: 
+Expand the definition of Included. 
+Take x : Ω. 
+Assume x_in_empty. 
+Expand the definition of In in x_in_empty. 
+Check Empty_set_ind.  (* not necessary, but good to remember this is possible*)
+induction x_in_empty.  (* or 'destruct'*) *)
+
+Expand the definition of Included. 
+Take x : Ω.
+Assume x_in_complement_full.
+Expand the definition of In 
+  in x_in_complement_full. 
+Because x_in_complement_full 
+  both x_in_full and not_x_in_full. 
+contradiction. 
+
+Qed.
+
+
+
+
 (* Dit is het derde deel van het bewijs van trivial_salgebra, maar staat
    hierboven zodat het gecontroleerd kan worden terwijl het tweede deel
    nog niet af is.
 *) 
+(*
 Lemma empty_and_full_countable_union : 
   closed_under_countable_union empty_and_full. 
 
@@ -142,7 +146,7 @@ Expand the definition of empty_and_full.
 (*hoe nu verder?
   Gebruik tacticsContra. *)
 Qed. 
-
+*)
 
 Lemma trivial_salgebra : is_σ_algebra empty_and_full. 
 
@@ -164,7 +168,7 @@ Apply Extensionality_Ensembles.
 Apply A_is_full. 
 Write goal using (A = (Full_set Ω)) as 
   (In (Ensemble Ω) empty_and_full (Setminus Ω (Full_set Ω) (Full_set Ω))). 
-Apply (*... gebruik gelijkheden ipv Same_set*)
+(* Apply *) (*... gebruik gelijkheden ipv Same_set*)
 (*
 We claim that ((Same_set _ A (Full_set Ω)) 
   -> In _ empty_and_full 
