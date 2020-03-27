@@ -1,6 +1,7 @@
-(*Version 1.4.1 - 26-03-2020
+(*Version 1.4.2 - 27-03-2020
   Assume extensionality to use = instead of Same_set
   Second part of trivial_salgebra proof now correct
+  Progress on third part (Meeting w/ Jim)
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -56,8 +57,8 @@ Definition is_σ_algebra (Λ : Ensemble (Ensemble Ω))
 
 Definition empty_and_full (A : Ensemble Ω) 
   : Prop := 
-    (A = (Full_set Ω)) 
-    ∨ (A = (Empty_set Ω)).  
+    (A = (Full_set Ω)) ∨ 
+    (A = (Empty_set Ω)).  
 
 Lemma complement_empty_is_full : 
   (Full_set Ω) = (Setminus _ (Full_set Ω ) (Empty_set Ω)). 
@@ -155,10 +156,35 @@ Take C : (ℕ → (Ensemble Ω)).
 Assume C_n_in_empty_and_full : (for all n : ℕ,
    In (Ensemble Ω) empty_and_full (C n)).
 
-Expand the definition of Countable_union. 
 Expand the definition of In. 
 Expand the definition of empty_and_full. 
 
-We argue by contradiction.  
 
+By classic it holds that ((forall n : ℕ, (C n) = (Empty_set Ω)) 
+  \/ ~(forall n : ℕ, (C n) = (Empty_set Ω))) (all_or_not_all_empty). 
+Because all_or_not_all_empty either all_empty or not_all_empty. 
+It suffices to show that (Countable_union C = (Empty_set Ω)). 
+Expand the definition of Countable_union. 
+Apply Extensionality_Ensembles. 
+Expand the definition of Same_set. 
+split. 
+Expand the definition of Included. (*gebruik write as ipv steeds Expand*)
+Take x : Ω. 
+Assume x_in_countable_union_C : (In Ω (x0) ↦ (there exists n : ℕ ,
+               In Ω (C n) x0) x). 
+Expand the definition of In in x_in_countable_union_C. 
+Choose n such that x_in_C_n according to x_in_countable_union_C. 
+Write x_in_C_n using (C n = Empty_set Ω) as ((Empty_set Ω) x).
+It holds that (In Ω (Empty_set Ω) x).  
+
+
+
+We argue by contradiction. 
+Expand the definition of Countable_union. 
+Assume full_in_C : (∃ n0 : ℕ, (C n0) = (Full_set Ω)). 
+
+
+(*Waarom werkt dit hieronder niet? Moet ik de Morgan's law als lemma apply'en?*)
+(*Write H as (¬ (Countable_union C = Full_set Ω) ∧ ¬ (Countable_union C = Empty_set Ω)). *)
+(*gebruik it holds that ipv write*)
 Qed. 
