@@ -1,7 +1,5 @@
-(*Version 1.4.2 - 27-03-2020
-  Assume extensionality to use = instead of Same_set
-  Second part of trivial_salgebra proof now correct
-  Progress on third part (Meeting w/ Jim)
+(*Version 1.4.3 - 09-04-2020
+  3rd part of proof extended, almost finished
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -9,6 +7,7 @@ Require Import wplib.Tactics.Tactics.
 Require Import wplib.Tactics.TacticsContra.
 Require Import wplib.Notations.Notations.
 Require Import Sets.Powerset.
+Require Import Coq.Logic.Classical_Pred_Type. 
 
 Variable Ω : Type.
 
@@ -122,7 +121,7 @@ Proof.
 Expand the definition of is_σ_algebra. 
 split. 
 
-(* First point: Prove that Omega in empty_and_full *)
+(* First point: Prove that Omega is in empty_and_full *)
 Expand the definition of full_set_in_set. 
 It holds that (In _ empty_and_full (Full_set Ω)).
 split.
@@ -161,7 +160,7 @@ Expand the definition of empty_and_full.
 
 
 By classic it holds that ((forall n : ℕ, (C n) = (Empty_set Ω)) 
-  \/ ~(forall n : ℕ, (C n) = (Empty_set Ω))) (all_or_not_all_empty). 
+  ∨ ¬(forall n : ℕ, (C n) = (Empty_set Ω))) (all_or_not_all_empty). 
 Because all_or_not_all_empty either all_empty or not_all_empty. 
 It suffices to show that (Countable_union C = (Empty_set Ω)). 
 Expand the definition of Countable_union. 
@@ -175,16 +174,46 @@ Assume x_in_countable_union_C : (In Ω (x0) ↦ (there exists n : ℕ ,
 Expand the definition of In in x_in_countable_union_C. 
 Choose n such that x_in_C_n according to x_in_countable_union_C. 
 Write x_in_C_n using (C n = Empty_set Ω) as ((Empty_set Ω) x).
-It holds that (In Ω (Empty_set Ω) x).  
+It holds that (In Ω (Empty_set Ω) x). 
 
+Expand the definition of Included.  
+Take x : Ω.
+Assume x_in_empty : (In _ (Empty_set Ω) x). 
+It holds that ((In Ω (x0) ↦ (∃n : ℕ,
+               In Ω (C n) x0) x)).
 
-
-We argue by contradiction. 
+It suffices to show that (Countable_union C = (Full_set Ω)). 
 Expand the definition of Countable_union. 
-Assume full_in_C : (∃ n0 : ℕ, (C n0) = (Full_set Ω)). 
+Apply Extensionality_Ensembles. 
+Expand the definition of Same_set. 
+split. 
+Expand the definition of Included. 
+Take x : Ω.
+Assume x_in_countable_union_C : 
+   (In Ω (x0) ↦ (there exists n : ℕ, In Ω (C n) x0) x). 
+Expand the definition of In in x_in_countable_union_C. 
+Choose n0 such that x_in_C_n0 
+   according to x_in_countable_union_C. 
+It holds that ((C n0 = Full_set Ω)
+   \/(C n0 = Empty_set Ω)) (C_n0_empty_or_full). 
+Because C_n0_empty_or_full either C_n0_full or C_n0_empty. 
+rewrite <- C_n0_full. 
+Apply x_in_C_n0. 
+ 
+(*Is het niet altijd een contradiction om 'In Empty_set _ x' aan te nemen?*)
+
+By not_all_empty it holds that (∃n : ℕ, ¬ (C n = Empty_set Ω)) (one_not_empty). 
+By C_n_in_empty_and_full it holds that (∃n : ℕ, (C n = Full_set Ω)) (one_full).
+Choose n1 such that C_n1_full according to one_full. 
+It holds that (Included Ω (Full_set Ω) C n1). 
+It holds that (Included Ω (Full_set Ω) 
+   (x) ↦ (there exists n : ℕ, In Ω (C n) x)). 
 
 
-(*Waarom werkt dit hieronder niet? Moet ik de Morgan's law als lemma apply'en?*)
-(*Write H as (¬ (Countable_union C = Full_set Ω) ∧ ¬ (Countable_union C = Empty_set Ω)). *)
-(*gebruik it holds that ipv write*)
+(*
+Verder: tip vorige keer was 'gebruik write as ipv steeds Expand'. 
+Maar over het algemeen lijkt het daar juist onleesbaarder van 
+te worden (het deel 'as ...' wordt erg lang). Toch doen? 
+*)
+
 Qed. 
