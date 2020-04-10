@@ -1,5 +1,5 @@
-(*Version 1.4.3 - 09-04-2020
-  3rd part of proof extended, almost finished
+(*Version 1.4.4 - 10-04-2020
+  Proof complete. 
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -183,11 +183,12 @@ It holds that ((In Ω (x0) ↦ (∃n : ℕ,
                In Ω (C n) x0) x)).
 
 It suffices to show that (Countable_union C = (Full_set Ω)). 
-Expand the definition of Countable_union. 
+(*Expand the definition of Countable_union. *)
 Apply Extensionality_Ensembles. 
 Expand the definition of Same_set. 
 split. 
 Expand the definition of Included. 
+(*tot hier: write goal as ..*)
 Take x : Ω.
 Assume x_in_countable_union_C : 
    (In Ω (x0) ↦ (there exists n : ℕ, In Ω (C n) x0) x). 
@@ -197,23 +198,22 @@ Choose n0 such that x_in_C_n0
 It holds that ((C n0 = Full_set Ω)
    \/(C n0 = Empty_set Ω)) (C_n0_empty_or_full). 
 Because C_n0_empty_or_full either C_n0_full or C_n0_empty. 
-rewrite <- C_n0_full. 
+rewrite <- C_n0_full. (*write goal as*)
 Apply x_in_C_n0. 
- 
-(*Is het niet altijd een contradiction om 'In Empty_set _ x' aan te nemen?*)
+Write x_in_C_n0 using (C n0 = Empty_set Ω) as (Empty_set Ω x).
+Contradiction. 
+(*of ook: It holds that (In Ω (Full_set Ω) x). Uit iets onwaars kan alles volgen. *)
 
 By not_all_empty it holds that (∃n : ℕ, ¬ (C n = Empty_set Ω)) (one_not_empty). 
 By C_n_in_empty_and_full it holds that (∃n : ℕ, (C n = Full_set Ω)) (one_full).
 Choose n1 such that C_n1_full according to one_full. 
-It holds that (Included Ω (Full_set Ω) C n1). 
-It holds that (Included Ω (Full_set Ω) 
-   (x) ↦ (there exists n : ℕ, In Ω (C n) x)). 
-
+rewrite <- C_n1_full. 
+It holds that (Included Ω (C n1) (Countable_union C)). 
+Qed. 
 
 (*
 Verder: tip vorige keer was 'gebruik write as ipv steeds Expand'. 
 Maar over het algemeen lijkt het daar juist onleesbaarder van 
 te worden (het deel 'as ...' wordt erg lang). Toch doen? 
+Oplossing: tactics definiëren, volgordes veranderen etc; wees creatief. 
 *)
-
-Qed. 
