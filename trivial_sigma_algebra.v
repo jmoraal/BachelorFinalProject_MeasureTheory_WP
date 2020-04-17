@@ -1,5 +1,5 @@
-(*Version 1.4.4 - 10-04-2020
-  Proof complete. 
+(*Version 1.5 - 17-04-2020
+  New notations to clean up proof. 
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -59,59 +59,45 @@ Definition empty_and_full (A : Ensemble Ω)
     (A = (Full_set Ω)) ∨ 
     (A = (Empty_set Ω)).  
 
+
+Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
+   apply Extensionality_Ensembles; 
+   unfold Same_set; 
+   unfold Setminus; 
+   unfold Included;
+   split.
+
 Lemma complement_empty_is_full : 
   (Full_set Ω) = (Setminus _ (Full_set Ω ) (Empty_set Ω)). 
 
 Proof. 
-Apply Extensionality_Ensembles. 
-Expand the definition of Same_set. 
-Expand the definition of Setminus. 
-split. 
-Expand the definition of Included. 
-Take x : Ω. 
-Assume x_in_full. 
-Expand the definition of In in x_in_full. 
+We prove equality by proving two inclusions. 
+Take x : Ω; Assume x_in_full. 
 It holds that (In Ω (Full_set Ω) x ∧ ¬ In Ω (Empty_set Ω) x).
 
-Expand the definition of Included. 
-Take x : Ω.
-Assume x_in_complement_empty.
-Expand the definition of In in x_in_complement_empty. 
+Take x : Ω; Assume x_in_complement_empty.
 Because x_in_complement_empty both x_in_full and not_x_in_empty. 
 It holds that (In _ (Full_set Ω) x). 
 Qed. 
 
 
 Lemma complement_full_is_empty : 
-  (*∀ A B : Ensemble Ω, Same_set _ A (Full_set Ω) -> Same_set _ B (Full_set Ω) -> *)
   (Empty_set Ω) = (Setminus _ (Full_set Ω) (Full_set Ω)). 
-(*complement_full_is_empty niet commutatief?*)
 
 Proof. 
-Apply Extensionality_Ensembles.
-Expand the definition of Same_set. 
-split. 
-Expand the definition of Included. 
-Take x : Ω.
-Assume x_in_empty.
+We prove equality by proving two inclusions. 
+Take x : Ω; Assume x_in_empty.
 contradiction. 
 (*alternatively: 
-Expand the definition of Included. 
-Take x : Ω. 
-Assume x_in_empty. 
-Expand the definition of In in x_in_empty. 
+Take x : Ω; Assume x_in_empty. 
 Check Empty_set_ind.  (* not necessary, but good to remember this is possible*)
 induction x_in_empty.  (* or 'destruct'*) *)
 
-Expand the definition of Included. 
-Take x : Ω.
-Assume x_in_complement_full.
-Expand the definition of In 
-  in x_in_complement_full. 
+
+Take x : Ω; Assume x_in_complement_full.
 Because x_in_complement_full 
   both x_in_full and not_x_in_full. 
 contradiction. 
-
 Qed.
 
 
@@ -122,8 +108,7 @@ Expand the definition of is_σ_algebra.
 split. 
 
 (* First point: Prove that Omega is in empty_and_full *)
-Expand the definition of full_set_in_set. 
-It holds that (In _ empty_and_full (Full_set Ω)).
+It holds that (full_set_in_set empty_and_full). 
 split.
 
 (* Second point: Prove that empty_and_full is closed under complement*)
@@ -158,25 +143,20 @@ Assume C_n_in_empty_and_full : (for all n : ℕ,
 Expand the definition of In. 
 Expand the definition of empty_and_full. 
 
-
 By classic it holds that ((forall n : ℕ, (C n) = (Empty_set Ω)) 
   ∨ ¬(forall n : ℕ, (C n) = (Empty_set Ω))) (all_or_not_all_empty). 
 Because all_or_not_all_empty either all_empty or not_all_empty. 
 It suffices to show that (Countable_union C = (Empty_set Ω)). 
+We prove equality by proving two inclusions. 
+
 Expand the definition of Countable_union. 
-Apply Extensionality_Ensembles. 
-Expand the definition of Same_set. 
-split. 
-Expand the definition of Included. (*gebruik write as ipv steeds Expand*)
 Take x : Ω. 
 Assume x_in_countable_union_C : (In Ω (x0) ↦ (there exists n : ℕ ,
                In Ω (C n) x0) x). 
-Expand the definition of In in x_in_countable_union_C. 
 Choose n such that x_in_C_n according to x_in_countable_union_C. 
 Write x_in_C_n using (C n = Empty_set Ω) as ((Empty_set Ω) x).
 It holds that (In Ω (Empty_set Ω) x). 
 
-Expand the definition of Included.  
 Take x : Ω.
 Assume x_in_empty : (In _ (Empty_set Ω) x). 
 It holds that ((In Ω (x0) ↦ (∃n : ℕ,
@@ -184,15 +164,10 @@ It holds that ((In Ω (x0) ↦ (∃n : ℕ,
 
 It suffices to show that (Countable_union C = (Full_set Ω)). 
 (*Expand the definition of Countable_union. *)
-Apply Extensionality_Ensembles. 
-Expand the definition of Same_set. 
-split. 
-Expand the definition of Included. 
-(*tot hier: write goal as ..*)
+We prove equality by proving two inclusions. 
 Take x : Ω.
 Assume x_in_countable_union_C : 
    (In Ω (x0) ↦ (there exists n : ℕ, In Ω (C n) x0) x). 
-Expand the definition of In in x_in_countable_union_C. 
 Choose n0 such that x_in_C_n0 
    according to x_in_countable_union_C. 
 It holds that ((C n0 = Full_set Ω)
