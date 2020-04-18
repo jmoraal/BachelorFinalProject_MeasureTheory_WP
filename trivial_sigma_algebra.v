@@ -1,5 +1,8 @@
-(*Version 1.5 - 17-04-2020
-  New notations to clean up proof. 
+(*Version 1.5.1 - 18-04-2020
+  Further proof cleanup, w/ a few questions
+  Progress lost due to PC crash, despite saving :( 
+  Generated sigma algebra defined
+  pi-lambda theorem and lemma stated. 
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -11,7 +14,7 @@ Require Import Coq.Logic.Classical_Pred_Type.
 
 Variable Ω : Type.
 
-Definition is_pi_system (Π : Ensemble (Ensemble Ω)) 
+Definition is_π_system (Π : Ensemble (Ensemble Ω)) 
   : Prop := 
     ∀ A : Ensemble Ω, In _ Π A ⇒ 
       ∀ B : Ensemble Ω, In (Ensemble Ω) Π B ⇒ 
@@ -42,18 +45,27 @@ Definition closed_under_countable_union (Λ : Ensemble (Ensemble Ω))
       ⇒  In _ Λ ( Countable_union C).
 
 
-Definition is_lambda_system (Λ : Ensemble (Ensemble Ω)) 
+Definition is_λ_system (Λ : Ensemble (Ensemble Ω)) 
   : Prop :=
     full_set_in_set Λ ∧ 
     complement_in_set Λ ∧
     closed_under_disjoint_countable_union Λ. 
 
-Definition is_σ_algebra (Λ : Ensemble (Ensemble Ω)) 
+Definition is_σ_algebra (F : Ensemble (Ensemble Ω)) 
   : Prop := 
-    full_set_in_set Λ ∧ 
-    complement_in_set Λ ∧
-    closed_under_countable_union Λ.
+    full_set_in_set F ∧ 
+    complement_in_set F ∧
+    closed_under_countable_union F.
 
+Definition  σ_algebra_generated_by (A : Ensemble (Ensemble Ω)) 
+  : (Ensemble (Ensemble Ω)) := 
+    fun (B : Ensemble Ω) ↦ 
+    (∀ F : Ensemble (Ensemble Ω), (is_σ_algebra F ∧ Included _ A F) ⇒ In _ F B). 
+(*
+Definition restriction (F : Ensemble (Ensemble Ω)) (A : (Ensemble Ω)) 
+  : (Ensemble (Ensemble Ω)) := 
+    fun (B : Ensemble Ω) ↦ 
+*)
 Definition empty_and_full (A : Ensemble Ω) 
   : Prop := 
     (A = (Full_set Ω)) ∨ 
@@ -88,11 +100,6 @@ Proof.
 We prove equality by proving two inclusions. 
 Take x : Ω; Assume x_in_empty.
 contradiction. 
-(*alternatively: 
-Take x : Ω; Assume x_in_empty. 
-Check Empty_set_ind.  (* not necessary, but good to remember this is possible*)
-induction x_in_empty.  (* or 'destruct'*) *)
-
 
 Take x : Ω; Assume x_in_complement_full.
 Because x_in_complement_full 
@@ -122,9 +129,10 @@ rewrite -> A_is_full.
 (*does the same as: 
   Write goal using (A = (Full_set Ω)) as 
     (In (Ensemble Ω) empty_and_full (Setminus Ω (Full_set Ω) (Full_set Ω))). 
+  Could use Write goal as ..., but becomes very long. What to do?
 *) 
 replace (Setminus Ω (Full_set Ω) (Full_set Ω)) 
-  with (Empty_set Ω). 
+  with (Empty_set Ω). (*alternative from WPlib?*)
 It holds that (In _ empty_and_full (Empty_set Ω)). 
 Apply complement_full_is_empty. 
 
@@ -137,12 +145,7 @@ Apply complement_empty_is_full.
 (* Third point: Prove that empty_and_full is closed under countable union*)
 Expand the definition of closed_under_countable_union. 
 Take C : (ℕ → (Ensemble Ω)). 
-Assume C_n_in_empty_and_full : (for all n : ℕ,
-   In (Ensemble Ω) empty_and_full (C n)).
-
-Expand the definition of In. 
-Expand the definition of empty_and_full. 
-
+Assume C_n_in_empty_and_full.
 By classic it holds that ((forall n : ℕ, (C n) = (Empty_set Ω)) 
   ∨ ¬(forall n : ℕ, (C n) = (Empty_set Ω))) (all_or_not_all_empty). 
 Because all_or_not_all_empty either all_empty or not_all_empty. 
@@ -150,30 +153,25 @@ It suffices to show that (Countable_union C = (Empty_set Ω)).
 We prove equality by proving two inclusions. 
 
 Expand the definition of Countable_union. 
-Take x : Ω. 
-Assume x_in_countable_union_C : (In Ω (x0) ↦ (there exists n : ℕ ,
-               In Ω (C n) x0) x). 
+Take x : Ω; Assume x_in_countable_union_C. 
 Choose n such that x_in_C_n according to x_in_countable_union_C. 
 Write x_in_C_n using (C n = Empty_set Ω) as ((Empty_set Ω) x).
 It holds that (In Ω (Empty_set Ω) x). 
 
-Take x : Ω.
-Assume x_in_empty : (In _ (Empty_set Ω) x). 
-It holds that ((In Ω (x0) ↦ (∃n : ℕ,
-               In Ω (C n) x0) x)).
+Take x : Ω; Assume x_in_empty. 
+contradiction. 
+(*It holds that (In Ω (Countable_union C) x).*)
 
 It suffices to show that (Countable_union C = (Full_set Ω)). 
-(*Expand the definition of Countable_union. *)
 We prove equality by proving two inclusions. 
-Take x : Ω.
-Assume x_in_countable_union_C : 
-   (In Ω (x0) ↦ (there exists n : ℕ, In Ω (C n) x0) x). 
+Take x : Ω; Assume x_in_countable_union_C. 
 Choose n0 such that x_in_C_n0 
    according to x_in_countable_union_C. 
 It holds that ((C n0 = Full_set Ω)
-   \/(C n0 = Empty_set Ω)) (C_n0_empty_or_full). 
+   ∨ (C n0 = Empty_set Ω)) (C_n0_empty_or_full). 
 Because C_n0_empty_or_full either C_n0_full or C_n0_empty. 
-rewrite <- C_n0_full. (*write goal as*)
+Write goal using (Full_set Ω = C n0) as (In Ω (C n0) x). 
+(*rewrite <- C_n0_full. *)
 Apply x_in_C_n0. 
 Write x_in_C_n0 using (C n0 = Empty_set Ω) as (Empty_set Ω x).
 Contradiction. 
@@ -184,11 +182,20 @@ By C_n_in_empty_and_full it holds that (∃n : ℕ, (C n = Full_set Ω)) (one_fu
 Choose n1 such that C_n1_full according to one_full. 
 rewrite <- C_n1_full. 
 It holds that (Included Ω (C n1) (Countable_union C)). 
-Qed. 
+Qed.
 
-(*
-Verder: tip vorige keer was 'gebruik write as ipv steeds Expand'. 
-Maar over het algemeen lijkt het daar juist onleesbaarder van 
-te worden (het deel 'as ...' wordt erg lang). Toch doen? 
-Oplossing: tactics definiëren, volgordes veranderen etc; wees creatief. 
-*)
+
+Lemma π_and_λ_is_σ : 
+  ∀ F : Ensemble (Ensemble Ω), 
+    is_π_system F ∧ is_λ_system F 
+    ⇒ is_σ_algebra F. 
+
+Theorem π_λ_theorem : 
+  ∀ Π Λ : Ensemble (Ensemble Ω), 
+    is_π_system Π ∧ is_λ_system Λ ∧ Included _ Π Λ
+    ⇒ Included _ (σ_algebra_generated_by Π) Λ. 
+
+
+
+
+
