@@ -1,8 +1,5 @@
-(*Version 1.5.1 - 18-04-2020
-  Further proof cleanup, w/ a few questions
-  Progress lost due to PC crash, despite saving :( 
-  Generated sigma algebra defined
-  pi-lambda theorem and lemma stated. 
+(*Version 1.5.2 - 19-04-2020
+  pi, lambda -> sigma lemma proof begun. 
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -146,9 +143,10 @@ Apply complement_empty_is_full.
 Expand the definition of closed_under_countable_union. 
 Take C : (ℕ → (Ensemble Ω)). 
 Assume C_n_in_empty_and_full.
-By classic it holds that ((forall n : ℕ, (C n) = (Empty_set Ω)) 
-  ∨ ¬(forall n : ℕ, (C n) = (Empty_set Ω))) (all_or_not_all_empty). 
-Because all_or_not_all_empty either all_empty or not_all_empty. 
+By classic it holds that ((∀ n : ℕ, (C n) = (Empty_set Ω)) 
+  ∨ ¬(∀ n : ℕ, (C n) = (Empty_set Ω))) (all_or_not_all_empty). 
+Because all_or_not_all_empty 
+  either all_empty or not_all_empty. 
 It suffices to show that (Countable_union C = (Empty_set Ω)). 
 We prove equality by proving two inclusions. 
 
@@ -159,8 +157,8 @@ Write x_in_C_n using (C n = Empty_set Ω) as ((Empty_set Ω) x).
 It holds that (In Ω (Empty_set Ω) x). 
 
 Take x : Ω; Assume x_in_empty. 
-contradiction. 
-(*It holds that (In Ω (Countable_union C) x).*)
+Contradiction. 
+
 
 It suffices to show that (Countable_union C = (Full_set Ω)). 
 We prove equality by proving two inclusions. 
@@ -170,15 +168,19 @@ Choose n0 such that x_in_C_n0
 It holds that ((C n0 = Full_set Ω)
    ∨ (C n0 = Empty_set Ω)) (C_n0_empty_or_full). 
 Because C_n0_empty_or_full either C_n0_full or C_n0_empty. 
-Write goal using (Full_set Ω = C n0) as (In Ω (C n0) x). 
+Write goal using (Full_set Ω = C n0) 
+  as (In Ω (C n0) x). 
 (*rewrite <- C_n0_full. *)
 Apply x_in_C_n0. 
-Write x_in_C_n0 using (C n0 = Empty_set Ω) as (Empty_set Ω x).
+Write x_in_C_n0 using (C n0 = Empty_set Ω) 
+  as (Empty_set Ω x).
 Contradiction. 
 (*of ook: It holds that (In Ω (Full_set Ω) x). Uit iets onwaars kan alles volgen. *)
 
-By not_all_empty it holds that (∃n : ℕ, ¬ (C n = Empty_set Ω)) (one_not_empty). 
-By C_n_in_empty_and_full it holds that (∃n : ℕ, (C n = Full_set Ω)) (one_full).
+By not_all_empty it holds that 
+  (∃n : ℕ, ¬ (C n = Empty_set Ω)) (one_not_empty). 
+By C_n_in_empty_and_full it holds that 
+  (∃n : ℕ, (C n = Full_set Ω)) (one_full).
 Choose n1 such that C_n1_full according to one_full. 
 rewrite <- C_n1_full. 
 It holds that (Included Ω (C n1) (Countable_union C)). 
@@ -189,6 +191,55 @@ Lemma π_and_λ_is_σ :
   ∀ F : Ensemble (Ensemble Ω), 
     is_π_system F ∧ is_λ_system F 
     ⇒ is_σ_algebra F. 
+
+Proof. 
+Take F : (Ensemble (Ensemble Ω)).
+Assume F_is_π_and_λ_system. (*liever als 2 definities?*)
+By F_is_π_and_λ_system 
+  it holds that (is_π_system F) (F_is_π_system). 
+By F_is_π_and_λ_system 
+  it holds that (is_λ_system F) (F_is_λ_system). 
+Expand the definition of is_σ_algebra.
+split. 
+It holds that (full_set_in_set F).
+split.
+It holds that (complement_in_set F). (*erbij zetten waarom?*)
+
+Expand the definition of closed_under_countable_union. 
+Take C : (ℕ ⇨ Ensemble Ω); Assume all_C_n_in_F. 
+It holds that (closed_under_disjoint_countable_union F) (F_closed_under_disjoint). 
+Expand the definition of 
+  closed_under_disjoint_countable_union 
+    in F_closed_under_disjoint. 
+By classic it holds that 
+  ((∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) ∨ 
+  ¬(∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n))) (all_or_not_all_disjoint). 
+Because all_or_not_all_disjoint either all_disjoint or not_all_disjoint. 
+(*Case 1: all C_n disjoint.*) 
+It holds that (In (Ensemble Ω) F (Countable_union C)). 
+
+(*Case 2: not all C_n disjoint. *)
+By not_all_disjoint it holds that 
+  (∃m n : ℕ, m ≠ n 
+    ⇨ ¬(Disjoint Ω (C m) (C n))) (two_not_disjoint). 
+Choose m 
+  such that one_not_disjoint_with_m 
+    according to two_not_disjoint. 
+Choose n 
+  such that C_m_n_not_disjoint 
+    according to one_not_disjoint_with_m.
+It holds that (In _ F (C m) ∧ In _ F (C n)) (C_m_and_C_m_in_F). 
+By F_is_π_system it holds that 
+  (In _ F (Intersection _ (C m) (C n))) (intersection_in_F). 
+
+(* Usual proof method: Take all non-disjoint sets, 
+   take their intersections as separate sets each. 
+   These are in F by F_is_π_system, and their union
+   is in F by F_is_λ_system
+*)
+
+ 
+Qed. 
 
 Theorem π_λ_theorem : 
   ∀ Π Λ : Ensemble (Ensemble Ω), 
