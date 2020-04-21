@@ -1,5 +1,5 @@
-(*Version 1.5.2 - 19-04-2020
-  pi, lambda -> sigma lemma proof begun. 
+(*Version 1.5.3 - 20-04-2020
+  pi, lambda -> sigma lemma proof continued. 
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -187,6 +187,10 @@ It holds that (Included Ω (C n1) (Countable_union C)).
 Qed.
 
 
+Inductive make_disjoint_seq_sets (C : (ℕ ⇨ Ensemble Ω)) 
+  : (ℕ ⇨ Ensemble Ω) := 
+    1 -> C_0 : make_disjoint_seq_sets | S : 
+
 Lemma π_and_λ_is_σ : 
   ∀ F : Ensemble (Ensemble Ω), 
     is_π_system F ∧ is_λ_system F 
@@ -200,17 +204,17 @@ By F_is_π_and_λ_system
 By F_is_π_and_λ_system 
   it holds that (is_λ_system F) (F_is_λ_system). 
 Expand the definition of is_σ_algebra.
-split. 
-It holds that (full_set_in_set F).
 split.
-It holds that (complement_in_set F). (*erbij zetten waarom?*)
+It holds that (full_set_in_set F) .
+split.
+It holds that (complement_in_set F). 
 
 Expand the definition of closed_under_countable_union. 
 Take C : (ℕ ⇨ Ensemble Ω); Assume all_C_n_in_F. 
-It holds that (closed_under_disjoint_countable_union F) (F_closed_under_disjoint). 
+(*It holds that (closed_under_disjoint_countable_union F) (F_closed_under_disjoint). 
 Expand the definition of 
   closed_under_disjoint_countable_union 
-    in F_closed_under_disjoint. 
+    in F_closed_under_disjoint. *)
 By classic it holds that 
   ((∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) ∨ 
   ¬(∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n))) (all_or_not_all_disjoint). 
@@ -219,6 +223,9 @@ Because all_or_not_all_disjoint either all_disjoint or not_all_disjoint.
 It holds that (In (Ensemble Ω) F (Countable_union C)). 
 
 (*Case 2: not all C_n disjoint. *)
+(*Newer approach: *)
+
+(*Former approach: *)
 By not_all_disjoint it holds that 
   (∃m n : ℕ, m ≠ n 
     ⇨ ¬(Disjoint Ω (C m) (C n))) (two_not_disjoint). 
@@ -228,12 +235,15 @@ Choose m
 Choose n 
   such that C_m_n_not_disjoint 
     according to one_not_disjoint_with_m.
+(*Nu nog m ≠ n? *)
 It holds that (In _ F (C m) ∧ In _ F (C n)) (C_m_and_C_m_in_F). 
 By F_is_π_system it holds that 
-  (In _ F (Intersection _ (C m) (C n))) (intersection_in_F). 
+  (In _ F (Intersection _ (C m) (C n))) (intersection_in_F).
+(*Dead end? *)
 
-(* Usual proof method: Take all non-disjoint sets, 
-   take their intersections as separate sets each. 
+(* Usual proof method: 
+   Let B_n := C_n \ (union i=1 to n-1 of C_i). 
+    (or B_n := C_n \ B_n-1, B_0 = C_0)
    These are in F by F_is_π_system, and their union
    is in F by F_is_λ_system
 *)
