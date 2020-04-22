@@ -1,5 +1,5 @@
-(*Version 1.5.3 - 20-04-2020
-  pi, lambda -> sigma lemma proof continued. 
+(*Version 1.5.4 - 22-04-2020
+  additional definitions 
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -40,7 +40,6 @@ Definition closed_under_countable_union (Λ : Ensemble (Ensemble Ω))
   : Prop :=  
     ∀C : (ℕ → (Ensemble Ω)), (∀ n : ℕ, In _ Λ (C n)) 
       ⇒  In _ Λ ( Countable_union C).
-
 
 Definition is_λ_system (Λ : Ensemble (Ensemble Ω)) 
   : Prop :=
@@ -186,10 +185,16 @@ rewrite <- C_n1_full.
 It holds that (Included Ω (C n1) (Countable_union C)). 
 Qed.
 
+Inductive auxiliary_seq (C : (ℕ ⇨ Ensemble Ω)) 
+  : (ℕ ⇨ Ensemble Ω) := 
+    | aux_first : (auxiliary_seq C) 1 = Empty_set _
+    | aux_ind : ∀ n : ℕ, (auxiliary_seq C) n = Union _ (C n) ((auxiliary_seq C) (n-1)). 
+
 
 Inductive make_disjoint_seq_sets (C : (ℕ ⇨ Ensemble Ω)) 
   : (ℕ ⇨ Ensemble Ω) := 
-    1 -> C_0 : make_disjoint_seq_sets | S : 
+    | first_set : (make_disjoint_seq_sets C 1 = C 0) 
+    | induction_sets : ∀ n : ℕ, make_disjoint_seq_sets C n = Setminus _ (C n) (make_disjoint_seq_sets C (n-1)). 
 
 Lemma π_and_λ_is_σ : 
   ∀ F : Ensemble (Ensemble Ω), 
@@ -198,7 +203,7 @@ Lemma π_and_λ_is_σ :
 
 Proof. 
 Take F : (Ensemble (Ensemble Ω)).
-Assume F_is_π_and_λ_system. (*liever als 2 definities?*)
+Assume F_is_π_and_λ_system. 
 By F_is_π_and_λ_system 
   it holds that (is_π_system F) (F_is_π_system). 
 By F_is_π_and_λ_system 
@@ -243,7 +248,8 @@ By F_is_π_system it holds that
 
 (* Usual proof method: 
    Let B_n := C_n \ (union i=1 to n-1 of C_i). 
-    (or B_n := C_n \ B_n-1, B_0 = C_0)
+    (or: A_n := Union _ A_n-1 B_n-1, A_0 = empty
+         B_n := C_n \ A_n, B_0 = C_0)
    These are in F by F_is_π_system, and their union
    is in F by F_is_λ_system
 *)
