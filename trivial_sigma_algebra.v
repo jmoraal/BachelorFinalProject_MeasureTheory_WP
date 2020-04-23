@@ -1,5 +1,5 @@
-(*Version 1.5.4 - 22-04-2020
-  additional definitions 
+(*Version 1.5.5 - 23-04-2020
+  new notations 
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -9,64 +9,13 @@ Require Import wplib.Notations.Notations.
 Require Import Sets.Powerset.
 Require Import Coq.Logic.Classical_Pred_Type. 
 
-Variable Ω : Type.
+Variable U : Type.
 
-Definition is_π_system (Π : Ensemble (Ensemble Ω)) 
-  : Prop := 
-    ∀ A : Ensemble Ω, In _ Π A ⇒ 
-      ∀ B : Ensemble Ω, In (Ensemble Ω) Π B ⇒ 
-       In (Ensemble Ω) Π (Intersection Ω A B).  
+Notation "∅" := 
+  (Empty_set U). (*Watch out: type Ensemble _, not Ensemble Ensemble _*)
 
-Definition Countable_union (A : (ℕ → Ensemble Ω)) 
-  : Ensemble Ω := 
-    fun (x:Ω) ↦ ∃n : ℕ, In Ω (A n) x.
-
-Definition full_set_in_set (Λ : Ensemble (Ensemble Ω)) 
-  : Prop :=
-    In _ Λ (Full_set Ω). 
-
-Definition complement_in_set (Λ : Ensemble (Ensemble Ω)) 
-  : Prop := 
-    ∀A  : Ensemble Ω, In _ Λ A 
-      ⇒ In _ Λ (Setminus _ (Full_set Ω) A). 
-
-Definition closed_under_disjoint_countable_union (Λ : Ensemble (Ensemble Ω)) 
-  : Prop :=
-    ∀C : (ℕ → (Ensemble Ω)), 
-      (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
-        ⇒ (∀ n : ℕ, In _ Λ (C n)) ⇒  In _ Λ ( Countable_union C).
-
-Definition closed_under_countable_union (Λ : Ensemble (Ensemble Ω)) 
-  : Prop :=  
-    ∀C : (ℕ → (Ensemble Ω)), (∀ n : ℕ, In _ Λ (C n)) 
-      ⇒  In _ Λ ( Countable_union C).
-
-Definition is_λ_system (Λ : Ensemble (Ensemble Ω)) 
-  : Prop :=
-    full_set_in_set Λ ∧ 
-    complement_in_set Λ ∧
-    closed_under_disjoint_countable_union Λ. 
-
-Definition is_σ_algebra (F : Ensemble (Ensemble Ω)) 
-  : Prop := 
-    full_set_in_set F ∧ 
-    complement_in_set F ∧
-    closed_under_countable_union F.
-
-Definition  σ_algebra_generated_by (A : Ensemble (Ensemble Ω)) 
-  : (Ensemble (Ensemble Ω)) := 
-    fun (B : Ensemble Ω) ↦ 
-    (∀ F : Ensemble (Ensemble Ω), (is_σ_algebra F ∧ Included _ A F) ⇒ In _ F B). 
-(*
-Definition restriction (F : Ensemble (Ensemble Ω)) (A : (Ensemble Ω)) 
-  : (Ensemble (Ensemble Ω)) := 
-    fun (B : Ensemble Ω) ↦ 
-*)
-Definition empty_and_full (A : Ensemble Ω) 
-  : Prop := 
-    (A = (Full_set Ω)) ∨ 
-    (A = (Empty_set Ω)).  
-
+Notation "'Ω'" := 
+  (Full_set U). (*Which level to choose for these two?*)
 
 Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
    apply Extensionality_Ensembles; 
@@ -75,29 +24,103 @@ Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
    unfold Included;
    split.
 
+Notation "x ∩ y" := 
+  (Intersection _ x y) (at level 50). (*again, level?*)
+
+Notation "x ∪ y" := 
+  (Union _ x y) (at level 50). 
+
+
+Notation "x \ y" := 
+  (Setminus _ x y) (at level 50). 
+
+Notation "x ∈ y" := 
+  (In _ y x) (at level 50). 
+(*notation already used in 'Notations', but differently*)
+
+Notation "x ⊂ y" := 
+  (Included _ x y) (at level 50). 
+
+Definition is_π_system (Π : Ensemble (Ensemble U)) 
+  : Prop := 
+    ∀ A : Ensemble U, A ∈ Π ⇒ 
+      ∀ B : Ensemble U, B ∈ Π ⇒ 
+         (A ∩ B) ∈ Π. 
+       (*In (Ensemble U) Π (A ∩ B). *)
+
+Definition Countable_union (A : (ℕ → Ensemble U)) 
+  : Ensemble U := 
+    fun (x:U) ↦ ∃n : ℕ, x ∈ (A n).
+
+Definition full_set_in_set (Λ : Ensemble (Ensemble U)) 
+  : Prop :=
+    Ω ∈ Λ. 
+
+Definition complement_in_set (Λ : Ensemble (Ensemble U)) 
+  : Prop := 
+    ∀A  : Ensemble U, A ∈ Λ 
+      ⇒ (Ω \ A) ∈ Λ. 
+
+Definition closed_under_disjoint_countable_union (Λ : Ensemble (Ensemble U)) 
+  : Prop :=
+    ∀C : (ℕ → (Ensemble U)), 
+      (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
+        ⇒ (∀ n : ℕ, (C n) ∈ Λ) ⇒  (Countable_union C) ∈ Λ.
+
+Definition closed_under_countable_union (Λ : Ensemble (Ensemble U)) 
+  : Prop :=  
+    ∀C : (ℕ → (Ensemble U)), (∀ n : ℕ, (C n) ∈ Λ) 
+      ⇒ (Countable_union C) ∈ Λ.
+
+Definition is_λ_system (Λ : Ensemble (Ensemble U)) 
+  : Prop :=
+    full_set_in_set Λ ∧ 
+    complement_in_set Λ ∧
+    closed_under_disjoint_countable_union Λ. 
+
+Definition is_σ_algebra (F : Ensemble (Ensemble U)) 
+  : Prop := 
+    full_set_in_set F ∧ 
+    complement_in_set F ∧
+    closed_under_countable_union F.
+
+Definition  σ_algebra_generated_by (A : Ensemble (Ensemble U)) 
+  : (Ensemble (Ensemble U)) := 
+    fun (B : Ensemble U) ↦ 
+    (∀ F : Ensemble (Ensemble U), (is_σ_algebra F ∧ A ⊂ F) ⇒ B ∈ F). 
+(*
+Definition restriction (F : Ensemble (Ensemble U)) (A : (Ensemble U)) 
+  : (Ensemble (Ensemble U)) := 
+    fun (B : Ensemble U) ↦ 
+*)
+Definition empty_and_full (A : Ensemble U) 
+  : Prop := 
+    (A = Ω) ∨ (A = ∅).  
+
+
 Lemma complement_empty_is_full : 
-  (Full_set Ω) = (Setminus _ (Full_set Ω ) (Empty_set Ω)). 
+  Ω = (Ω \ ∅). 
 
 Proof. 
 We prove equality by proving two inclusions. 
-Take x : Ω; Assume x_in_full. 
-It holds that (In Ω (Full_set Ω) x ∧ ¬ In Ω (Empty_set Ω) x).
+Take x : U; Assume x_in_full. 
+It holds that (In U Ω x ∧ ¬ In U ∅ x).
 
-Take x : Ω; Assume x_in_complement_empty.
+Take x : U; Assume x_in_complement_empty.
 Because x_in_complement_empty both x_in_full and not_x_in_empty. 
-It holds that (In _ (Full_set Ω) x). 
+It holds that (In _ Ω x). 
 Qed. 
 
 
 Lemma complement_full_is_empty : 
-  (Empty_set Ω) = (Setminus _ (Full_set Ω) (Full_set Ω)). 
+  ∅ = (Ω \ Ω). 
 
 Proof. 
 We prove equality by proving two inclusions. 
-Take x : Ω; Assume x_in_empty.
+Take x : U; Assume x_in_empty.
 contradiction. 
 
-Take x : Ω; Assume x_in_complement_full.
+Take x : U; Assume x_in_complement_full.
 Because x_in_complement_full 
   both x_in_full and not_x_in_full. 
 contradiction. 
@@ -116,93 +139,98 @@ split.
 
 (* Second point: Prove that empty_and_full is closed under complement*)
 Expand the definition of complement_in_set. 
-Take A : (Ensemble Ω). 
-Assume A_in_F : (In _ empty_and_full A). 
-Write A_in_F as ( (A = (Full_set Ω)) 
-  ∨ (A = (Empty_set Ω)) ).
+Take A : (Ensemble U). 
+Assume A_in_F : (A ∈ empty_and_full). 
+Write A_in_F as ( (A = Ω) 
+  ∨ (A = ∅) ).
 Because A_in_F either A_is_full or A_is_empty. 
 rewrite -> A_is_full. 
 (*does the same as: 
-  Write goal using (A = (Full_set Ω)) as 
-    (In (Ensemble Ω) empty_and_full (Setminus Ω (Full_set Ω) (Full_set Ω))). 
+  Write goal using (A = Ω) as 
+    (In (Ensemble U) empty_and_full (Ω \ Ω)). 
   Could use Write goal as ..., but becomes very long. What to do?
 *) 
-replace (Setminus Ω (Full_set Ω) (Full_set Ω)) 
-  with (Empty_set Ω). (*alternative from WPlib?*)
-It holds that (In _ empty_and_full (Empty_set Ω)). 
+replace (Ω \ Ω) 
+  with ∅. (*alternative from WPlib?*)
+It holds that (∅ ∈ empty_and_full). 
 Apply complement_full_is_empty. 
 
 rewrite -> A_is_empty. 
-replace (Setminus Ω (Full_set Ω) (Empty_set Ω)) 
-  with (Full_set Ω). 
-It holds that (In _ empty_and_full (Full_set Ω)). 
+replace (Ω \ ∅) 
+  with Ω. 
+It holds that (Ω ∈ empty_and_full). 
 Apply complement_empty_is_full. 
 
 (* Third point: Prove that empty_and_full is closed under countable union*)
 Expand the definition of closed_under_countable_union. 
-Take C : (ℕ → (Ensemble Ω)). 
+Take C : (ℕ → (Ensemble U)). 
 Assume C_n_in_empty_and_full.
-By classic it holds that ((∀ n : ℕ, (C n) = (Empty_set Ω)) 
-  ∨ ¬(∀ n : ℕ, (C n) = (Empty_set Ω))) (all_or_not_all_empty). 
+By classic it holds that ((∀ n : ℕ, (C n) = ∅) 
+  ∨ ¬(∀ n : ℕ, (C n) = ∅)) (all_or_not_all_empty). 
 Because all_or_not_all_empty 
   either all_empty or not_all_empty. 
-It suffices to show that (Countable_union C = (Empty_set Ω)). 
+It suffices to show that (Countable_union C = ∅). 
 We prove equality by proving two inclusions. 
 
 Expand the definition of Countable_union. 
-Take x : Ω; Assume x_in_countable_union_C. 
+Take x : U; Assume x_in_countable_union_C. 
 Choose n such that x_in_C_n according to x_in_countable_union_C. 
-Write x_in_C_n using (C n = Empty_set Ω) as ((Empty_set Ω) x).
-It holds that (In Ω (Empty_set Ω) x). 
+Write x_in_C_n using (C n = ∅) as (∅ x).
+It holds that (x ∈ ∅). 
 
-Take x : Ω; Assume x_in_empty. 
+Take x : U; Assume x_in_empty. 
 Contradiction. 
 
 
-It suffices to show that (Countable_union C = (Full_set Ω)). 
+It suffices to show that (Countable_union C = Ω). 
 We prove equality by proving two inclusions. 
-Take x : Ω; Assume x_in_countable_union_C. 
+Take x : U; Assume x_in_countable_union_C. 
 Choose n0 such that x_in_C_n0 
    according to x_in_countable_union_C. 
-It holds that ((C n0 = Full_set Ω)
-   ∨ (C n0 = Empty_set Ω)) (C_n0_empty_or_full). 
+It holds that ((C n0 = Ω)
+   ∨ (C n0 = ∅)) (C_n0_empty_or_full). 
 Because C_n0_empty_or_full either C_n0_full or C_n0_empty. 
-Write goal using (Full_set Ω = C n0) 
-  as (In Ω (C n0) x). 
+Write goal using (Ω = C n0) 
+  as (x ∈ C n0). 
 (*rewrite <- C_n0_full. *)
 Apply x_in_C_n0. 
-Write x_in_C_n0 using (C n0 = Empty_set Ω) 
-  as (Empty_set Ω x).
+Write x_in_C_n0 using (C n0 = ∅) 
+  as (∅ x).
 Contradiction. 
-(*of ook: It holds that (In Ω (Full_set Ω) x). Uit iets onwaars kan alles volgen. *)
+(*of ook: It holds that (In U Ω x). Uit iets onwaars kan alles volgen. *)
 
 By not_all_empty it holds that 
-  (∃n : ℕ, ¬ (C n = Empty_set Ω)) (one_not_empty). 
+  (∃n : ℕ, ¬ (C n = ∅)) (one_not_empty). 
 By C_n_in_empty_and_full it holds that 
-  (∃n : ℕ, (C n = Full_set Ω)) (one_full).
+  (∃n : ℕ, (C n = Ω)) (one_full).
 Choose n1 such that C_n1_full according to one_full. 
 rewrite <- C_n1_full. 
-It holds that (Included Ω (C n1) (Countable_union C)). 
-Qed.
+It holds that ((C n1) ⊂ (Countable_union C)). 
+Qed. 
 
-Inductive auxiliary_seq (C : (ℕ ⇨ Ensemble Ω)) 
-  : (ℕ ⇨ Ensemble Ω) := 
-    | aux_first : (auxiliary_seq C) 1 = Empty_set _
-    | aux_ind : ∀ n : ℕ, (auxiliary_seq C) n = Union _ (C n) ((auxiliary_seq C) (n-1)). 
+Inductive auxiliary_seq (C : (ℕ ⇨ Ensemble U)) 
+  : (ℕ ⇨ Ensemble U) := 
+    | aux_first : (auxiliary_seq C) 1 = ∅ 
+    | aux_ind : ∀ n : ℕ, (auxiliary_seq C) n = (C n) ∪ ((auxiliary_seq C) (n-1)). 
 
+(* Waarom werkt deze niet? Vergelijk met deze: 
+   Inductive Couple (x y:U) : Ensemble :=
+    | Couple_l : In (Couple x y) x
+    | Couple_r : In (Couple x y) y.
+*)
 
-Inductive make_disjoint_seq_sets (C : (ℕ ⇨ Ensemble Ω)) 
-  : (ℕ ⇨ Ensemble Ω) := 
+Inductive make_disjoint_seq_sets (C : (ℕ ⇨ Ensemble U)) 
+  : (ℕ ⇨ Ensemble U) := 
     | first_set : (make_disjoint_seq_sets C 1 = C 0) 
-    | induction_sets : ∀ n : ℕ, make_disjoint_seq_sets C n = Setminus _ (C n) (make_disjoint_seq_sets C (n-1)). 
+    | induction_sets : ∀ n : ℕ, make_disjoint_seq_sets C n = (C n) \ (auxiliary_seq C n). 
 
 Lemma π_and_λ_is_σ : 
-  ∀ F : Ensemble (Ensemble Ω), 
+  ∀ F : Ensemble (Ensemble U), 
     is_π_system F ∧ is_λ_system F 
     ⇒ is_σ_algebra F. 
 
 Proof. 
-Take F : (Ensemble (Ensemble Ω)).
+Take F : (Ensemble (Ensemble U)).
 Assume F_is_π_and_λ_system. 
 By F_is_π_and_λ_system 
   it holds that (is_π_system F) (F_is_π_system). 
@@ -215,7 +243,7 @@ split.
 It holds that (complement_in_set F). 
 
 Expand the definition of closed_under_countable_union. 
-Take C : (ℕ ⇨ Ensemble Ω); Assume all_C_n_in_F. 
+Take C : (ℕ ⇨ Ensemble U); Assume all_C_n_in_F. 
 (*It holds that (closed_under_disjoint_countable_union F) (F_closed_under_disjoint). 
 Expand the definition of 
   closed_under_disjoint_countable_union 
@@ -225,7 +253,7 @@ By classic it holds that
   ¬(∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n))) (all_or_not_all_disjoint). 
 Because all_or_not_all_disjoint either all_disjoint or not_all_disjoint. 
 (*Case 1: all C_n disjoint.*) 
-It holds that (In (Ensemble Ω) F (Countable_union C)). 
+It holds that (Countable_union C ∈ F). 
 
 (*Case 2: not all C_n disjoint. *)
 (*Newer approach: *)
@@ -233,7 +261,7 @@ It holds that (In (Ensemble Ω) F (Countable_union C)).
 (*Former approach: *)
 By not_all_disjoint it holds that 
   (∃m n : ℕ, m ≠ n 
-    ⇨ ¬(Disjoint Ω (C m) (C n))) (two_not_disjoint). 
+    ⇨ ¬(Disjoint U (C m) (C n))) (two_not_disjoint). 
 Choose m 
   such that one_not_disjoint_with_m 
     according to two_not_disjoint. 
@@ -241,26 +269,26 @@ Choose n
   such that C_m_n_not_disjoint 
     according to one_not_disjoint_with_m.
 (*Nu nog m ≠ n? *)
-It holds that (In _ F (C m) ∧ In _ F (C n)) (C_m_and_C_m_in_F). 
+It holds that ((C m) ∈ F ∧ (C n) ∈ F) (C_m_and_C_m_in_F). 
 By F_is_π_system it holds that 
-  (In _ F (Intersection _ (C m) (C n))) (intersection_in_F).
+  ((Intersection _ (C m) (C n)) ∈ F) (intersection_in_F).
 (*Dead end? *)
 
 (* Usual proof method: 
    Let B_n := C_n \ (union i=1 to n-1 of C_i). 
-    (or: A_n := Union _ A_n-1 B_n-1, A_0 = empty
+    (or: A_n := A_n-1 ∪ B_n-1, A_0 = empty
          B_n := C_n \ A_n, B_0 = C_0)
    These are in F by F_is_π_system, and their union
    is in F by F_is_λ_system
 *)
 
  
-Qed. 
+(*Qed. *) Admitted. 
 
 Theorem π_λ_theorem : 
-  ∀ Π Λ : Ensemble (Ensemble Ω), 
-    is_π_system Π ∧ is_λ_system Λ ∧ Included _ Π Λ
-    ⇒ Included _ (σ_algebra_generated_by Π) Λ. 
+  ∀ Π Λ : Ensemble (Ensemble U), 
+    is_π_system Π ∧ is_λ_system Λ ∧ Π ⊂ Λ
+    ⇒ (σ_algebra_generated_by Π) ⊂ Λ. 
 
 
 
