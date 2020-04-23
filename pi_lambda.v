@@ -42,6 +42,8 @@ Notation "x ∈ y" :=
 Notation "x ⊂ y" := 
   (Included _ x y) (at level 50). 
 
+(*How to import definitions from other file? *)
+
 Definition is_π_system (Π : Ensemble (Ensemble U)) 
   : Prop := 
     ∀ A : Ensemble U, A ∈ Π ⇒ 
@@ -94,10 +96,6 @@ Definition restriction (F : Ensemble (Ensemble U)) (A : (Ensemble U))
   : (Ensemble (Ensemble U)) := 
     fun (B : Ensemble U) ↦ 
 *)
-Definition empty_and_full (A : Ensemble U) 
-  : Prop := 
-    (A = Ω) ∨ (A = ∅).  
-
 
 Inductive auxiliary_seq (C : (ℕ ⇨ Ensemble U)) 
   : (ℕ ⇨ Ensemble U) := 
@@ -126,9 +124,11 @@ Take A : (Ensemble U); Take B : (Ensemble U).
 We prove equality by proving two inclusions. 
 
 Take x : U. 
-It holds that (In _ (Full_set _) x) (x_in_full). (*Waarom werkt dit niet?*)
 Assume x_in_A_without_B. 
-It holds that (~(x ∈ B)) (x_not_in_B).
+It holds that (x ∈ A) (x_in_A). 
+It holds that (¬(x ∈ B)) (x_not_in_B).
+It holds that (x ∈ ((Full_set U) \ B)) (x_in_complement_B). 
+It holds that (In _ (Full_set _) x) (x_in_full). (*Waarom werkt dit niet?*)
 
 x ∈ Full_set U) (x_in_Omega). 
 By x_not_in_B it holds that (x ∈ (Ω \ B)) (x_in_complement_B). 
