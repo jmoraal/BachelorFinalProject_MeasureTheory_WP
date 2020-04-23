@@ -1,26 +1,28 @@
-(*Version 1.5.5 - 23-04-2020
-  new notations 
+(*Version 1.5.6 - 23-04-2020
+  Lemma's for pi&lambda => sigma.  
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
 Require Import wplib.Tactics.Tactics.
 Require Import wplib.Tactics.TacticsContra.
-Require Import wplib.Notations.Notations.
+(*Require Import wplib.Notations.Notations.*)
 Require Import Sets.Powerset.
 Require Import Coq.Logic.Classical_Pred_Type. 
 
 Variable U : Type.
 
 Notation "∅" := 
-  (Empty_set U). (*Watch out: type Ensemble _, not Ensemble Ensemble _*)
+  (Empty_set U). 
+(*Watch out: type Ensemble _, not Ensemble Ensemble _. 
+  But the latter is (almost) never needed, 
+  so this difference should not cause problems. *)
 
 Notation "'Ω'" := 
-  (Full_set U). (*Which level to choose for these two?*)
+  (Full_set U) (at level 0). (*Which level to choose for these two?*)
 
 Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
    apply Extensionality_Ensembles; 
    unfold Same_set; 
-   unfold Setminus; 
    unfold Included;
    split.
 
@@ -46,7 +48,7 @@ Definition is_π_system (Π : Ensemble (Ensemble U))
     ∀ A : Ensemble U, A ∈ Π ⇒ 
       ∀ B : Ensemble U, B ∈ Π ⇒ 
          (A ∩ B) ∈ Π. 
-       (*In (Ensemble U) Π (A ∩ B). *)
+       (*In (Ensemble U) Π (Intersection _ A B). *)
 
 Definition Countable_union (A : (ℕ → Ensemble U)) 
   : Ensemble U := 
@@ -104,11 +106,11 @@ Lemma complement_empty_is_full :
 Proof. 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_full. 
-It holds that (In U Ω x ∧ ¬ In U ∅ x).
+It holds that (x ∈ (Ω \ ∅)).
 
 Take x : U; Assume x_in_complement_empty.
-Because x_in_complement_empty both x_in_full and not_x_in_empty. 
-It holds that (In _ Ω x). 
+(*Because x_in_complement_empty both x_in_full and not_x_in_empty. *)
+It holds that (x ∈ Ω). 
 Qed. 
 
 
@@ -150,6 +152,8 @@ rewrite -> A_is_full.
     (In (Ensemble U) empty_and_full (Ω \ Ω)). 
   Could use Write goal as ..., but becomes very long. What to do?
 *) 
+(* now want to apply complement_full_is_empty, but does not work:
+Write goal using ((Ω \ Ω) = ∅) as (∅ ∈ empty_and_full).  *)
 replace (Ω \ Ω) 
   with ∅. (*alternative from WPlib?*)
 It holds that (∅ ∈ empty_and_full). 
@@ -169,6 +173,8 @@ By classic it holds that ((∀ n : ℕ, (C n) = ∅)
   ∨ ¬(∀ n : ℕ, (C n) = ∅)) (all_or_not_all_empty). 
 Because all_or_not_all_empty 
   either all_empty or not_all_empty. 
+
+(*All empty:*)
 It suffices to show that (Countable_union C = ∅). 
 We prove equality by proving two inclusions. 
 
@@ -181,7 +187,7 @@ It holds that (x ∈ ∅).
 Take x : U; Assume x_in_empty. 
 Contradiction. 
 
-
+(*Not all empty:*)
 It suffices to show that (Countable_union C = Ω). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_countable_union_C. 
@@ -210,8 +216,10 @@ Qed.
 
 Inductive auxiliary_seq (C : (ℕ ⇨ Ensemble U)) 
   : (ℕ ⇨ Ensemble U) := 
-    | aux_first : (auxiliary_seq C) 1 = ∅ 
-    | aux_ind : ∀ n : ℕ, (auxiliary_seq C) n = (C n) ∪ ((auxiliary_seq C) (n-1)). 
+    | aux_first : (auxiliary_seq C) 0 = ∅ 
+    | aux_ind : ∀ n : ℕ, 
+        (auxiliary_seq C) n 
+        = (C n) ∪ ((auxiliary_seq C) (n-1)). 
 
 (* Waarom werkt deze niet? Vergelijk met deze: 
    Inductive Couple (x y:U) : Ensemble :=
@@ -223,6 +231,41 @@ Inductive make_disjoint_seq_sets (C : (ℕ ⇨ Ensemble U))
   : (ℕ ⇨ Ensemble U) := 
     | first_set : (make_disjoint_seq_sets C 1 = C 0) 
     | induction_sets : ∀ n : ℕ, make_disjoint_seq_sets C n = (C n) \ (auxiliary_seq C n). 
+
+Lemma complement_as_intersection : 
+  ∀ A B : Ensemble U, 
+    A \ B = A ∩ (Ω \ B). 
+
+Proof. 
+Take A : (Ensemble U); Take B : (Ensemble U). 
+We prove equality by proving two inclusions. 
+
+Take x : U. 
+It holds that (In _ (Full_set _) x) (x_in_full). (*Waarom werkt dit niet?*)
+Assume x_in_A_without_B. 
+It holds that (~(x ∈ B)) (x_not_in_B).
+
+x ∈ Full_set U) (x_in_Omega). 
+By x_not_in_B it holds that (x ∈ (Ω \ B)) (x_in_complement_B). 
+
+Lemma complements_in_pi_lambda_system : 
+  ∀ F : Ensemble (Ensemble U), 
+    is_π_system F ∧ is_λ_system F 
+    ⇒ ∀ A B : Ensemble U, A ∈ F ∧ B ∈ F
+      ⇒ A \ B ∈ F. 
+
+Proof. 
+Take F : (Ensemble (Ensemble U)). 
+Assume F_is_π_and_λ_system.
+By F_is_π_and_λ_system 
+  it holds that (is_π_system F) (F_is_π_system). 
+By F_is_π_and_λ_system 
+  it holds that (is_λ_system F) (F_is_λ_system). 
+Take A : (Ensemble U); Take B : (Ensemble U). 
+Assume A_and_B_in_F. 
+
+
+
 
 Lemma π_and_λ_is_σ : 
   ∀ F : Ensemble (Ensemble U), 
