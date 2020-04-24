@@ -1,6 +1,6 @@
-(*Version 1.5.6 - 23-04-2020
-  Lemma's for pi&lambda => sigma moved to other file. 
-  U as universe, so that Om = full set (already in previous versions)
+(*Version 1.5.7 - 24-04-2020
+  Meeting w/ Jim
+  rewrite and replace tactics replaced by WP expressions
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -32,12 +32,11 @@ Notation "x ∩ y" :=
 Notation "x ∪ y" := 
   (Union _ x y) (at level 50). 
 
-
 Notation "x \ y" := 
   (Setminus _ x y) (at level 50). 
 
-Notation "x ∈ y" := 
-  (In _ y x) (at level 50). 
+Notation "x ∈ A" := 
+  (In _ A x) (at level 50). 
 (*notation already used in 'Notations', but differently*)
 
 Notation "x ⊂ y" := 
@@ -89,11 +88,11 @@ Definition  σ_algebra_generated_by (A : Ensemble (Ensemble U))
   : (Ensemble (Ensemble U)) := 
     fun (B : Ensemble U) ↦ 
       (∀ F : Ensemble (Ensemble U), (is_σ_algebra F ∧ A ⊂ F) ⇒ B ∈ F). 
-(*
+
 Definition restriction (F : Ensemble (Ensemble U)) (A : (Ensemble U)) 
   : (Ensemble (Ensemble U)) := 
-    fun (B : Ensemble U) ↦ 
-*)
+    fun (C : Ensemble U) ↦ (exists B : Ensemble U, B ∈ F ⇒ C = A ∩ B). 
+
 Definition empty_and_full (A : Ensemble U) 
   : Prop := 
     (A = Ω) ∨ (A = ∅).  
@@ -144,24 +143,18 @@ Assume A_in_F : (A ∈ empty_and_full).
 Write A_in_F as 
   ((A = Ω) ∨ (A = ∅) ).
 Because A_in_F either A_is_full or A_is_empty. 
-rewrite -> A_is_full. 
-(*does the same as: 
-  Write goal using (A = Ω) as 
-    (In (Ensemble U) empty_and_full (Ω \ Ω)). 
-  Could use Write goal as ..., but becomes very long. What to do?
-*) 
-(* now want to apply complement_full_is_empty, but does not work:
-Write goal using ((Ω \ Ω) = ∅) as (∅ ∈ empty_and_full).  *)
-replace (Ω \ Ω) 
-  with ∅. (*alternative from WPlib?*)
-It holds that (∅ ∈ empty_and_full). 
-Apply complement_full_is_empty. 
+Write goal using (A = Ω) as 
+  ((Ω \ Ω) ∈ empty_and_full ). 
 
-rewrite -> A_is_empty. 
-replace (Ω \ ∅) 
-  with Ω. 
+(* now want to apply complement_full_is_empty, but does not work:*)
+By complement_full_is_empty it holds that ((Ω \ Ω) = ∅) (comp_full). 
+Write goal using ((Ω \ Ω) = ∅) as (∅ ∈ empty_and_full). 
+It holds that (∅ ∈ empty_and_full). 
+
+Write goal using (A = ∅) as ((Ω \ ∅) ∈ empty_and_full). 
+By complement_empty_is_full it holds that ((Ω \ ∅) = Ω) (comp_empty).
+Write goal using (Ω \ ∅ = Ω) as (Ω ∈ empty_and_full). 
 It holds that (Ω ∈ empty_and_full). 
-Apply complement_empty_is_full. 
 
 (* Third point: Prove that empty_and_full is closed under countable union*)
 Expand the definition of closed_under_countable_union. 
