@@ -1,7 +1,5 @@
 (*Version 1.1 - 24-04-2020
-  Fixpoint definitions done
-  Lemma complement_as_intersection proven
-  Lemma complements_in_pi_lambda_system proven
+  Progress in inductive steps in CU_sets_disjointsets_equal
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -42,6 +40,10 @@ Notation "x ∈ A" :=
 
 Notation "x ⊂ y" := 
   (Included _ x y) (at level 50). 
+
+Tactic Notation "We" "prove" "by" "induction" "on" ident(x) := 
+  induction x. 
+(*Not nicest formulation, but 'Proof' is already taken*)
 
 Hint Resolve Full_intro : measure_theory.  (*nieuwe database measure theory*)
 Hint Resolve Intersection_intro : measure_theory. 
@@ -101,12 +103,23 @@ Fixpoint auxiliary_seq (C : (ℕ ⇨ Ensemble U)) (n : ℕ) {struct n}
   : (Ensemble U) :=
     match n with 
       0 => ∅ 
-    | S p => auxiliary_seq C p ∪ C (S p)
+    | S p => auxiliary_seq C p ∪ C p
+    end. 
+
+Definition finite_union (C : (ℕ ⇨ Ensemble U)) (n : ℕ) 
+  : (Ensemble U) := 
+    fun (x:U) ↦ ∃i : ℕ,  i <= n ⇒ x ∈ (C n).
+
+Fixpoint disjoint_seq (C : (ℕ ⇨ Ensemble U)) (n : ℕ) {struct n}
+  : (Ensemble U) :=
+    match n with 
+      0 => C 0 
+    | S p => C (S p) \ finite_union C p
     end. 
 
 Definition disjoint_seq_sets (C : (ℕ ⇨ Ensemble U))
   : ((ℕ ⇨ Ensemble U)) := 
-    fun (n : ℕ) ↦ C n \ auxiliary_seq C (n-1).
+    fun (n : ℕ) ↦ C n \ auxiliary_seq C n.
 
 
 Lemma CU_sets_disjointsets_equal : 
@@ -122,13 +135,30 @@ It holds that (forall n : nat, (disjoint_seq_sets C n) ⊂ (C n)) (disj_subs_ori
 It holds that (x ∈ Countable_union C). 
 
 Take x : U; Assume x_in_CU_C.
+
 Choose n0 such that x_in_Cn according to x_in_CU_C. 
 
+We prove by induction on n0. 
+(*Base case: *)
+It holds that ( (disjoint_seq_sets C) 0 = (C 0) \ ∅) (disj0_is_C0).
+By disj0_is_C0 it holds that (x ∈(disjoint_seq_sets C) 0) (x_in_disj0). 
+It holds that (x ∈ Countable_union (disjoint_seq_sets C)). 
+
+(*Induction step:*)
+By classic it holds that ((x ∈ C n0) ∨ ~(x ∈ C n0)) (in_Cn0_or_not). 
+Because in_Cn0_or_not either x_in_Cn0 or x_not_in_Cn0. 
+(*x in C_n0: *)
+It holds that (x ∈ Countable_union (disjoint_seq_sets C)). 
+(*x not in C_n0: *)
+By classic it holds that ((x ∈auxiliary_seq C n0) ∨ ~(x ∈ auxiliary_seq C n0)) (in_aux_or_not). 
+Because in_aux_or_not either x_in_aux or x_not_in_aux.
+ 
+It holds that (x ∈ C n \ auxiliary_seq C n.
+
+
+(*Alternative: *)
 We argue by contradiction. 
 It holds that (forall n : nat, ~(In _ (disjoint_seq_sets C n) x)) (x_in_no_disj).
-
-
-
 
 By x_in_no_disCn it holds that (~ (exists n : nat, (In _ (C n) x))) (x_in_no_Cn).
 Contradiction. 
