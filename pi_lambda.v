@@ -1,5 +1,7 @@
-(*Version 1.0 - 23-04-2020
-  Progress from trivial_sigma_algebra file.  
+(*Version 1.1 - 24-04-2020
+  Fixpoint definitions done
+  Lemma complement_as_intersection proven
+  Lemma complements_in_pi_lambda_system proven
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -8,16 +10,16 @@ Require Import wplib.Tactics.TacticsContra.
 Require Import Sets.Powerset.
 Require Import Coq.Logic.Classical_Pred_Type. 
 
+Add LoadPath "../". (*import v-file from same directory*)
+(*Require Import trivial_sigma_algebra.v. *)
+
 Variable U : Type.
 
 Notation "∅" := 
   (Empty_set U). 
-(*Watch out: type Ensemble _, not Ensemble Ensemble _. 
-  But the latter is (almost) never needed, 
-  so this difference should not cause problems. *)
 
 Notation "'Ω'" := 
-  (Full_set U) (at level 0). (*Which level to choose for these two?*)
+  (Full_set U) (at level 0). 
 
 Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
    apply Extensionality_Ensembles; 
@@ -26,7 +28,7 @@ Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
    split.
 
 Notation "x ∩ y" := 
-  (Intersection _ x y) (at level 50). (*again, level?*)
+  (Intersection _ x y) (at level 50). (*change level if brackets occur in wrong places*)
 
 Notation "x ∪ y" := 
   (Union _ x y) (at level 50). 
@@ -35,21 +37,20 @@ Notation "x ∪ y" :=
 Notation "x \ y" := 
   (Setminus _ x y) (at level 50). 
 
-Notation "x ∈ y" := 
-  (In _ y x) (at level 50). 
-(*notation already used in 'Notations', but differently*)
+Notation "x ∈ A" := 
+  (In _ A x) (at level 50). 
 
 Notation "x ⊂ y" := 
   (Included _ x y) (at level 50). 
 
-(*How to import definitions from other file? *)
+Hint Resolve Full_intro : measure_theory.  (*nieuwe database measure theory*)
+Hint Resolve Intersection_intro : measure_theory. 
 
 Definition is_π_system (Π : Ensemble (Ensemble U)) 
   : Prop := 
     ∀ A : Ensemble U, A ∈ Π ⇒ 
       ∀ B : Ensemble U, B ∈ Π ⇒ 
          (A ∩ B) ∈ Π. 
-       (*In (Ensemble U) Π (Intersection _ A B). *)
 
 Definition Countable_union (A : (ℕ → Ensemble U)) 
   : Ensemble U := 
@@ -90,30 +91,50 @@ Definition is_σ_algebra (F : Ensemble (Ensemble U))
 Definition  σ_algebra_generated_by (A : Ensemble (Ensemble U)) 
   : (Ensemble (Ensemble U)) := 
     fun (B : Ensemble U) ↦ 
-    (∀ F : Ensemble (Ensemble U), (is_σ_algebra F ∧ A ⊂ F) ⇒ B ∈ F). 
-(*
+    (∀ F : Ensemble (Ensemble U), is_σ_algebra F ⇒ (A ⊂ F ⇒ B ∈ F)). 
+
 Definition restriction (F : Ensemble (Ensemble U)) (A : (Ensemble U)) 
   : (Ensemble (Ensemble U)) := 
-    fun (B : Ensemble U) ↦ 
-*)
+    fun (C : Ensemble U) ↦ (exists B : Ensemble U, B ∈ F ⇒ C = A ∩ B). 
 
-Inductive auxiliary_seq (C : (ℕ ⇨ Ensemble U)) 
-  : (ℕ ⇨ Ensemble U) := 
-    | aux_first : (auxiliary_seq C) 0 = ∅ 
-    | aux_ind : ∀ n : ℕ, 
-        (auxiliary_seq C) n 
-        = (C n) ∪ ((auxiliary_seq C) (n-1)). 
+Fixpoint auxiliary_seq (C : (ℕ ⇨ Ensemble U)) (n : ℕ) {struct n}
+  : (Ensemble U) :=
+    match n with 
+      0 => ∅ 
+    | S p => auxiliary_seq C p ∪ C (S p)
+    end. 
 
-(* Waarom werkt deze niet? Vergelijk met deze: 
-   Inductive Couple (x y:U) : Ensemble :=
-    | Couple_l : In (Couple x y) x
-    | Couple_r : In (Couple x y) y.
-*)
+Definition disjoint_seq_sets (C : (ℕ ⇨ Ensemble U))
+  : ((ℕ ⇨ Ensemble U)) := 
+    fun (n : ℕ) ↦ C n \ auxiliary_seq C (n-1).
 
-Inductive make_disjoint_seq_sets (C : (ℕ ⇨ Ensemble U)) 
-  : (ℕ ⇨ Ensemble U) := 
-    | first_set : (make_disjoint_seq_sets C 1 = C 0) 
-    | induction_sets : ∀ n : ℕ, make_disjoint_seq_sets C n = (C n) \ (auxiliary_seq C n). 
+
+Lemma CU_sets_disjointsets_equal : 
+  ∀ C : (ℕ ⇨ Ensemble U), 
+    Countable_union (disjoint_seq_sets C) = Countable_union C.
+
+Proof. 
+Take C : (ℕ ⇨ Ensemble U).
+We prove equality by proving two inclusions. 
+
+Take x : U; Assume x_in_CU_disj. 
+It holds that (forall n : nat, (disjoint_seq_sets C n) ⊂ (C n)) (disj_subs_original). 
+It holds that (x ∈ Countable_union C). 
+
+Take x : U; Assume x_in_CU_C.
+Choose n0 such that x_in_Cn according to x_in_CU_C. 
+
+We argue by contradiction. 
+It holds that (forall n : nat, ~(In _ (disjoint_seq_sets C n) x)) (x_in_no_disj).
+
+
+
+
+By x_in_no_disCn it holds that (~ (exists n : nat, (In _ (C n) x))) (x_in_no_Cn).
+Contradiction. 
+
+
+Admitted.  
 
 Lemma complement_as_intersection : 
   ∀ A B : Ensemble U, 
@@ -125,13 +146,14 @@ We prove equality by proving two inclusions.
 
 Take x : U. 
 Assume x_in_A_without_B. 
-It holds that (x ∈ A) (x_in_A). 
-It holds that (¬(x ∈ B)) (x_not_in_B).
-It holds that (x ∈ ((Full_set U) \ B)) (x_in_complement_B). 
-It holds that (In _ (Full_set _) x) (x_in_full). (*Waarom werkt dit niet?*)
+It holds that (x ∈ (A ∩ (Ω \ B))). 
 
-x ∈ Full_set U) (x_in_Omega). 
-By x_not_in_B it holds that (x ∈ (Ω \ B)) (x_in_complement_B). 
+Take x : U. 
+Assume x_in_rhs. 
+By x_in_rhs it holds that ((x ∈ A) ∧ x ∈ (Ω \ B)) (x_in_A_and_comp_B). 
+It holds that (x ∈ (A \ B)). 
+
+Qed. 
 
 Lemma complements_in_pi_lambda_system : 
   ∀ F : Ensemble (Ensemble U), 
@@ -148,8 +170,13 @@ By F_is_π_and_λ_system
   it holds that (is_λ_system F) (F_is_λ_system). 
 Take A : (Ensemble U); Take B : (Ensemble U). 
 Assume A_and_B_in_F. 
+By F_is_λ_system it holds that (Ω \ B ∈ F) (comp_B_in_F). 
+By F_is_π_system it holds that (A ∩ (Ω \ B) ∈ F) (set_in_F). 
+By complement_as_intersection it holds that (A \ B = A ∩ (Ω \ B)) (set_is_complement). 
+Write goal using (A \ B = A ∩ (Ω \ B)) as ((A ∩ (Ω \ B)) ∈ F). 
+It holds that ((A ∩ (Ω \ B)) ∈ F). 
 
-
+Qed. 
 
 
 Lemma π_and_λ_is_σ : 
@@ -172,14 +199,11 @@ It holds that (complement_in_set F).
 
 Expand the definition of closed_under_countable_union. 
 Take C : (ℕ ⇨ Ensemble U); Assume all_C_n_in_F. 
-(*It holds that (closed_under_disjoint_countable_union F) (F_closed_under_disjoint). 
-Expand the definition of 
-  closed_under_disjoint_countable_union 
-    in F_closed_under_disjoint. *)
 By classic it holds that 
   ((∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) ∨ 
   ¬(∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n))) (all_or_not_all_disjoint). 
 Because all_or_not_all_disjoint either all_disjoint or not_all_disjoint. 
+
 (*Case 1: all C_n disjoint.*) 
 It holds that (Countable_union C ∈ F). 
 
