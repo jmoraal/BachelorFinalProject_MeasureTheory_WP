@@ -1,6 +1,6 @@
-(*Version 1.5.7 - 24-04-2020
-  Meeting w/ Jim
-  rewrite and replace tactics replaced by WP expressions
+(*Version 1.5.8 - 24-04-2020
+  Last readability corrections in proof
+  Notations made more intuitive
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -11,6 +11,7 @@ Require Import Coq.Logic.Classical_Pred_Type.
 
 Variable U : Type. 
 
+(*For notations: change level if brackets occur in wrong places*)
 Notation "∅" := 
   (Empty_set U). 
 (*Watch out: type Ensemble _, not Ensemble Ensemble _. 
@@ -18,7 +19,7 @@ Notation "∅" :=
   so this difference should not cause problems. *)
 
 Notation "'Ω'" := 
-  (Full_set U) (at level 0). (*Which level to choose for these two?*)
+  (Full_set U) (at level 0). 
 
 Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
    apply Extensionality_Ensembles; 
@@ -26,21 +27,21 @@ Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
    unfold Included;
    split.
 
-Notation "x ∩ y" := 
-  (Intersection _ x y) (at level 50). (*again, level?*)
+Notation "A ∩ B" := 
+  (Intersection _ A B) (at level 50). 
 
-Notation "x ∪ y" := 
-  (Union _ x y) (at level 50). 
+Notation "A ∪ B" := 
+  (Union _ A B) (at level 50). 
 
-Notation "x \ y" := 
-  (Setminus _ x y) (at level 50). 
+Notation "A \ B" := 
+  (Setminus _ A B) (at level 50). 
 
 Notation "x ∈ A" := 
   (In _ A x) (at level 50). 
 (*notation already used in 'Notations', but differently*)
 
-Notation "x ⊂ y" := 
-  (Included _ x y) (at level 50). 
+Notation "A ⊂ B" := 
+  (Included _ A B) (at level 50). 
 
 Definition is_π_system (Π : Ensemble (Ensemble U)) 
   : Prop := 
@@ -188,12 +189,10 @@ It holds that ((C n0 = Ω)
 Because C_n0_empty_or_full either C_n0_full or C_n0_empty. 
 Write goal using (Ω = C n0) 
   as (x ∈ C n0). 
-(*rewrite <- C_n0_full. *)
 Apply x_in_C_n0. 
 Write x_in_C_n0 using (C n0 = ∅) 
-  as (∅ x).
+  as (x ∈ ∅).
 Contradiction. 
-(*of ook: It holds that (In U Ω x). Uit iets onwaars kan alles volgen. *)
 
 By not_all_empty it holds that 
   (∃n : ℕ, ¬ (C n = ∅)) (one_not_empty). 
