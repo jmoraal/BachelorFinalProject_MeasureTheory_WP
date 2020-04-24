@@ -1,4 +1,4 @@
-(*Version 1.1 - 24-04-2020
+(*Version 1.2.1 - 24-04-2020
   Progress in inductive steps in CU_sets_disjointsets_equal
 *)
 Require Import Sets.Ensembles.
@@ -99,39 +99,31 @@ Definition restriction (F : Ensemble (Ensemble U)) (A : (Ensemble U))
   : (Ensemble (Ensemble U)) := 
     fun (C : Ensemble U) ↦ (exists B : Ensemble U, B ∈ F ⇒ C = A ∩ B). 
 
-Fixpoint auxiliary_seq (C : (ℕ ⇨ Ensemble U)) (n : ℕ) {struct n}
-  : (Ensemble U) :=
-    match n with 
-      0 => ∅ 
-    | S p => auxiliary_seq C p ∪ C p
-    end. 
-
 Definition finite_union (C : (ℕ ⇨ Ensemble U)) (n : ℕ) 
   : (Ensemble U) := 
-    fun (x:U) ↦ ∃i : ℕ,  i <= n ⇒ x ∈ (C n).
+    fun (x:U) ↦ (∃i : ℕ,  (i <= n ∧ x ∈ (C n))).
+(* ≤ only works for Reals*)
 
 Fixpoint disjoint_seq (C : (ℕ ⇨ Ensemble U)) (n : ℕ) {struct n}
   : (Ensemble U) :=
     match n with 
       0 => C 0 
-    | S p => C (S p) \ finite_union C p
+    | S p => (C (S p)) \ (finite_union C p)
     end. 
-
-Definition disjoint_seq_sets (C : (ℕ ⇨ Ensemble U))
-  : ((ℕ ⇨ Ensemble U)) := 
-    fun (n : ℕ) ↦ C n \ auxiliary_seq C n.
 
 
 Lemma CU_sets_disjointsets_equal : 
   ∀ C : (ℕ ⇨ Ensemble U), 
-    Countable_union (disjoint_seq_sets C) = Countable_union C.
+    Countable_union (disjoint_seq C) = Countable_union C.
 
 Proof. 
 Take C : (ℕ ⇨ Ensemble U).
 We prove equality by proving two inclusions. 
 
 Take x : U; Assume x_in_CU_disj. 
-It holds that (forall n : nat, (disjoint_seq_sets C n) ⊂ (C n)) (disj_subs_original). 
+Choose n0 such that x_in_disj_n according to x_in_CU_disj.
+It holds that (x ∈ ((C n0) \ (finite_union C (n0-1))) \/ x ∈ C 0) (xxx). 
+It holds that ((disjoint_seq C n0) ⊂ (C n0)) (disj_subs_original). 
 It holds that (x ∈ Countable_union C). 
 
 Take x : U; Assume x_in_CU_C.
