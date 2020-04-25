@@ -1,5 +1,5 @@
-(*Version 1.2.1 - 24-04-2020
-  Progress in inductive steps in CU_sets_disjointsets_equal
+(*Version 1.2.2 - 25-04-2020
+  Not sure which definitions for disj_seq and finite_union are best, a bit of a mess
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -102,14 +102,86 @@ Definition restriction (F : Ensemble (Ensemble U)) (A : (Ensemble U))
 Definition finite_union (C : (ℕ ⇨ Ensemble U)) (n : ℕ) 
   : (Ensemble U) := 
     fun (x:U) ↦ (∃i : ℕ,  (i <= n ∧ x ∈ (C n))).
-(* ≤ only works for Reals*)
 
+Definition finite_union_up_to (C : (ℕ ⇨ Ensemble U)) (n : ℕ) 
+  : (Ensemble U) := 
+    fun (x:U) ↦ (∃i : ℕ,  (i < n ∧ x ∈ (C i))).
+
+Fixpoint finite_union_up_2 (C : (ℕ ⇨ Ensemble U)) (n : ℕ) {struct n}
+  : (Ensemble U) :=
+    match n with 
+      0 => C 0 
+    | S p => (finite_union_up_2 C p) ∪ (C (S p)) 
+    end. 
+
+Definition disjoint_seq (C : (ℕ ⇨ Ensemble U)) 
+  : (ℕ ⇨ Ensemble U) := 
+    fun (n:nat) ↦ (C n \ (finite_union_up_to C n)). 
+
+Definition disjoint_seq2 (C : (ℕ ⇨ Ensemble U)) 
+  : (ℕ ⇨ Ensemble U) := 
+    fun (n:nat) ↦ (C n \ (finite_union_up_2 C n)). 
+(* 
 Fixpoint disjoint_seq (C : (ℕ ⇨ Ensemble U)) (n : ℕ) {struct n}
   : (Ensemble U) :=
     match n with 
       0 => C 0 
     | S p => (C (S p)) \ (finite_union C p)
     end. 
+*)
+(******************VERSION 2******************)
+
+
+
+Lemma CU_sets_disjointsets_equal : 
+  ∀ C : (ℕ ⇨ Ensemble U), 
+    Countable_union (disjoint_seq2 C) = Countable_union C.
+
+Proof. 
+Take C : (ℕ ⇨ Ensemble U).
+We prove equality by proving two inclusions. 
+
+Take x : U; Assume x_in_CU_disj. 
+Choose n0 such that x_in_disj_n according to x_in_CU_disj.
+It holds that (x ∈ Countable_union C). 
+
+Take x : U; Assume x_in_CU_C.
+Choose n0 such that x_in_Cn according to x_in_CU_C. 
+
+We prove by induction on n0. 
+(*Base case: *)
+It holds that ( disjoint_seq2 C 0 = (C 0) \ finite_union_up_2 C 0) (disj0_is_C0).
+It holds that (x ∈ Countable_union (disjoint_seq2 C)). 
+
+(*Induction step:*)
+By classic it holds that 
+  ((x ∈finite_union_up_to C n0) 
+    ∨ ¬(x ∈ finite_union_up_to C n0)) (in_FU_or_not). 
+Because in_FU_or_not either x_in_FU or x_not_in_FU. 
+(*x already in finite union: *)
+Choose n1 such that x_in_Cn1 according to x_in_FU. 
+
+It holds that (x ∈ Countable_union (disjoint_seq C)). 
+(*x not yet in finite union: *)
+It holds that (x ∈ (C (S n0) \ finite_union_up_to C n0)) (x_in_C_without_FU).
+By classic it holds that ((x ∈ C n0) ∨ ¬(x ∈ C n0)) (x_in_C_n0_or_not). 
+Because x_in_C_n0_or_not either x_in_C_n0 or x_not_in_C_n0. 
+(*x in C_n0: *)
+It holds that (x ∈ Countable_union (disjoint_seq C)). (*By IH*) 
+(*x not in C_n0: *) 
+
+It holds that (¬ (∃i : ℕ,  (i < (S n0) ∧ x ∈ (C n0)))) (no_i_le_n0).
+By no_i_le_n0 it holds that (¬ (x ∈ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
+(*By x_not_in_C_and_FU it holds that (¬(x ∈ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
+
+By x_in_C_without_FU it holds that (x ∈ disjoint_seq C (S n0)) (x_in_DS). *)
+
+Admitted.  
+
+(******************VERSION 1******************)
+Definition disjoint_seq (C : (ℕ ⇨ Ensemble U)) 
+  : (ℕ ⇨ Ensemble U) := 
+    fun (n:nat) ↦ (C n \ (finite_union_up_to C n)). 
 
 
 Lemma CU_sets_disjointsets_equal : 
@@ -122,39 +194,38 @@ We prove equality by proving two inclusions.
 
 Take x : U; Assume x_in_CU_disj. 
 Choose n0 such that x_in_disj_n according to x_in_CU_disj.
-It holds that (x ∈ ((C n0) \ (finite_union C (n0-1))) \/ x ∈ C 0) (xxx). 
-It holds that ((disjoint_seq C n0) ⊂ (C n0)) (disj_subs_original). 
 It holds that (x ∈ Countable_union C). 
 
 Take x : U; Assume x_in_CU_C.
-
 Choose n0 such that x_in_Cn according to x_in_CU_C. 
 
 We prove by induction on n0. 
 (*Base case: *)
-It holds that ( (disjoint_seq_sets C) 0 = (C 0) \ ∅) (disj0_is_C0).
-By disj0_is_C0 it holds that (x ∈(disjoint_seq_sets C) 0) (x_in_disj0). 
-It holds that (x ∈ Countable_union (disjoint_seq_sets C)). 
+It holds that ( disjoint_seq C 0 = (C 0) \ finite_union_up_to C 0) (disj0_is_C0).
+It holds that (x ∈ Countable_union (disjoint_seq C)). 
 
 (*Induction step:*)
-By classic it holds that ((x ∈ C n0) ∨ ~(x ∈ C n0)) (in_Cn0_or_not). 
-Because in_Cn0_or_not either x_in_Cn0 or x_not_in_Cn0. 
+By classic it holds that 
+  ((x ∈finite_union_up_to C n0) 
+    ∨ ¬(x ∈ finite_union_up_to C n0)) (in_FU_or_not). 
+Because in_FU_or_not either x_in_FU or x_not_in_FU. 
+(*x already in finite union: *)
+Choose n1 such that x_in_Cn1 according to x_in_FU. 
+
+It holds that (x ∈ Countable_union (disjoint_seq C)). 
+(*x not yet in finite union: *)
+It holds that (x ∈ (C (S n0) \ finite_union_up_to C n0)) (x_in_C_without_FU).
+By classic it holds that ((x ∈ C n0) ∨ ¬(x ∈ C n0)) (x_in_C_n0_or_not). 
+Because x_in_C_n0_or_not either x_in_C_n0 or x_not_in_C_n0. 
 (*x in C_n0: *)
-It holds that (x ∈ Countable_union (disjoint_seq_sets C)). 
-(*x not in C_n0: *)
-By classic it holds that ((x ∈auxiliary_seq C n0) ∨ ~(x ∈ auxiliary_seq C n0)) (in_aux_or_not). 
-Because in_aux_or_not either x_in_aux or x_not_in_aux.
- 
-It holds that (x ∈ C n \ auxiliary_seq C n.
+It holds that (x ∈ Countable_union (disjoint_seq C)). (*By IH*) 
+(*x not in C_n0: *) 
 
+It holds that (¬ (∃i : ℕ,  (i < (S n0) ∧ x ∈ (C n0)))) (no_i_le_n0).
+By no_i_le_n0 it holds that (¬ (x ∈ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
+(*By x_not_in_C_and_FU it holds that (¬(x ∈ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
 
-(*Alternative: *)
-We argue by contradiction. 
-It holds that (forall n : nat, ~(In _ (disjoint_seq_sets C n) x)) (x_in_no_disj).
-
-By x_in_no_disCn it holds that (~ (exists n : nat, (In _ (C n) x))) (x_in_no_Cn).
-Contradiction. 
-
+By x_in_C_without_FU it holds that (x ∈ disjoint_seq C (S n0)) (x_in_DS). *)
 
 Admitted.  
 
@@ -230,23 +301,8 @@ Because all_or_not_all_disjoint either all_disjoint or not_all_disjoint.
 It holds that (Countable_union C ∈ F). 
 
 (*Case 2: not all C_n disjoint. *)
-(*Newer approach: *)
 
-(*Former approach: *)
-By not_all_disjoint it holds that 
-  (∃m n : ℕ, m ≠ n 
-    ⇨ ¬(Disjoint U (C m) (C n))) (two_not_disjoint). 
-Choose m 
-  such that one_not_disjoint_with_m 
-    according to two_not_disjoint. 
-Choose n 
-  such that C_m_n_not_disjoint 
-    according to one_not_disjoint_with_m.
-(*Nu nog m ≠ n? *)
-It holds that ((C m) ∈ F ∧ (C n) ∈ F) (C_m_and_C_m_in_F). 
-By F_is_π_system it holds that 
-  ((Intersection _ (C m) (C n)) ∈ F) (intersection_in_F).
-(*Dead end? *)
+
 
 (* Usual proof method: 
    Let B_n := C_n \ (union i=1 to n-1 of C_i). 
