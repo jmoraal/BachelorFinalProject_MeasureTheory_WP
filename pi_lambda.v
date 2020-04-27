@@ -1,5 +1,5 @@
-(*Version 1.2.3 - 26-04-2020
-  Not sure which definitions for disj_seq and finite_union are best, a bit of a mess
+(*Version 1.3 - 27-04-2020
+  pi & lambda -> sigma proof finished, lemmas not yet. 
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -101,7 +101,7 @@ Definition restriction (F : Ensemble (Ensemble U)) (A : (Ensemble U))
 
 Definition finite_union (C : (ℕ ⇨ Ensemble U)) (n : ℕ) 
   : (Ensemble U) := 
-    fun (x:U) ↦ (∃i : ℕ,  (i <= n ∧ x ∈ (C n))).
+    fun (x:U) ↦ (∃i : ℕ,  (i <= n ∧ x ∈ (C i))).
 (* ≤ only works for Reals *)
 
 Definition finite_union_up_to (C : (ℕ ⇨ Ensemble U)) (n : ℕ) 
@@ -131,6 +131,18 @@ Fixpoint disjoint_seq (C : (ℕ ⇨ Ensemble U)) (n : ℕ) {struct n}
     end. 
 *)
 
+Lemma disj_seq_disjoint : 
+  ∀ C : (ℕ ⇨ Ensemble U), 
+    (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (disjoint_seq C m) (disjoint_seq C n)). 
+
+Proof. 
+Take C : (ℕ ⇨ Ensemble U). 
+Take m : ℕ; Take n : ℕ. (*tactic voor 2 in een keer?*)
+Assume m_neq_n.
+(*Expand the definition of Disjoint. (Why not?*)
+
+Admitted. 
+
 (******************VERSION 1******************)
 Lemma CU_sets_disjointsets_equal : 
   ∀ C : (ℕ ⇨ Ensemble U), 
@@ -154,6 +166,7 @@ Choose n such that x_in_FU_n according to exists_n_x_in_FU_n.
 We prove by induction on n. 
 (*Base case: *)
 It holds that ( disjoint_seq C 0 = (C 0) \ finite_union_up_to C 0) (disj0_is_C0).
+(*
 It holds that (x ∈ Countable_union (disjoint_seq C)). 
 
 (*Induction step:*)
@@ -178,11 +191,11 @@ By no_i_le_n0 it holds that (¬ (x ∈ finite_union_up_to C (S n0))) (x_not_in_F
 (*By x_not_in_C_and_FU it holds that (¬(x ∈ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
 
 By x_in_C_without_FU it holds that (x ∈ disjoint_seq C (S n0)) (x_in_DS). *)
-
+*)
 Admitted.  
 
 (******************VERSION 2******************)
-Lemma CU_sets_disjointsets_equal : 
+Lemma CU_sets_disjointsets2_equal : 
   ∀ C : (ℕ ⇨ Ensemble U), 
     Countable_union (disjoint_seq2 C) = Countable_union C.
 
@@ -210,7 +223,7 @@ Because in_FU_or_not either x_in_FU or x_not_in_FU.
 
 Choose n1 such that x_in_Cn1 according to x_in_FU. 
 
-It holds that (x ∈ Countable_union (disjoint_seq2 C)). 
+ (*
 (*x not yet in finite union: *)
 It holds that (x ∈ (C (S n0) \ finite_union_up_to C n0)) (x_in_C_without_FU).
 By classic it holds that ((x ∈ C n0) ∨ ¬(x ∈ C n0)) (x_in_C_n0_or_not). 
@@ -224,7 +237,7 @@ By no_i_le_n0 it holds that (¬ (x ∈ finite_union_up_to C (S n0))) (x_not_in_F
 (*By x_not_in_C_and_FU it holds that (¬(x ∈ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
 
 By x_in_C_without_FU it holds that (x ∈ disjoint_seq C (S n0)) (x_in_DS). *)
-
+*)
 Admitted.  
 
 
@@ -247,7 +260,7 @@ It holds that (x ∈ (A \ B)).
 
 Qed. 
 
-Lemma complements_in_pi_lambda_system : 
+Lemma complements_in_π_and_λ : 
   ∀ F : Ensemble (Ensemble U), 
     is_π_system F ∧ is_λ_system F 
     ⇒ ∀ A B : Ensemble U, A ∈ F ∧ B ∈ F
@@ -270,6 +283,21 @@ It holds that ((A ∩ (Ω \ B)) ∈ F).
 
 Qed. 
 
+Lemma FU_in_π_and_λ : 
+  ∀ F : Ensemble (Ensemble U), 
+    is_π_system F ∧ is_λ_system F 
+    ⇒ ∀C : (ℕ → (Ensemble U)), (∀ n : ℕ, (C n) ∈ F) 
+      ⇒ ∀ n : ℕ, (finite_union_up_to C n) ∈ F.
+
+Proof. 
+Take F : (Ensemble (Ensemble U)). 
+Assume F_is_π_and_λ. 
+Take C : (ℕ ⇨ Ensemble U). 
+Assume all_Cn_in_F.
+Take n : ℕ. 
+Expand the definition of finite_union_up_to. 
+
+Admitted. 
 
 Lemma π_and_λ_is_σ : 
   ∀ F : Ensemble (Ensemble U), 
@@ -283,6 +311,8 @@ By F_is_π_and_λ_system
   it holds that (is_π_system F) (F_is_π_system). 
 By F_is_π_and_λ_system 
   it holds that (is_λ_system F) (F_is_λ_system). 
+It holds that (closed_under_disjoint_countable_union F) (cu_disj_CU). 
+(*Somehow doesn't work later, tactic time-out. Too much in environment?*)
 Expand the definition of is_σ_algebra.
 split.
 It holds that (full_set_in_set F) .
@@ -302,8 +332,25 @@ It holds that (Countable_union C ∈ F).
 (*Case 2: not all C_n disjoint. *)
 By CU_sets_disjointsets_equal it holds that 
   (Countable_union (disjoint_seq C) = Countable_union C) (CUdisj_is_CU).
-Write goal as 
+Write goal using 
+  (Countable_union C = Countable_union (disjoint_seq C)) 
+    as (Countable_union (disjoint_seq C) ∈ F). 
 
+We claim that (∀ n : ℕ, disjoint_seq C n ∈ F) (disj_in_F). 
+Take n : ℕ. 
+By FU_in_π_and_λ it holds that ((finite_union_up_to C n) ∈ F) (FU_in_F).
+By complements_in_π_and_λ it holds that ((C n) \ (finite_union_up_to C n) ∈ F) (comp_in_F).
+Write goal using 
+  (disjoint_seq C n = (C n \ finite_union_up_to C n)) 
+    as ((C n \ finite_union_up_to C n) ∈ F). 
+Apply comp_in_F. 
+
+By disj_seq_disjoint it holds that 
+  ((∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (disjoint_seq C m) (disjoint_seq C n))) (disj_seq_disj). 
+(*By F_is_λ_system it holds that (closed_under_disjoint_countable_union F) (CU_disj_CU2). Doesn't work here*)
+It holds that (Countable_union (disjoint_seq C) ∈ F).
+
+Qed. 
 
 (* Usual proof method: 
    Let B_n := C_n \ (union i=1 to n-1 of C_i). 
@@ -313,8 +360,6 @@ Write goal as
    is in F by F_is_λ_system
 *)
 
- 
-(*Qed. *) Admitted. 
 
 Theorem π_λ_theorem : 
   ∀ Π Λ : Ensemble (Ensemble U), 
