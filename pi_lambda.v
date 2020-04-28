@@ -1,7 +1,6 @@
-(*Version 1.3.1 - 28-04-2020
-  pi-lambda proof finished under assumption of lemmas
-  lemmas remain unfinished. 
-  Notations set and setOfSets
+(*Version 1.3.2 - 28-04-2020
+  disj_seq_disjoint proof finished
+  
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -9,6 +8,7 @@ Require Import wplib.Tactics.Tactics.
 Require Import wplib.Tactics.TacticsContra.
 Require Import Sets.Powerset.
 Require Import Coq.Logic.Classical_Pred_Type. 
+Require Import Omega. 
 
 Add LoadPath "../". (*import v-file from same directory*)
 (*Require Import trivial_sigma_algebra.v. *)
@@ -139,15 +139,24 @@ Fixpoint disjoint_seq (C : (ℕ ⇨ set)) (n : ℕ) {struct n}
     end. 
 *)
 
+Lemma neq_equiv : ∀ x y : ℕ,
+  (x ≠ y) ⇒ (x < y ∨ y < x).
+
+Proof. 
+intros x y. omega.
+Qed. 
+
 Lemma disj_seq_disjoint : 
   ∀ C : (ℕ ⇨ set), 
     (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (disjoint_seq C m) (disjoint_seq C n)). 
 
 Proof. 
+(*Expand the definition of Disjoint. (Why does this not work?*)
 Take C : (ℕ ⇨ set). 
 Take m : ℕ; Take n : ℕ. (*tactic voor 2 in een keer?*)
 Assume m_neq_n.
-By m_neq_n it holds that ((m > n) \/ (m < n)) (m_gl_n). (*uit welke library volgt dit?*)
+By neq_equiv it holds that (m ≠ n ⇒ (m < n) ∨ (m > n)) (m_l_g_n). (*uit welke library volgt dit?*)
+It holds that ((m < n) ∨ (m > n)) (m_lg_n). 
 We argue by contradiction. 
 It holds that (exists x: U, x ∈ ((disjoint_seq C m) ∩ (disjoint_seq C n))) (int_not_empty).
 Choose x such that x_in_int according to int_not_empty.
@@ -156,14 +165,21 @@ By x_in_m_and_n it holds that (x ∈ disjoint_seq C m) (x_in_m).
 By x_in_m_and_n it holds that (x ∈ disjoint_seq C n) (x_in_n). 
 It holds that (¬(x ∈ finite_union_up_to C m) ∧ ¬(x ∈ finite_union_up_to C m)) (x_not_in_FU_mn).
 It holds that (¬(∃i : ℕ,  (i < m ∧ x ∈ (C i)))∧ ¬(∃i : ℕ,  (i < n ∧ x ∈ (C i)))) (no_i).
-Because m_gl_n either m_g_n or m_l_n. 
-(* m > n: *)
-
+Because m_lg_n either m_l_n or m_g_n. 
 (* m < n: *)
+By no_i it holds that (¬(∃i : ℕ,  (i < n ∧ x ∈ (C i)))) (no_i_n). 
+It holds that (¬(x ∈  C m)) (x_not_in_Cm). 
+By x_in_m it holds that (x ∈ C m) (x_in_Cm).
+Contradiction.  
 
-(*Expand the definition of Disjoint. (Why does this not work?*)
+(* m > n: *)
+By no_i it holds that (¬(∃i : ℕ,  (i < m ∧ x ∈ (C i)))) (no_i_m). 
+It holds that (¬(x ∈ C n)) (x_not_in_Cn). 
+By x_in_m it holds that (x ∈ C n) (x_in_Cn).
+Contradiction.  
 
-Admitted. 
+Qed. 
+
 
 (******************VERSION 1******************)
 Lemma CU_sets_disjointsets_equal : 
@@ -318,6 +334,7 @@ Take C : (ℕ ⇨ set).
 Assume all_Cn_in_F.
 Take n : ℕ. 
 Expand the definition of finite_union_up_to. 
+
 
 Admitted. 
 
