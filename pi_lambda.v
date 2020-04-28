@@ -1,5 +1,7 @@
 (*Version 1.3.2 - 28-04-2020
   disj_seq_disjoint proof finished
+  New lemmas
+  Progress on others
   
 *)
 Require Import Sets.Ensembles.
@@ -139,12 +141,42 @@ Fixpoint disjoint_seq (C : (ℕ ⇨ set)) (n : ℕ) {struct n}
     end. 
 *)
 
+Lemma complement_full_is_empty : 
+  ∅ = (Ω \ Ω). 
+
+Proof. 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_empty.
+contradiction. 
+
+Take x : U; Assume x_in_complement_full.
+Because x_in_complement_full 
+  both x_in_full and not_x_in_full. 
+contradiction. 
+Qed.
+
 Lemma neq_equiv : ∀ x y : ℕ,
   (x ≠ y) ⇒ (x < y ∨ y < x).
 
 Proof. 
 intros x y. omega.
 Qed. 
+
+Lemma FU_up_to_0_empty : 
+  ∀ C : (ℕ ⇨ set), finite_union_up_to C 0 = ∅. 
+
+Proof. 
+Take C : (ℕ ⇨ set). 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_FU_0. 
+Expand the definition of finite_union_up_to in x_in_FU_0. 
+It holds that (¬(∃i : ℕ, i<0∧ x ∈ C i)) (no_N_l_0). 
+Contradiction.
+
+Take x : U; Assume x_in_empty. 
+Contradiction. 
+
+Qed.
 
 Lemma disj_seq_disjoint : 
   ∀ C : (ℕ ⇨ set), 
@@ -203,8 +235,11 @@ Choose n such that x_in_FU_n according to exists_n_x_in_FU_n.
 
 We prove by induction on n. 
 (*Base case: *)
-It holds that ( disjoint_seq C 0 = (C 0) \ finite_union_up_to C 0) (disj0_is_C0).
+By FU_up_to_0_empty it holds that (finite_union_up_to C 0 = ∅) (FU_0_empty). 
+It holds that (disjoint_seq C 0 = (C 0) \ finite_union_up_to C 0) (disj0_is_C0).
 (*
+It holds that (disjoint_seq C 0 = (C 0) \ ∅) (disj0_is_C0_wo_empty). 
+
 It holds that (x ∈ Countable_union (disjoint_seq C)). 
 
 (*Induction step:*)
@@ -321,6 +356,30 @@ It holds that ((A ∩ (Ω \ B)) ∈ F).
 
 Qed. 
 
+Lemma unions_in_π_and_λ : 
+  ∀ F : setOfSets, 
+    is_π_system F ∧ is_λ_system F 
+    ⇒ ∀ A B : set, A ∈ F ∧ B ∈ F
+      ⇒ A ∪ B ∈ F.
+
+Proof. 
+
+Qed.  
+
+
+Lemma empty_in_λ : 
+  ∀ F : setOfSets, 
+    is_λ_system F ⇒ ∅ ∈ F. 
+
+Proof.  
+Take F : (setOfSets); Assume F_is_λ_system. 
+By complement_full_is_empty it holds that (∅ = (Ω \ Ω)) (comp_full_empty).
+Write goal using (∅ = (Ω \ Ω)) as ((Ω \ Ω) ∈ F). 
+It holds that ((Ω \ Ω) ∈ F) (comp_full_in_F). (*does not immediately resolve goal*)
+Apply comp_full_in_F.
+
+Qed.  
+
 Lemma FU_in_π_and_λ : 
   ∀ F : setOfSets, 
     is_π_system F ∧ is_λ_system F 
@@ -330,10 +389,24 @@ Lemma FU_in_π_and_λ :
 Proof. 
 Take F : (setOfSets). 
 Assume F_is_π_and_λ. 
+By F_is_π_and_λ it holds that (is_λ_system F) (F_is_λ_system). 
 Take C : (ℕ ⇨ set). 
 Assume all_Cn_in_F.
 Take n : ℕ. 
-Expand the definition of finite_union_up_to. 
+
+We prove by induction on n.
+(* Base case: *)
+By FU_up_to_0_empty it holds that 
+  (finite_union_up_to C 0 = ∅) (FU0_is_empty). 
+Write goal using (finite_union_up_to C 0 = ∅) as (∅ ∈ F). 
+Apply empty_in_λ; Apply F_is_λ_system. 
+
+(* Induction step: *)
+
+
+It holds that (finite_union_up_to C 0 ∈ F). 
+
+
 
 
 Admitted. 
@@ -409,8 +482,6 @@ Lemma generated_system_is_λ :
     is_λ_system (λ_system_generated_by A).
 
 Admitted. 
-
-(*Also ... is smallest?*)
 
 Lemma λΠ_is_σ_algebra : 
   ∀ Π : setOfSets, is_π_system Π 
