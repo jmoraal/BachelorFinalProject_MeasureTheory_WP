@@ -1,5 +1,7 @@
-(*Version 1.3 - 27-04-2020
-  pi & lambda -> sigma proof finished, lemmas not yet. 
+(*Version 1.3.1 - 28-04-2020
+  pi-lambda proof finished under assumption of lemmas
+  lemmas remain unfinished. 
+  Notations set and setOfSets
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -12,6 +14,12 @@ Add LoadPath "../". (*import v-file from same directory*)
 (*Require Import trivial_sigma_algebra.v. *)
 
 Variable U : Type.
+
+Notation "'set'" := 
+  (Ensemble U) (at level 50). 
+
+Notation "'setOfSets'" := 
+  (Ensemble (set)) (at level 50). 
 
 Notation "∅" := 
   (Empty_set U). 
@@ -48,83 +56,83 @@ Tactic Notation "We" "prove" "by" "induction" "on" ident(x) :=
 Hint Resolve Full_intro : measure_theory.  (*nieuwe database measure theory*)
 Hint Resolve Intersection_intro : measure_theory. 
 
-Definition is_π_system (Π : Ensemble (Ensemble U)) 
+Definition is_π_system (Π : setOfSets) 
   : Prop := 
-    ∀ A : Ensemble U, A ∈ Π ⇒ 
-      ∀ B : Ensemble U, B ∈ Π ⇒ 
+    ∀ A : set, A ∈ Π ⇒ 
+      ∀ B : set, B ∈ Π ⇒ 
          (A ∩ B) ∈ Π. 
 
-Definition Countable_union (A : (ℕ → Ensemble U)) 
-  : Ensemble U := 
+Definition Countable_union (A : (ℕ → set)) 
+  : set := 
     fun (x:U) ↦ ∃n : ℕ, x ∈ (A n).
 
-Definition full_set_in_set (Λ : Ensemble (Ensemble U)) 
+Definition full_set_in_set (Λ : setOfSets) 
   : Prop :=
     Ω ∈ Λ. 
 
-Definition complement_in_set (Λ : Ensemble (Ensemble U)) 
+Definition complement_in_set (Λ : setOfSets) 
   : Prop := 
-    ∀A  : Ensemble U, A ∈ Λ 
+    ∀A  : set, A ∈ Λ 
       ⇒ (Ω \ A) ∈ Λ. 
 
-Definition closed_under_disjoint_countable_union (Λ : Ensemble (Ensemble U)) 
+Definition closed_under_disjoint_countable_union (Λ : setOfSets) 
   : Prop :=
-    ∀C : (ℕ → (Ensemble U)), 
+    ∀C : (ℕ → (set)), 
       (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
         ⇒ (∀ n : ℕ, (C n) ∈ Λ) ⇒  (Countable_union C) ∈ Λ.
 
-Definition closed_under_countable_union (Λ : Ensemble (Ensemble U)) 
+Definition closed_under_countable_union (Λ : setOfSets) 
   : Prop :=  
-    ∀C : (ℕ → (Ensemble U)), (∀ n : ℕ, (C n) ∈ Λ) 
+    ∀C : (ℕ → (set)), (∀ n : ℕ, (C n) ∈ Λ) 
       ⇒ (Countable_union C) ∈ Λ.
 
-Definition is_λ_system (Λ : Ensemble (Ensemble U)) 
+Definition is_λ_system (Λ : setOfSets) 
   : Prop :=
     full_set_in_set Λ ∧ 
     complement_in_set Λ ∧
     closed_under_disjoint_countable_union Λ. 
 
-Definition is_σ_algebra (F : Ensemble (Ensemble U)) 
+Definition is_σ_algebra (F : setOfSets) 
   : Prop := 
     full_set_in_set F ∧ 
     complement_in_set F ∧
     closed_under_countable_union F.
 
-Definition  σ_algebra_generated_by (A : Ensemble (Ensemble U)) 
-  : (Ensemble (Ensemble U)) := 
-    fun (B : Ensemble U) ↦ 
-    (∀ F : Ensemble (Ensemble U), is_σ_algebra F ⇒ (A ⊂ F ⇒ B ∈ F)). 
+Definition  σ_algebra_generated_by (A : setOfSets) 
+  : (setOfSets) := 
+    fun (B : set) ↦ 
+    (∀ F : setOfSets, is_σ_algebra F ⇒ (A ⊂ F ⇒ B ∈ F)). 
 
-Definition restriction (F : Ensemble (Ensemble U)) (A : (Ensemble U)) 
-  : (Ensemble (Ensemble U)) := 
-    fun (C : Ensemble U) ↦ (exists B : Ensemble U, B ∈ F ⇒ C = A ∩ B). 
+Definition restriction (F : setOfSets) (A : (set)) 
+  : (setOfSets) := 
+    fun (C : set) ↦ (exists B : set, B ∈ F ⇒ C = A ∩ B). 
 
-Definition finite_union (C : (ℕ ⇨ Ensemble U)) (n : ℕ) 
-  : (Ensemble U) := 
+Definition finite_union (C : (ℕ ⇨ set)) (n : ℕ) 
+  : (set) := 
     fun (x:U) ↦ (∃i : ℕ,  (i <= n ∧ x ∈ (C i))).
 (* ≤ only works for Reals *)
 
-Definition finite_union_up_to (C : (ℕ ⇨ Ensemble U)) (n : ℕ) 
-  : (Ensemble U) := 
+Definition finite_union_up_to (C : (ℕ ⇨ set)) (n : ℕ) 
+  : (set) := 
     fun (x:U) ↦ (∃i : ℕ,  (i < n ∧ x ∈ (C i))).
 
-Fixpoint finite_union_up_2 (C : (ℕ ⇨ Ensemble U)) (n : ℕ) {struct n}
-  : (Ensemble U) :=
+Fixpoint finite_union_up_2 (C : (ℕ ⇨ set)) (n : ℕ) {struct n}
+  : (set) :=
     match n with 
       0 => ∅ 
     | S p => (finite_union_up_2 C p) ∪ (C p) 
     end. 
 
-Definition disjoint_seq (C : (ℕ ⇨ Ensemble U)) 
-  : (ℕ ⇨ Ensemble U) := 
+Definition disjoint_seq (C : (ℕ ⇨ set)) 
+  : (ℕ ⇨ set) := 
     fun (n:ℕ) ↦ (C n \ (finite_union_up_to C n)). 
 
-Definition disjoint_seq2 (C : (ℕ ⇨ Ensemble U)) 
-  : (ℕ ⇨ Ensemble U) := 
+Definition disjoint_seq2 (C : (ℕ ⇨ set)) 
+  : (ℕ ⇨ set) := 
     fun (n:ℕ) ↦ (C n \ (finite_union_up_2 C n)). 
 (* 
-Fixpoint disjoint_seq (C : (ℕ ⇨ Ensemble U)) (n : ℕ) {struct n}
-  : (Ensemble U) :=
+Fixpoint disjoint_seq (C : (ℕ ⇨ set)) (n : ℕ) {struct n}
+  : (set) :=
     match n with 
       0 => C 0 
     | S p => (C (S p)) \ (finite_union C p)
@@ -132,24 +140,38 @@ Fixpoint disjoint_seq (C : (ℕ ⇨ Ensemble U)) (n : ℕ) {struct n}
 *)
 
 Lemma disj_seq_disjoint : 
-  ∀ C : (ℕ ⇨ Ensemble U), 
+  ∀ C : (ℕ ⇨ set), 
     (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (disjoint_seq C m) (disjoint_seq C n)). 
 
 Proof. 
-Take C : (ℕ ⇨ Ensemble U). 
+Take C : (ℕ ⇨ set). 
 Take m : ℕ; Take n : ℕ. (*tactic voor 2 in een keer?*)
 Assume m_neq_n.
-(*Expand the definition of Disjoint. (Why not?*)
+By m_neq_n it holds that ((m > n) \/ (m < n)) (m_gl_n). (*uit welke library volgt dit?*)
+We argue by contradiction. 
+It holds that (exists x: U, x ∈ ((disjoint_seq C m) ∩ (disjoint_seq C n))) (int_not_empty).
+Choose x such that x_in_int according to int_not_empty.
+By x_in_int it holds that (x ∈ disjoint_seq C m ∧ x ∈ disjoint_seq C n) (x_in_m_and_n). 
+By x_in_m_and_n it holds that (x ∈ disjoint_seq C m) (x_in_m). 
+By x_in_m_and_n it holds that (x ∈ disjoint_seq C n) (x_in_n). 
+It holds that (¬(x ∈ finite_union_up_to C m) ∧ ¬(x ∈ finite_union_up_to C m)) (x_not_in_FU_mn).
+It holds that (¬(∃i : ℕ,  (i < m ∧ x ∈ (C i)))∧ ¬(∃i : ℕ,  (i < n ∧ x ∈ (C i)))) (no_i).
+Because m_gl_n either m_g_n or m_l_n. 
+(* m > n: *)
+
+(* m < n: *)
+
+(*Expand the definition of Disjoint. (Why does this not work?*)
 
 Admitted. 
 
 (******************VERSION 1******************)
 Lemma CU_sets_disjointsets_equal : 
-  ∀ C : (ℕ ⇨ Ensemble U), 
+  ∀ C : (ℕ ⇨ set), 
     Countable_union (disjoint_seq C) = Countable_union C.
 
 Proof. 
-Take C : (ℕ ⇨ Ensemble U).
+Take C : (ℕ ⇨ set).
 We prove equality by proving two inclusions. 
 
 Take x : U; Assume x_in_CU_disj. 
@@ -196,11 +218,11 @@ Admitted.
 
 (******************VERSION 2******************)
 Lemma CU_sets_disjointsets2_equal : 
-  ∀ C : (ℕ ⇨ Ensemble U), 
+  ∀ C : (ℕ ⇨ set), 
     Countable_union (disjoint_seq2 C) = Countable_union C.
 
 Proof. 
-Take C : (ℕ ⇨ Ensemble U).
+Take C : (ℕ ⇨ set).
 We prove equality by proving two inclusions. 
 
 Take x : U; Assume x_in_CU_disj. 
@@ -242,11 +264,11 @@ Admitted.
 
 
 Lemma complement_as_intersection : 
-  ∀ A B : Ensemble U, 
+  ∀ A B : set, 
     A \ B = A ∩ (Ω \ B). 
 
 Proof. 
-Take A : (Ensemble U); Take B : (Ensemble U). 
+Take A : (set); Take B : (set). 
 We prove equality by proving two inclusions. 
 
 Take x : U. 
@@ -261,19 +283,19 @@ It holds that (x ∈ (A \ B)).
 Qed. 
 
 Lemma complements_in_π_and_λ : 
-  ∀ F : Ensemble (Ensemble U), 
+  ∀ F : setOfSets, 
     is_π_system F ∧ is_λ_system F 
-    ⇒ ∀ A B : Ensemble U, A ∈ F ∧ B ∈ F
+    ⇒ ∀ A B : set, A ∈ F ∧ B ∈ F
       ⇒ A \ B ∈ F. 
 
 Proof. 
-Take F : (Ensemble (Ensemble U)). 
+Take F : (setOfSets). 
 Assume F_is_π_and_λ_system.
 By F_is_π_and_λ_system 
   it holds that (is_π_system F) (F_is_π_system). 
 By F_is_π_and_λ_system 
   it holds that (is_λ_system F) (F_is_λ_system). 
-Take A : (Ensemble U); Take B : (Ensemble U). 
+Take A : (set); Take B : (set). 
 Assume A_and_B_in_F. 
 By F_is_λ_system it holds that (Ω \ B ∈ F) (comp_B_in_F). 
 By F_is_π_system it holds that (A ∩ (Ω \ B) ∈ F) (set_in_F). 
@@ -284,15 +306,15 @@ It holds that ((A ∩ (Ω \ B)) ∈ F).
 Qed. 
 
 Lemma FU_in_π_and_λ : 
-  ∀ F : Ensemble (Ensemble U), 
+  ∀ F : setOfSets, 
     is_π_system F ∧ is_λ_system F 
-    ⇒ ∀C : (ℕ → (Ensemble U)), (∀ n : ℕ, (C n) ∈ F) 
+    ⇒ ∀C : (ℕ → (set)), (∀ n : ℕ, (C n) ∈ F) 
       ⇒ ∀ n : ℕ, (finite_union_up_to C n) ∈ F.
 
 Proof. 
-Take F : (Ensemble (Ensemble U)). 
+Take F : (setOfSets). 
 Assume F_is_π_and_λ. 
-Take C : (ℕ ⇨ Ensemble U). 
+Take C : (ℕ ⇨ set). 
 Assume all_Cn_in_F.
 Take n : ℕ. 
 Expand the definition of finite_union_up_to. 
@@ -300,12 +322,12 @@ Expand the definition of finite_union_up_to.
 Admitted. 
 
 Lemma π_and_λ_is_σ : 
-  ∀ F : Ensemble (Ensemble U), 
+  ∀ F : setOfSets, 
     is_π_system F ∧ is_λ_system F 
     ⇒ is_σ_algebra F. 
 
 Proof. 
-Take F : (Ensemble (Ensemble U)).
+Take F : (setOfSets).
 Assume F_is_π_and_λ_system. 
 By F_is_π_and_λ_system 
   it holds that (is_π_system F) (F_is_π_system). 
@@ -320,7 +342,7 @@ split.
 It holds that (complement_in_set F). 
 
 Expand the definition of closed_under_countable_union. 
-Take C : (ℕ ⇨ Ensemble U); Assume all_C_n_in_F. 
+Take C : (ℕ ⇨ set); Assume all_C_n_in_F. 
 By classic it holds that 
   ((∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) ∨ 
   ¬(∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n))) (all_or_not_all_disjoint). 
@@ -360,13 +382,47 @@ Qed.
    is in F by F_is_λ_system
 *)
 
+Definition  λ_system_generated_by (A : setOfSets) 
+  : (setOfSets) := 
+    fun (B : set) ↦ 
+    (∀ Λ : setOfSets, is_λ_system Λ ⇒ (A ⊂ Λ ⇒ B ∈ Λ)). 
+ 
+Lemma generated_system_is_λ : 
+  ∀ A : setOfSets, 
+    is_λ_system (λ_system_generated_by A).
+
+Admitted. 
+
+(*Also ... is smallest?*)
+
+Lemma λΠ_is_σ_algebra : 
+  ∀ Π : setOfSets, is_π_system Π 
+    ⇒ is_σ_algebra (λ_system_generated_by Π).
+
+Admitted. 
 
 Theorem π_λ_theorem : 
-  ∀ Π Λ : Ensemble (Ensemble U), 
+  ∀ Π Λ : setOfSets, 
     is_π_system Π ∧ is_λ_system Λ ∧ Π ⊂ Λ
     ⇒ (σ_algebra_generated_by Π) ⊂ Λ. 
 
+Proof. 
+Take Π : (setOfSets); Take Λ : (setOfSets). 
+Assume Π_Λ_included_systems. 
 
+Expand the definition of Included. 
+Take A : (set); Assume A_in_σΠ.
+By Π_Λ_included_systems it holds that (is_π_system Π) (Π_is_π). 
+By λΠ_is_σ_algebra it holds that (is_σ_algebra (λ_system_generated_by Π)) (λΠ_is_σ_algebra).
+By A_in_σΠ it holds that 
+  (∀ F : setOfSets, 
+    is_σ_algebra F ⇨ Π ⊂ F 
+      ⇨ A ∈ F) (A_in_all_σ).
+It holds that 
+  (is_σ_algebra (λ_system_generated_by Π) 
+    ⇨ Π ⊂ (λ_system_generated_by Π)) (Π_in_λΠ). 
+By A_in_all_σ it holds that (A ∈(λ_system_generated_by Π)) (A_in_λΠ). 
+It holds that (is_λ_system Λ ⇒ Π ⊂ Λ) (Π_in_Λ). 
+It holds that (A ∈ Λ). 
 
-
-
+Qed. 
