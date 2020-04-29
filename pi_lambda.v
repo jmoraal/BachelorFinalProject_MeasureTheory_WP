@@ -1,7 +1,6 @@
-(*Version 1.3.4 - 29-04-2020
-  added lemmas
-  continued on lemma proofs for pi-lambda
-  
+(*Version 1.3.5 - 29-04-2020
+  all previous lemmas up to CU_sets_disjointsets_equal and union_to_or proven
+  lemmas added for showing λ(Π) is a σ-algebra (unproven)
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -15,7 +14,7 @@ Add LoadPath "../". (*import v-file from same directory*)
 (*Require Import trivial_sigma_algebra.v. *)
 
 Variable U : Type.
-
+(*notations for generated sigma-alg and lambda-syst?*)
 Notation "'set'" := 
   (Ensemble U) (at level 50). 
 
@@ -46,6 +45,9 @@ Notation "x \ y" :=
 
 Notation "x ∈ A" := 
   (In _ A x) (at level 50). 
+
+Notation "x ∉ A" :=  
+  (~ In _ A x) (at level 50). 
 
 Notation "x ⊂ y" := 
   (Included _ x y) (at level 50). 
@@ -193,7 +195,7 @@ Take C : (ℕ ⇨ set).
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_FU_0. 
 Expand the definition of finite_union_up_to in x_in_FU_0. 
-It holds that (¬(∃i : ℕ, i<0∧ x ∈ C i)) (no_N_l_0). 
+It holds that (¬(∃i : ℕ, i<0 ∧ x ∈ C i)) (no_N_l_0). 
 Contradiction.
 
 Take x : U; Assume x_in_empty. 
@@ -222,8 +224,8 @@ By x_in_int it holds that
 By x_in_m_and_n it holds that (x ∈ disjoint_seq C m) (x_in_m). 
 By x_in_m_and_n it holds that (x ∈ disjoint_seq C n) (x_in_n). 
 It holds that 
-  (¬(x ∈ finite_union_up_to C m) 
-    ∧ ¬(x ∈ finite_union_up_to C m)) (x_not_in_FU_mn).
+  ((x ∉ finite_union_up_to C m) 
+    ∧ (x ∉ finite_union_up_to C m)) (x_not_in_FU_mn).
 It holds that 
   (¬(∃i : ℕ,  (i < m ∧ x ∈ (C i)))
     ∧ ¬(∃i : ℕ,  (i < n ∧ x ∈ (C i)))) (no_i).
@@ -231,14 +233,14 @@ Because m_lg_n either m_l_n or m_g_n.
 (* m < n: *)
 By no_i it holds that 
   (¬(∃i : ℕ,  (i < n ∧ x ∈ (C i)))) (no_i_n). 
-It holds that (¬(x ∈  C m)) (x_not_in_Cm). 
+It holds that ((x ∉  C m)) (x_not_in_Cm). 
 By x_in_m it holds that (x ∈ C m) (x_in_Cm).
 Contradiction.  
 
 (* m > n: *)
 By no_i it holds that 
   (¬(∃i : ℕ,  (i < m ∧ x ∈ (C i)))) (no_i_m). 
-It holds that (¬(x ∈ C n)) (x_not_in_Cn). 
+It holds that ((x ∉ C n)) (x_not_in_Cn). 
 By x_in_m it holds that (x ∈ C n) (x_in_Cn).
 Contradiction.  
 Qed. 
@@ -280,7 +282,7 @@ It holds that (x ∈ Countable_union (disjoint_seq C)).
 (*Induction step:*)
 By classic it holds that 
   ((x ∈finite_union_up_to C n0) 
-    ∨ ¬(x ∈ finite_union_up_to C n0)) (in_FU_or_not). 
+    ∨ (x ∉ finite_union_up_to C n0)) (in_FU_or_not). 
 Because in_FU_or_not either x_in_FU or x_not_in_FU. 
 (*x already in finite union: *)
 Choose n1 such that x_in_Cn1 according to x_in_FU. 
@@ -288,15 +290,15 @@ Choose n1 such that x_in_Cn1 according to x_in_FU.
 It holds that (x ∈ Countable_union (disjoint_seq C)). 
 (*x not yet in finite union: *)
 It holds that (x ∈ (C (S n0) \ finite_union_up_to C n0)) (x_in_C_without_FU).
-By classic it holds that ((x ∈ C n0) ∨ ¬(x ∈ C n0)) (x_in_C_n0_or_not). 
+By classic it holds that ((x ∈ C n0) ∨ (x ∉ C n0)) (x_in_C_n0_or_not). 
 Because x_in_C_n0_or_not either x_in_C_n0 or x_not_in_C_n0. 
 (*x in C_n0: *)
 It holds that (x ∈ Countable_union (disjoint_seq C)). (*By IH*) 
 (*x not in C_n0: *) 
 
 It holds that (¬ (∃i : ℕ,  (i < (S n0) ∧ x ∈ (C n0)))) (no_i_le_n0).
-By no_i_le_n0 it holds that (¬ (x ∈ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
-(*By x_not_in_C_and_FU it holds that (¬(x ∈ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
+By no_i_le_n0 it holds that ((x ∉ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
+(*By x_not_in_C_and_FU it holds that ((x ∉ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
 
 By x_in_C_without_FU it holds that (x ∈ disjoint_seq C (S n0)) (x_in_DS). *)
 *)
@@ -325,7 +327,7 @@ It holds that (x ∈ Countable_union (disjoint_seq2 C)).
 (*Induction step:*)
 By classic it holds that 
   ((x ∈finite_union_up_to C (S n0)) 
-    ∨ ¬(x ∈ finite_union_up_to C (S n0))) (in_FU_or_not). 
+    ∨ (x ∉ finite_union_up_to C (S n0))) (in_FU_or_not). 
 Because in_FU_or_not either x_in_FU or x_not_in_FU. 
 (*x already in finite union: *)
 
@@ -334,15 +336,15 @@ Choose n1 such that x_in_Cn1 according to x_in_FU.
  (*
 (*x not yet in finite union: *)
 It holds that (x ∈ (C (S n0) \ finite_union_up_to C n0)) (x_in_C_without_FU).
-By classic it holds that ((x ∈ C n0) ∨ ¬(x ∈ C n0)) (x_in_C_n0_or_not). 
+By classic it holds that ((x ∈ C n0) ∨ (x ∉ C n0)) (x_in_C_n0_or_not). 
 Because x_in_C_n0_or_not either x_in_C_n0 or x_not_in_C_n0. 
 (*x in C_n0: *)
 It holds that (x ∈ Countable_union (disjoint_seq C)). (*By IH*) 
 (*x not in C_n0: *) 
 
 It holds that (¬ (∃i : ℕ,  (i < (S n0) ∧ x ∈ (C n0)))) (no_i_le_n0).
-By no_i_le_n0 it holds that (¬ (x ∈ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
-(*By x_not_in_C_and_FU it holds that (¬(x ∈ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
+By no_i_le_n0 it holds that ((x ∉ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
+(*By x_not_in_C_and_FU it holds that ((x ∉ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
 
 By x_in_C_without_FU it holds that (x ∈ disjoint_seq C (S n0)) (x_in_DS). *)
 *)
@@ -400,12 +402,13 @@ Proof.
 Take A : (set); Take B : (set). 
 Take x : U; Assume x_in_union. 
 We argue by contradiction. 
-By H it holds that ((¬(x ∈ A)) ∧ (¬(x ∈ B))) (x_not_in_A_and_B). 
+By H it holds that ((x ∉ A) ∧ (x ∉ B)) (x_not_in_A_and_B). 
 It holds that (x ∈ B ⇒ x ∈ (A ∪ B)) (xx). 
 (* Waarom werkt dit niet, ondanks Hint Resolve?*)
 (*
 It holds that (~(Union _ A B) x) (xxx). 
-By x_not_in_A_and_B it holds that (¬(x ∈(A ∪ B))) (x_not_in_union). *)
+By x_not_in_A_and_B it holds that 
+  (x ∉(A ∪ B)) (x_not_in_union). *)
 Admitted. 
 
 
@@ -419,11 +422,11 @@ We prove equality by proving two inclusions.
 Take x : U; Assume x_in_union. 
 By union_to_or it holds that (x ∈ A ∨ x ∈ B) (x_in_A_or_B). 
 By classic it holds that 
-  (¬(¬(x ∈ A) ∧ ¬(x ∈ B))) (not_not_A_and_not_B). 
+  (¬((x ∉ A) ∧ (x ∉ B))) (not_not_A_and_not_B). 
 By not_not_A_and_not_B it holds that 
   (¬(x ∈ (Ω \ A) ∧ x ∈ (Ω \ B))) (not_compA_and_compB). 
 By not_compA_and_compB it holds that 
-  (¬(x ∈ ((Ω \ A) ∩ (Ω \ B)))) (not_compA_int_compB). 
+  (x ∉ ((Ω \ A) ∩ (Ω \ B))) (not_compA_int_compB). 
 It holds that (x ∈ (Ω \ ((Ω \ A) ∩ (Ω \ B)))). 
 
 Take x : U; Assume x_in_comp. 
@@ -431,11 +434,11 @@ We argue by contradiction.
 By union_to_or it holds that (¬ (x ∈ A ∨ x ∈ B)) (not_A_or_B).
 
 It holds that 
-  (¬(x ∈ ((Ω \ A) ∩ (Ω \ B)))) (not_compA_int_compB). 
+  (x ∉ ((Ω \ A) ∩ (Ω \ B))) (not_compA_int_compB). 
 By not_compA_int_compB it holds that 
   (¬(x ∈ (Ω \ A) ∧ x ∈ (Ω \ B))) (not_compA_and_compB). 
 By not_compA_and_compB it holds that 
-  (¬(¬(x ∈ A) ∧ ¬(x ∈ B))) (not_not_A_and_not_B). 
+  (¬((x ∉ A) ∧ (x ∉ B))) (not_not_A_and_not_B). 
 By not_not_A_and_not_B it holds that 
   ((x ∈ A ∨ x ∈ B)) (A_or_B). 
 Contradiction. 
@@ -615,13 +618,85 @@ Lemma generated_system_is_λ :
 
 Proof. 
 Take A : (setOfSets). 
-Expand the definition of 
+Expand the definition of is_λ_system. 
+It holds that (∀ Λ : setOfSets, 
+  is_λ_system Λ ⇒ (full_set_in_set Λ)
+    ∧ complement_in_set Λ
+      ∧ closed_under_disjoint_countable_union Λ) (lambda_props_for_all). 
+split. 
+It follows that (full_set_in_set (λ_system_generated_by A)). 
+split. 
+It follows that (complement_in_set (λ_system_generated_by A)). 
+
+Expand the definition of closed_under_disjoint_countable_union. 
+Take C : (ℕ ⇨ set). 
+Assume all_Cn_disjoint. 
+Assume all_Cn_in_λA.
+
+We claim that (∀ Λ : setOfSets, 
+  is_λ_system Λ ⇒ A ⊂ Λ 
+    ⇒ (Countable_union C) ∈ Λ) (CU_in_all).
+Take Λ : (setOfSets). 
+Assume Λ_is_λ_system. 
+Assume A_subs_Λ. 
+It holds that 
+  (closed_under_disjoint_countable_union Λ) (closed_under_disj_CU). 
+Expand the definition of closed_under_disjoint_countable_union in closed_under_disj_CU. 
+It holds that (
+  (∀ m n : ℕ, m ≠ n ⇨ Disjoint U (C m) (C n))  
+    ⇒ ∀ n : ℕ, C n ∈ Λ) (disj_implies_all_Cn_in_Λ).
+It follows that (Countable_union C ∈ Λ). 
+It follows that (Countable_union C ∈ λ_system_generated_by A). 
+Qed.
+(*"global variables"? As not to re-define Π and others each time. *)
+Definition H (B : set) (λΠ : setOfSets)
+  : setOfSets := 
+    fun (A : set) ↦ (∃A : set, A ∩ B ∈ λΠ). 
+
+
+Lemma H_is_λ_system : 
+  ∀ Π : setOfSets, is_π_system Π 
+    ⇒ ∀ B : set, is_λ_system (H B (λ_system_generated_by Π)).
+
+Proof. 
 
 Admitted. 
+
+Lemma int_in_λΠ : 
+  ∀ Π : setOfSets, is_π_system Π 
+    ⇒ ∀ A : set, A ∈(λ_system_generated_by Π)
+      ⇒ ∀ B : set, B ∈ Π
+        ⇒ (A ∩ B) ∈ (λ_system_generated_by Π).
+
+Admitted. 
+
 
 Lemma λΠ_is_σ_algebra : 
   ∀ Π : setOfSets, is_π_system Π 
     ⇒ is_σ_algebra (λ_system_generated_by Π).
+(*Suffices to show that λ(Π) is a π-system *)
+Proof. 
+Take Π : (setOfSets).
+Assume Π_is_π_system. 
+
+We claim that (is_π_system (λ_system_generated_by Π)) (λΠ_is_π_system). 
+We need to show that (∀ A : set, A ∈ (λ_system_generated_by Π) ⇒ 
+      ∀ B : set, B ∈ (λ_system_generated_by Π) ⇒ 
+         (A ∩ B) ∈ (λ_system_generated_by Π)).
+Take A : (set). 
+Assume A_in_λΠ. 
+Take B : (set). 
+Assume B_in_λΠ.
+
+By classic it holds that (B ∈ Π ∨ B ∉ Π) (B_in_Π_or_not).
+Because B_in_Π_or_not either B_in_Π or B_not_in_Π. 
+(* B ∈ Π *)
+By int_in_λΠ it holds that ((A ∩ B) ∈ λ_system_generated_by Π) (xx).
+This follows immediately. 
+(*extra tactic so that this can conclude proof?*) 
+
+(* B ∉ Π *)
+
 
 Admitted. 
 
@@ -648,5 +723,4 @@ It holds that
 By A_in_all_σ it holds that (A ∈(λ_system_generated_by Π)) (A_in_λΠ). 
 It holds that (is_λ_system Λ ⇒ Π ⊂ Λ) (Π_in_Λ). 
 It holds that (A ∈ Λ). 
-
 Qed. 
