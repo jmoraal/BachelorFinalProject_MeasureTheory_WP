@@ -1,5 +1,6 @@
-(*Version 1.3.3 - 29-04-2020
-  added lemma complement_empty
+(*Version 1.3.4 - 29-04-2020
+  added lemmas
+  continued on lemma proofs for pi-lambda
   
 *)
 Require Import Sets.Ensembles.
@@ -152,7 +153,7 @@ contradiction.
 Take x : U; Assume x_in_complement_full.
 Because x_in_complement_full 
   both x_in_full and not_x_in_full. 
-contradiction. 
+Contradiction. 
 Qed.
 
 
@@ -390,40 +391,6 @@ It holds that ((A ∩ (Ω \ B)) ∈ F).
 
 Qed. 
 
-Lemma unions_in_π_and_λ : 
-  ∀ F : setOfSets, 
-    is_π_system F ⇒ is_λ_system F 
-    ⇒ ∀ A B : set, A ∈ F ⇒ B ∈ F
-      ⇒ A ∪ B ∈ F.
-
-Proof. 
-Take F : (setOfSets). 
-Assume F_is_π_system; Assume F_is_λ_system. 
-Take A : (set); Take B : (set). 
-Assume A_in_F; Assume B_in_F.
-
-We claim that ((A ∪ B) = (Ω \ ((Ω \ A) ∩ (Ω \ B)))) (union_as_comp). 
-We prove equality by proving two inclusions. 
-Take x : U; Assume x_in_union. 
-It holds that (¬(x ∈ (Ω \ (A ∪ B)))) (x_not_in_comp).
-(*It holds that (¬(x ∈ ((Ω \ A) ∩ (Ω \ B)))) (xx). *)
- 
-
-Admitted.   
-
-
-Lemma empty_in_λ : 
-  ∀ F : setOfSets, 
-    is_λ_system F ⇒ ∅ ∈ F. 
-
-Proof.  
-Take F : (setOfSets); Assume F_is_λ_system. 
-By complement_full_is_empty it holds that (∅ = (Ω \ Ω)) (comp_full_empty).
-Write goal using (∅ = (Ω \ Ω)) as ((Ω \ Ω) ∈ F). 
-It holds that ((Ω \ Ω) ∈ F) (comp_full_in_F). (*does not immediately resolve goal*)
-Apply comp_full_in_F.
-
-Qed.  
 
 Lemma union_to_or : 
   ∀ A B : (set), ∀ x : U, 
@@ -440,6 +407,77 @@ It holds that (x ∈ B ⇒ x ∈ (A ∪ B)) (xx).
 It holds that (~(Union _ A B) x) (xxx). 
 By x_not_in_A_and_B it holds that (¬(x ∈(A ∪ B))) (x_not_in_union). *)
 Admitted. 
+
+
+Lemma union_as_complements : 
+  ∀ A B : set, 
+    (A ∪ B) = (Ω \ ((Ω \ A) ∩ (Ω \ B))). 
+
+Proof. 
+Take A : (set); Take B : (set). 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_union. 
+By union_to_or it holds that (x ∈ A ∨ x ∈ B) (x_in_A_or_B). 
+By classic it holds that 
+  (¬(¬(x ∈ A) ∧ ¬(x ∈ B))) (not_not_A_and_not_B). 
+By not_not_A_and_not_B it holds that 
+  (¬(x ∈ (Ω \ A) ∧ x ∈ (Ω \ B))) (not_compA_and_compB). 
+By not_compA_and_compB it holds that 
+  (¬(x ∈ ((Ω \ A) ∩ (Ω \ B)))) (not_compA_int_compB). 
+It holds that (x ∈ (Ω \ ((Ω \ A) ∩ (Ω \ B)))). 
+
+Take x : U; Assume x_in_comp. 
+We argue by contradiction. 
+By union_to_or it holds that (¬ (x ∈ A ∨ x ∈ B)) (not_A_or_B).
+
+It holds that 
+  (¬(x ∈ ((Ω \ A) ∩ (Ω \ B)))) (not_compA_int_compB). 
+By not_compA_int_compB it holds that 
+  (¬(x ∈ (Ω \ A) ∧ x ∈ (Ω \ B))) (not_compA_and_compB). 
+By not_compA_and_compB it holds that 
+  (¬(¬(x ∈ A) ∧ ¬(x ∈ B))) (not_not_A_and_not_B). 
+By not_not_A_and_not_B it holds that 
+  ((x ∈ A ∨ x ∈ B)) (A_or_B). 
+Contradiction. 
+Qed. 
+
+Lemma unions_in_π_and_λ : 
+  ∀ F : setOfSets, 
+    is_π_system F ⇒ is_λ_system F 
+    ⇒ ∀ A B : set, A ∈ F ⇒ B ∈ F
+      ⇒ A ∪ B ∈ F.
+
+Proof. 
+Take F : (setOfSets). 
+Assume F_is_π_system; Assume F_is_λ_system. 
+Take A : (set); Take B : (set). 
+Assume A_in_F; Assume B_in_F.
+
+By union_as_complements it holds that 
+  ((A ∪ B) = (Ω \ ((Ω \ A) ∩ (Ω \ B)))) (union_is_comp). 
+Write goal using 
+  ((A ∪ B) = (Ω \ ((Ω \ A) ∩ (Ω \ B)))) 
+    as ((Ω \ ((Ω \ A) ∩ (Ω \ B))) ∈ F). 
+By F_is_λ_system it holds that ((Ω \ A) ∈ F) (comp_A_in_F). 
+By F_is_λ_system it holds that ((Ω \ B) ∈ F) (comp_B_in_F). 
+By F_is_π_system it holds that ((Ω \ A) ∩ (Ω \ B) ∈ F) (int_in_F). 
+It holds that ((Ω \ ((Ω \ A) ∩ (Ω \ B))) ∈ F). 
+Qed. 
+
+
+Lemma empty_in_λ : 
+  ∀ F : setOfSets, 
+    is_λ_system F ⇒ ∅ ∈ F. 
+
+Proof.  
+Take F : (setOfSets); Assume F_is_λ_system. 
+By complement_full_is_empty it holds that (∅ = (Ω \ Ω)) (comp_full_empty).
+Write goal using (∅ = (Ω \ Ω)) as ((Ω \ Ω) ∈ F). 
+It holds that ((Ω \ Ω) ∈ F) (comp_full_in_F). (*does not immediately resolve goal*)
+Apply comp_full_in_F.
+
+Qed.  
+
 
 Lemma FU_S_as_union : 
   ∀C : (ℕ → (set)), ∀n : ℕ,
@@ -470,14 +508,14 @@ Qed.
 
 Lemma FU_in_π_and_λ : 
   ∀ F : setOfSets, 
-    is_π_system F ∧ is_λ_system F 
+    is_π_system F ⇒ is_λ_system F 
     ⇒ ∀C : (ℕ → (set)), (∀ n : ℕ, (C n) ∈ F) 
       ⇒ ∀n : ℕ, (finite_union_up_to C n) ∈ F.
 
 Proof. 
 Take F : (setOfSets). 
-Assume F_is_π_and_λ. 
-By F_is_π_and_λ it holds that (is_λ_system F) (F_is_λ_system). 
+Assume F_is_π_system.
+Assume F_is_λ_system.  
 Take C : (ℕ ⇨ set). 
 Assume all_Cn_in_F.
 Take n : ℕ. 
@@ -498,26 +536,23 @@ Write goal using
     as ((finite_union_up_to C n) ∪ (C n) ∈ F).
 By all_Cn_in_F it holds that (C n ∈ F) (Cn_in_F). 
 Apply unions_in_π_and_λ. 
-It holds that 
-By unions_in_π_and_λ it holds that ((finite_union_up_to C n ∪ C n) ∈ F) (xx). 
+(*Moet elke assumptie apart af gaan. Kan dit korter?*)
+This follows by assumption. 
+This follows by assumption. 
+This follows by assumption. 
+This follows by assumption. 
+Qed. 
 
-
-
-
-Admitted. 
 
 Lemma π_and_λ_is_σ : 
   ∀ F : setOfSets, 
-    is_π_system F ∧ is_λ_system F 
+    is_π_system F ⇒ is_λ_system F 
     ⇒ is_σ_algebra F. 
 
 Proof. 
 Take F : (setOfSets).
-Assume F_is_π_and_λ_system. 
-By F_is_π_and_λ_system 
-  it holds that (is_π_system F) (F_is_π_system). 
-By F_is_π_and_λ_system 
-  it holds that (is_λ_system F) (F_is_λ_system). 
+Assume F_is_π_system. 
+Assume F_is_λ_system. 
 It holds that (closed_under_disjoint_countable_union F) (cu_disj_CU). 
 (*Somehow doesn't work later, tactic time-out. Too much in environment?*)
 Expand the definition of is_σ_algebra.
@@ -546,14 +581,16 @@ Write goal using
 We claim that (∀ n : ℕ, disjoint_seq C n ∈ F) (disj_in_F). 
 Take n : ℕ. 
 By FU_in_π_and_λ it holds that ((finite_union_up_to C n) ∈ F) (FU_in_F).
-By complements_in_π_and_λ it holds that ((C n) \ (finite_union_up_to C n) ∈ F) (comp_in_F).
+By complements_in_π_and_λ it holds that 
+  ((C n) \ (finite_union_up_to C n) ∈ F) (comp_in_F).
 Write goal using 
   (disjoint_seq C n = (C n \ finite_union_up_to C n)) 
     as ((C n \ finite_union_up_to C n) ∈ F). 
 Apply comp_in_F. 
 
 By disj_seq_disjoint it holds that 
-  ((∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (disjoint_seq C m) (disjoint_seq C n))) (disj_seq_disj). 
+  ((∀ m n : ℕ, m ≠ n ⇒ 
+    Disjoint _ (disjoint_seq C m) (disjoint_seq C n))) (disj_seq_disj). 
 (*By F_is_λ_system it holds that (closed_under_disjoint_countable_union F) (CU_disj_CU2). Doesn't work here*)
 It holds that (Countable_union (disjoint_seq C) ∈ F).
 
@@ -575,6 +612,10 @@ Definition  λ_system_generated_by (A : setOfSets)
 Lemma generated_system_is_λ : 
   ∀ A : setOfSets, 
     is_λ_system (λ_system_generated_by A).
+
+Proof. 
+Take A : (setOfSets). 
+Expand the definition of 
 
 Admitted. 
 
