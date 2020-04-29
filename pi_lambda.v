@@ -1,7 +1,5 @@
-(*Version 1.3.2 - 28-04-2020
-  disj_seq_disjoint proof finished
-  New lemmas
-  Progress on others
+(*Version 1.3.3 - 29-04-2020
+  added lemma complement_empty
   
 *)
 Require Import Sets.Ensembles.
@@ -57,6 +55,8 @@ Tactic Notation "We" "prove" "by" "induction" "on" ident(x) :=
 
 Hint Resolve Full_intro : measure_theory.  (*nieuwe database measure theory*)
 Hint Resolve Intersection_intro : measure_theory. 
+Hint Resolve Union_introl Union_intror : measure_theory. 
+
 
 Definition is_π_system (Π : setOfSets) 
   : Prop := 
@@ -155,11 +155,33 @@ Because x_in_complement_full
 contradiction. 
 Qed.
 
-Lemma neq_equiv : ∀ x y : ℕ,
-  (x ≠ y) ⇒ (x < y ∨ y < x).
+
+Lemma complement_empty : 
+  ∀ A : (set), A \ ∅ = A. 
 
 Proof. 
+Take A : (set). 
+We prove equality by proving two inclusions.
+Take x : U; Assume x_in_A_wo_empty. 
+It holds that (x ∈ A). 
+
+Take x : U; Assume x_in_A. 
+It holds that (x ∈ (A \ ∅)). 
+Qed. 
+
+
+Lemma neq_equiv : ∀ x y : ℕ,
+  (x ≠ y) ⇒ (x < y ∨ y < x).
+(*not really a constructive proof. Could this lemma follow from some library immediately? *)
+Proof. 
 intros x y. omega.
+Qed. 
+
+Lemma leq_equiv : ∀ x y : ℕ,
+  (x <= y) ⇒ (x < y ∨ x = y).
+
+Proof. 
+intros x y. omega. 
 Qed. 
 
 Lemma FU_up_to_0_empty : 
@@ -175,8 +197,8 @@ Contradiction.
 
 Take x : U; Assume x_in_empty. 
 Contradiction. 
-
 Qed.
+
 
 Lemma disj_seq_disjoint : 
   ∀ C : (ℕ ⇨ set), 
@@ -190,26 +212,34 @@ Assume m_neq_n.
 By neq_equiv it holds that (m ≠ n ⇒ (m < n) ∨ (m > n)) (m_l_g_n). (*uit welke library volgt dit?*)
 It holds that ((m < n) ∨ (m > n)) (m_lg_n). 
 We argue by contradiction. 
-It holds that (exists x: U, x ∈ ((disjoint_seq C m) ∩ (disjoint_seq C n))) (int_not_empty).
+It holds that (exists x: U, 
+  x ∈ ((disjoint_seq C m) ∩ (disjoint_seq C n))) (int_not_empty).
 Choose x such that x_in_int according to int_not_empty.
-By x_in_int it holds that (x ∈ disjoint_seq C m ∧ x ∈ disjoint_seq C n) (x_in_m_and_n). 
+By x_in_int it holds that 
+  (x ∈ disjoint_seq C m 
+    ∧ x ∈ disjoint_seq C n) (x_in_m_and_n). 
 By x_in_m_and_n it holds that (x ∈ disjoint_seq C m) (x_in_m). 
 By x_in_m_and_n it holds that (x ∈ disjoint_seq C n) (x_in_n). 
-It holds that (¬(x ∈ finite_union_up_to C m) ∧ ¬(x ∈ finite_union_up_to C m)) (x_not_in_FU_mn).
-It holds that (¬(∃i : ℕ,  (i < m ∧ x ∈ (C i)))∧ ¬(∃i : ℕ,  (i < n ∧ x ∈ (C i)))) (no_i).
+It holds that 
+  (¬(x ∈ finite_union_up_to C m) 
+    ∧ ¬(x ∈ finite_union_up_to C m)) (x_not_in_FU_mn).
+It holds that 
+  (¬(∃i : ℕ,  (i < m ∧ x ∈ (C i)))
+    ∧ ¬(∃i : ℕ,  (i < n ∧ x ∈ (C i)))) (no_i).
 Because m_lg_n either m_l_n or m_g_n. 
 (* m < n: *)
-By no_i it holds that (¬(∃i : ℕ,  (i < n ∧ x ∈ (C i)))) (no_i_n). 
+By no_i it holds that 
+  (¬(∃i : ℕ,  (i < n ∧ x ∈ (C i)))) (no_i_n). 
 It holds that (¬(x ∈  C m)) (x_not_in_Cm). 
 By x_in_m it holds that (x ∈ C m) (x_in_Cm).
 Contradiction.  
 
 (* m > n: *)
-By no_i it holds that (¬(∃i : ℕ,  (i < m ∧ x ∈ (C i)))) (no_i_m). 
+By no_i it holds that 
+  (¬(∃i : ℕ,  (i < m ∧ x ∈ (C i)))) (no_i_m). 
 It holds that (¬(x ∈ C n)) (x_not_in_Cn). 
 By x_in_m it holds that (x ∈ C n) (x_in_Cn).
 Contradiction.  
-
 Qed. 
 
 
@@ -229,19 +259,23 @@ It holds that (x ∈ Countable_union C).
 Take x : U; Assume x_in_CU_C.
 Choose n0 such that x_in_Cn according to x_in_CU_C. 
 (*It holds that (∀ n : ℕ,  finite_union_up_to C n ⊂ Countable_union C) (FU_subs_CU).*)
+(*
 It holds that (x ∈finite_union_up_to C (S n0)) (x_in_FU).
 By x_in_FU it holds that (exists n:nat, x ∈finite_union_up_to C (S n0)) (exists_n_x_in_FU_n). 
 Choose n such that x_in_FU_n according to exists_n_x_in_FU_n. 
+*)
 
-We prove by induction on n. 
+We prove by induction on n0. 
 (*Base case: *)
-By FU_up_to_0_empty it holds that (finite_union_up_to C 0 = ∅) (FU_0_empty). 
-It holds that (disjoint_seq C 0 = (C 0) \ finite_union_up_to C 0) (disj0_is_C0).
-(*
-It holds that (disjoint_seq C 0 = (C 0) \ ∅) (disj0_is_C0_wo_empty). 
-
+We claim that (x ∈ disjoint_seq C 0) (x_in_disj_C0). 
+Expand the definition of disjoint_seq. 
+By FU_up_to_0_empty it holds that (finite_union_up_to C 0 = ∅) (FU_0_empty).
+Write goal using (finite_union_up_to C 0 = ∅) as (x ∈ (C 0 \ ∅)). 
+By complement_empty it holds that ((C 0 \ ∅) = C 0) (C0_empty_is_C0). 
+Write goal using ((C 0 \ ∅) = C 0) as (x ∈ (C 0)). 
+Apply x_in_Cn. 
 It holds that (x ∈ Countable_union (disjoint_seq C)). 
-
+(*
 (*Induction step:*)
 By classic it holds that 
   ((x ∈finite_union_up_to C n0) 
@@ -358,13 +392,24 @@ Qed.
 
 Lemma unions_in_π_and_λ : 
   ∀ F : setOfSets, 
-    is_π_system F ∧ is_λ_system F 
-    ⇒ ∀ A B : set, A ∈ F ∧ B ∈ F
+    is_π_system F ⇒ is_λ_system F 
+    ⇒ ∀ A B : set, A ∈ F ⇒ B ∈ F
       ⇒ A ∪ B ∈ F.
 
 Proof. 
+Take F : (setOfSets). 
+Assume F_is_π_system; Assume F_is_λ_system. 
+Take A : (set); Take B : (set). 
+Assume A_in_F; Assume B_in_F.
 
-Qed.  
+We claim that ((A ∪ B) = (Ω \ ((Ω \ A) ∩ (Ω \ B)))) (union_as_comp). 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_union. 
+It holds that (¬(x ∈ (Ω \ (A ∪ B)))) (x_not_in_comp).
+(*It holds that (¬(x ∈ ((Ω \ A) ∩ (Ω \ B)))) (xx). *)
+ 
+
+Admitted.   
 
 
 Lemma empty_in_λ : 
@@ -380,11 +425,54 @@ Apply comp_full_in_F.
 
 Qed.  
 
+Lemma union_to_or : 
+  ∀ A B : (set), ∀ x : U, 
+    x ∈ (A ∪ B) ⇒ (x ∈ A ∨ x ∈ B).
+
+Proof. 
+Take A : (set); Take B : (set). 
+Take x : U; Assume x_in_union. 
+We argue by contradiction. 
+By H it holds that ((¬(x ∈ A)) ∧ (¬(x ∈ B))) (x_not_in_A_and_B). 
+It holds that (x ∈ B ⇒ x ∈ (A ∪ B)) (xx). 
+(* Waarom werkt dit niet, ondanks Hint Resolve?*)
+(*
+It holds that (~(Union _ A B) x) (xxx). 
+By x_not_in_A_and_B it holds that (¬(x ∈(A ∪ B))) (x_not_in_union). *)
+Admitted. 
+
+Lemma FU_S_as_union : 
+  ∀C : (ℕ → (set)), ∀n : ℕ,
+    finite_union_up_to C (S n) = (finite_union_up_to C n) ∪ (C n). 
+
+Proof. 
+Take C : (ℕ → (set)). 
+Take n : ℕ. 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_FU_S. 
+Choose n0 such that x_in_C_n0 according to x_in_FU_S.
+It holds that (n0 <= n) (n0_le_n). (*avoid %nat? *) 
+By leq_equiv it holds that (n0 < n ∨ n0 = n) (n0_l_e_n).
+Because  n0_l_e_n either n0_l_n or n0_is_n. 
+(*n0 < n*)
+It holds that (x ∈ (finite_union_up_to C n)) (x_in_FU). 
+It holds that (x ∈ (finite_union_up_to C n ∪ C n)). 
+(*n0 = n*)
+Write goal using (n = n0) as (x ∈ (finite_union_up_to C n0 ∪ C n0)). 
+It holds that (x ∈ C n0) (x_in_Cn0).
+It holds that ( x ∈ (finite_union_up_to C n0 ∪ C n0)). 
+
+Take x : U; Assume x_in_FU_with_Cn. 
+By union_to_or it holds that ((x ∈ (finite_union_up_to C n)) \/ (x ∈ C n)) (x_in_FU_or_Cn).
+It holds that (x ∈ finite_union_up_to C (S n)). 
+Qed. 
+
+
 Lemma FU_in_π_and_λ : 
   ∀ F : setOfSets, 
     is_π_system F ∧ is_λ_system F 
     ⇒ ∀C : (ℕ → (set)), (∀ n : ℕ, (C n) ∈ F) 
-      ⇒ ∀ n : ℕ, (finite_union_up_to C n) ∈ F.
+      ⇒ ∀n : ℕ, (finite_union_up_to C n) ∈ F.
 
 Proof. 
 Take F : (setOfSets). 
@@ -402,9 +490,16 @@ Write goal using (finite_union_up_to C 0 = ∅) as (∅ ∈ F).
 Apply empty_in_λ; Apply F_is_λ_system. 
 
 (* Induction step: *)
-
-
-It holds that (finite_union_up_to C 0 ∈ F). 
+By FU_S_as_union it holds that 
+  (finite_union_up_to C (S n) 
+    = (finite_union_up_to C n) ∪ (C n)) (FU_union).  
+Write goal using 
+  (finite_union_up_to C (S n) = (finite_union_up_to C n) ∪ (C n)) 
+    as ((finite_union_up_to C n) ∪ (C n) ∈ F).
+By all_Cn_in_F it holds that (C n ∈ F) (Cn_in_F). 
+Apply unions_in_π_and_λ. 
+It holds that 
+By unions_in_π_and_λ it holds that ((finite_union_up_to C n ∪ C n) ∈ F) (xx). 
 
 
 
