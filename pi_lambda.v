@@ -1,5 +1,5 @@
 (*Version 1.3.6 - 30-04-2020
-  new notations for generated sigma-alg and lambda-syst
+  new notations for is_pi, is_sigma and is_lambda
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -65,8 +65,9 @@ Definition is_π_system (Π : setOfSets)
     ∀ A : set, A ∈ Π ⇒ 
       ∀ B : set, B ∈ Π ⇒ 
          (A ∩ B) ∈ Π. 
-
-Notation "A is a π-system" := 
+(* The following notation would make proofs slightly more readable and 
+   similar to hand-written, but is it helpful? With spaces ipv underscores would be even better*)
+Notation "A is_a_π-system" := 
   (is_π_system A) (at level 50). 
 
 Definition Countable_union (A : (ℕ → set)) 
@@ -99,16 +100,22 @@ Definition is_λ_system (Λ : setOfSets)
     complement_in_set Λ ∧
     closed_under_disjoint_countable_union Λ. 
 
+Notation "A is_a_λ-system" := 
+  (is_λ_system A) (at level 50). 
+
 Definition is_σ_algebra (F : setOfSets) 
   : Prop := 
     full_set_in_set F ∧ 
     complement_in_set F ∧
     closed_under_countable_union F.
 
+Notation "A is_a_σ-algebra" := 
+  (is_σ_algebra A) (at level 50). 
+
 Definition  σ_algebra_generated_by (A : setOfSets) 
   : (setOfSets) := 
     fun (B : set) ↦ 
-    (∀ F : setOfSets, is_σ_algebra F ⇒ (A ⊂ F ⇒ B ∈ F)). 
+    (∀ F : setOfSets, F is_a_σ-algebra ⇒ (A ⊂ F ⇒ B ∈ F)). 
 
 Notation "σ( A )" := 
  (σ_algebra_generated_by A) (at level 50). 
@@ -283,8 +290,15 @@ By complement_empty it holds that ((C 0 \ ∅) = C 0) (C0_empty_is_C0).
 Write goal using ((C 0 \ ∅) = C 0) as (x ∈ (C 0)). 
 Apply x_in_Cn. 
 It holds that (x ∈ Countable_union (disjoint_seq C)). 
-(*
+
 (*Induction step:*)
+By classic it holds that ((x ∈ C n0) ∨ (x ∉ C n0)) (x_in_C_n0_or_not). 
+Because x_in_C_n0_or_not either x_in_C_n0 or x_not_in_C_n0. 
+(*x in C_n0: *)
+It holds that (x ∈ Countable_union (disjoint_seq C)). (*By IH*) 
+(*x not in C_n0: *) 
+
+
 By classic it holds that 
   ((x ∈finite_union_up_to C n0) 
     ∨ (x ∉ finite_union_up_to C n0)) (in_FU_or_not). 
@@ -295,18 +309,14 @@ Choose n1 such that x_in_Cn1 according to x_in_FU.
 It holds that (x ∈ Countable_union (disjoint_seq C)). 
 (*x not yet in finite union: *)
 It holds that (x ∈ (C (S n0) \ finite_union_up_to C n0)) (x_in_C_without_FU).
-By classic it holds that ((x ∈ C n0) ∨ (x ∉ C n0)) (x_in_C_n0_or_not). 
-Because x_in_C_n0_or_not either x_in_C_n0 or x_not_in_C_n0. 
-(*x in C_n0: *)
-It holds that (x ∈ Countable_union (disjoint_seq C)). (*By IH*) 
-(*x not in C_n0: *) 
+
 
 It holds that (¬ (∃i : ℕ,  (i < (S n0) ∧ x ∈ (C n0)))) (no_i_le_n0).
 By no_i_le_n0 it holds that ((x ∉ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
 (*By x_not_in_C_and_FU it holds that ((x ∉ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
 
 By x_in_C_without_FU it holds that (x ∈ disjoint_seq C (S n0)) (x_in_DS). *)
-*)
+
 Admitted.  
 
 (******************VERSION 2******************)
@@ -377,7 +387,7 @@ Qed.
 
 Lemma complements_in_π_and_λ : 
   ∀ F : setOfSets, 
-    is_π_system F ∧ is_λ_system F 
+    F is_a_π-system ∧ F is_a_λ-system
     ⇒ ∀ A B : set, A ∈ F ∧ B ∈ F
       ⇒ A \ B ∈ F. 
 
@@ -385,9 +395,9 @@ Proof.
 Take F : (setOfSets). 
 Assume F_is_π_and_λ_system.
 By F_is_π_and_λ_system 
-  it holds that (is_π_system F) (F_is_π_system). 
+  it holds that (F is_a_π-system) (F_is_π_system). 
 By F_is_π_and_λ_system 
-  it holds that (is_λ_system F) (F_is_λ_system). 
+  it holds that (F is_a_λ-system) (F_is_λ_system). 
 Take A : (set); Take B : (set). 
 Assume A_and_B_in_F. 
 By F_is_λ_system it holds that (Ω \ B ∈ F) (comp_B_in_F). 
@@ -451,7 +461,7 @@ Qed.
 
 Lemma unions_in_π_and_λ : 
   ∀ F : setOfSets, 
-    is_π_system F ⇒ is_λ_system F 
+    F is_a_π-system ⇒ F is_a_λ-system
     ⇒ ∀ A B : set, A ∈ F ⇒ B ∈ F
       ⇒ A ∪ B ∈ F.
 
@@ -475,7 +485,7 @@ Qed.
 
 Lemma empty_in_λ : 
   ∀ F : setOfSets, 
-    is_λ_system F ⇒ ∅ ∈ F. 
+    F is_a_λ-system ⇒ ∅ ∈ F. 
 
 Proof.  
 Take F : (setOfSets); Assume F_is_λ_system. 
@@ -516,7 +526,7 @@ Qed.
 
 Lemma FU_in_π_and_λ : 
   ∀ F : setOfSets, 
-    is_π_system F ⇒ is_λ_system F 
+    F is_a_π-system ⇒ F is_a_λ-system
     ⇒ ∀C : (ℕ → (set)), (∀ n : ℕ, (C n) ∈ F) 
       ⇒ ∀n : ℕ, (finite_union_up_to C n) ∈ F.
 
@@ -554,8 +564,8 @@ Qed.
 
 Lemma π_and_λ_is_σ : 
   ∀ F : setOfSets, 
-    is_π_system F ⇒ is_λ_system F 
-    ⇒ is_σ_algebra F. 
+    F is_a_π-system ⇒ F is_a_λ-system 
+      ⇒ F is_a_σ-algebra. 
 
 Proof. 
 Take F : (setOfSets).
@@ -615,20 +625,20 @@ Qed.
 Definition  λ_system_generated_by (A : setOfSets) 
   : (setOfSets) := 
     fun (B : set) ↦ 
-    (∀ Λ : setOfSets, is_λ_system Λ ⇒ (A ⊂ Λ ⇒ B ∈ Λ)). 
+    (∀ Λ : setOfSets, Λ is_a_λ-system ⇒ (A ⊂ Λ ⇒ B ∈ Λ)). 
 
 Notation "λ( A )" := 
  (λ_system_generated_by A) (at level 50). 
  
 Lemma generated_system_is_λ : 
   ∀ A : setOfSets, 
-    is_λ_system (λ(A)).
+    λ(A) is_a_λ-system.
 
 Proof. 
 Take A : (setOfSets). 
-Expand the definition of is_λ_system. 
+Expand the definition of is_λ_system. (*probleem dat hier niet is_a_λ-system staat?*)
 It holds that (∀ Λ : setOfSets, 
-  is_λ_system Λ ⇒ (full_set_in_set Λ)
+  Λ is_a_λ-system ⇒ (full_set_in_set Λ)
     ∧ complement_in_set Λ
       ∧ closed_under_disjoint_countable_union Λ) (lambda_props_for_all). 
 split. 
@@ -642,7 +652,7 @@ Assume all_Cn_disjoint.
 Assume all_Cn_in_λA.
 
 We claim that (∀ Λ : setOfSets, 
-  is_λ_system Λ ⇒ A ⊂ Λ 
+  Λ is_a_λ-system ⇒ A ⊂ Λ 
     ⇒ (Countable_union C) ∈ Λ) (CU_in_all).
 Take Λ : (setOfSets). 
 Assume Λ_is_λ_system. 
@@ -664,15 +674,15 @@ Definition H (B : set) (λΠ : setOfSets)
 
 
 Lemma H_is_λ_system : 
-  ∀ Π : setOfSets, is_π_system Π 
-    ⇒ ∀ B : set, is_λ_system (H B (λ(Π))).
+  ∀ Π : setOfSets, Π is_a_π-system
+    ⇒ ∀ B : set, (H B (λ(Π)) is_a_λ-system).
 
 Proof. 
 
 Admitted. 
 
 Lemma int_in_λΠ : 
-  ∀ Π : setOfSets, is_π_system Π 
+  ∀ Π : setOfSets, Π is_a_π-system
     ⇒ ∀ A : set, A ∈(λ(Π))
       ⇒ ∀ B : set, B ∈ Π
         ⇒ (A ∩ B) ∈ (λ(Π)).
@@ -681,14 +691,14 @@ Admitted.
 
 
 Lemma λΠ_is_σ_algebra : 
-  ∀ Π : setOfSets, is_π_system Π 
-    ⇒ is_σ_algebra (λ(Π)).
+  ∀ Π : setOfSets, Π is_a_π-system
+    ⇒ λ(Π) is_a_σ-algebra.
 (*Suffices to show that λ(Π) is a π-system *)
 Proof. 
 Take Π : (setOfSets).
 Assume Π_is_π_system. 
 
-We claim that (is_π_system (λ(Π))) (λΠ_is_π_system). 
+We claim that (λ(Π) is_a_π-system) (λΠ_is_π_system). 
 We need to show that (∀ A : set, A ∈ (λ(Π)) ⇒ 
       ∀ B : set, B ∈ (λ(Π)) ⇒ 
          (A ∩ B) ∈ (λ(Π))).
@@ -711,7 +721,7 @@ Admitted.
 
 Theorem π_λ_theorem : 
   ∀ Π Λ : setOfSets, 
-    is_π_system Π ∧ is_λ_system Λ ∧ Π ⊂ Λ
+    Π is_a_π-system ∧ Λ is_a_λ-system ∧ Π ⊂ Λ
     ⇒ (σ(Π)) ⊂ Λ. 
 
 Proof. 
@@ -720,16 +730,16 @@ Assume Π_Λ_included_systems.
 
 Expand the definition of Included. 
 Take A : (set); Assume A_in_σΠ.
-By Π_Λ_included_systems it holds that (is_π_system Π) (Π_is_π). 
-By λΠ_is_σ_algebra it holds that (is_σ_algebra (λ(Π))) (λΠ_is_σ_algebra).
+By Π_Λ_included_systems it holds that (Π is_a_π-system) (Π_is_π). 
+By λΠ_is_σ_algebra it holds that (λ(Π) is_a_σ-algebra) (λΠ_is_σ_algebra).
 By A_in_σΠ it holds that 
   (∀ F : setOfSets, 
-    is_σ_algebra F ⇨ Π ⊂ F 
+    F is_a_σ-algebra ⇨ Π ⊂ F 
       ⇨ A ∈ F) (A_in_all_σ).
 It holds that 
-  (is_σ_algebra (λ(Π)) 
+  (λ(Π) is_a_σ-algebra 
     ⇨ Π ⊂ (λ(Π))) (Π_in_λΠ). 
 By A_in_all_σ it holds that (A ∈(λ(Π))) (A_in_λΠ). 
-It holds that (is_λ_system Λ ⇒ Π ⊂ Λ) (Π_in_Λ). 
+It holds that (Λ is_a_λ-system ⇒ Π ⊂ Λ) (Π_in_Λ). 
 It holds that (A ∈ Λ). 
 Qed. 
