@@ -7,6 +7,7 @@ Require Import wplib.Tactics.Tactics.
 Require Import wplib.Tactics.TacticsContra.
 Require Import Sets.Powerset.
 Require Import Coq.Logic.Classical_Pred_Type. 
+Require Import ClassicalFacts. 
 Require Import Omega. 
 
 Add LoadPath "../". (*import v-file from same directory*)
@@ -58,6 +59,7 @@ Tactic Notation "We" "prove" "by" "induction" "on" ident(x) :=
 Hint Resolve Full_intro : measure_theory.  (*nieuwe database measure theory*)
 Hint Resolve Intersection_intro : measure_theory. 
 Hint Resolve Union_introl Union_intror : measure_theory. 
+Hint Resolve Disjoint_intro : measure_theory. 
 
 
 Definition is_π_system (Π : setOfSets) 
@@ -133,20 +135,10 @@ Definition finite_union_up_to (C : (ℕ ⇨ set)) (n : ℕ)
   : (set) := 
     fun (x:U) ↦ (∃i : ℕ,  (i < n ∧ x ∈ (C i))).
 
-Fixpoint finite_union_up_2 (C : (ℕ ⇨ set)) (n : ℕ) {struct n}
-  : (set) :=
-    match n with 
-      0 => ∅ 
-    | S p => (finite_union_up_2 C p) ∪ (C p) 
-    end. 
-
 Definition disjoint_seq (C : (ℕ ⇨ set)) 
   : (ℕ ⇨ set) := 
     fun (n:ℕ) ↦ (C n \ (finite_union_up_to C n)). 
 
-Definition disjoint_seq2 (C : (ℕ ⇨ set)) 
-  : (ℕ ⇨ set) := 
-    fun (n:ℕ) ↦ (C n \ (finite_union_up_2 C n)). 
 (* 
 Fixpoint disjoint_seq (C : (ℕ ⇨ set)) (n : ℕ) {struct n}
   : (set) :=
@@ -185,6 +177,18 @@ It holds that (x ∈ (A \ ∅)).
 Qed. 
 
 
+Lemma intersection_full : ∀A : set, 
+  (Ω ∩ A) = A. 
+
+Proof. 
+Take A : (set). 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_intersection. 
+We argue by contradiction. 
+By H it holds that (~(In _ Ω x -> In _ A x)) (xx).
+By xx it holds that ( x ∉ (Ω ∩ A) ) (xxx). 
+
+
 Lemma neq_equiv : ∀ x y : ℕ,
   (x ≠ y) ⇒ (x < y ∨ y < x).
 (*not really a constructive proof. Could this lemma follow from some library immediately? *)
@@ -198,6 +202,25 @@ Lemma leq_equiv : ∀ x y : ℕ,
 Proof. 
 intros x y. omega. 
 Qed. 
+
+
+Lemma union_to_or : 
+  ∀ A B : (set), ∀ x : U, 
+    x ∈ (A ∪ B) ⇒ (x ∈ A ∨ x ∈ B).
+
+Proof. 
+Take A : (set); Take B : (set). 
+Take x : U; Assume x_in_union. 
+We argue by contradiction. 
+By H it holds that ((x ∉ A) ∧ (x ∉ B)) (x_not_in_A_and_B). 
+It holds that (x ∈ B ⇒ x ∈ (A ∪ B)) (xx). 
+(* Waarom werkt dit niet, ondanks Hint Resolve?*)
+(*
+It holds that (~(Union _ A B) x) (xxx). 
+By x_not_in_A_and_B it holds that 
+  (x ∉(A ∪ B)) (x_not_in_union). *)
+Admitted. 
+
 
 Lemma FU_up_to_0_empty : 
   ∀ C : (ℕ ⇨ set), finite_union_up_to C 0 = ∅. 
@@ -241,18 +264,17 @@ It holds that
 It holds that 
   (¬(∃i : ℕ,  (i < m ∧ x ∈ (C i)))
     ∧ ¬(∃i : ℕ,  (i < n ∧ x ∈ (C i)))) (no_i).
+Because no_i both no_i_m and no_i_n. 
 Because m_lg_n either m_l_n or m_g_n. 
 (* m < n: *)
-By no_i it holds that 
-  (¬(∃i : ℕ,  (i < n ∧ x ∈ (C i)))) (no_i_n). 
-It holds that ((x ∉  C m)) (x_not_in_Cm). 
+
+By no_i_m it holds that ((x ∉  C m)) (x_not_in_Cm). 
 By x_in_m it holds that (x ∈ C m) (x_in_Cm).
 Contradiction.  
 
 (* m > n: *)
-By no_i it holds that 
-  (¬(∃i : ℕ,  (i < m ∧ x ∈ (C i)))) (no_i_m). 
-It holds that ((x ∉ C n)) (x_not_in_Cn). 
+
+By no_i_n it holds that ((x ∉ C n)) (x_not_in_Cn). 
 By x_in_m it holds that (x ∈ C n) (x_in_Cn).
 Contradiction.  
 Qed. 
@@ -273,12 +295,6 @@ It holds that (x ∈ Countable_union C).
 
 Take x : U; Assume x_in_CU_C.
 Choose n0 such that x_in_Cn according to x_in_CU_C. 
-(*It holds that (∀ n : ℕ,  finite_union_up_to C n ⊂ Countable_union C) (FU_subs_CU).*)
-(*
-It holds that (x ∈finite_union_up_to C (S n0)) (x_in_FU).
-By x_in_FU it holds that (exists n:nat, x ∈finite_union_up_to C (S n0)) (exists_n_x_in_FU_n). 
-Choose n such that x_in_FU_n according to exists_n_x_in_FU_n. 
-*)
 
 We prove by induction on n0. 
 (*Base case: *)
@@ -297,72 +313,34 @@ Because x_in_C_n0_or_not either x_in_C_n0 or x_not_in_C_n0.
 (*x in C_n0: *)
 It holds that (x ∈ Countable_union (disjoint_seq C)). (*By IH*) 
 (*x not in C_n0: *) 
-
-
 By classic it holds that 
   ((x ∈finite_union_up_to C n0) 
     ∨ (x ∉ finite_union_up_to C n0)) (in_FU_or_not). 
 Because in_FU_or_not either x_in_FU or x_not_in_FU. 
 (*x already in finite union: *)
-Choose n1 such that x_in_Cn1 according to x_in_FU. 
+Choose n1 such that x_in_Cn1 according to x_in_FU.
+(*possible to choose smallest n1 such that... ?*)
+We argue by contradiction. 
+By H it holds that 
+  (¬ (∃ n : ℕ , x ∈ disjoint_seq C n)) (no_n). 
+It holds that (∀n : ℕ , x ∉ disjoint_seq C n) (x_in_no_disjCn).
+Expand the definition of disjoint_seq in x_in_no_disjCn. 
 
-It holds that (x ∈ Countable_union (disjoint_seq C)). 
+
+
+
+(*By disj_seq_disjoint it holds that 
+  (Disjoint _ (disjoint_seq C n1) 
+    (disjoint_seq C (S n0))) (n1_Sn0_disjoint). 
+By x_in_Cn1 it holds that (x ∈ C n1) (x_in_C_n1). 
+By disj_in_A_not_in_B it holds that 
+  ((x ∉ disjoint_seq C (S n0))) (x_not_in_disj_Sn0). 
+Expand the definition of disjoint_seq in x_not_in_disj_Sn0.*)
+
+
 (*x not yet in finite union: *)
-It holds that (x ∈ (C (S n0) \ finite_union_up_to C n0)) (x_in_C_without_FU).
 
 
-It holds that (¬ (∃i : ℕ,  (i < (S n0) ∧ x ∈ (C n0)))) (no_i_le_n0).
-By no_i_le_n0 it holds that ((x ∉ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
-(*By x_not_in_C_and_FU it holds that ((x ∉ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
-
-By x_in_C_without_FU it holds that (x ∈ disjoint_seq C (S n0)) (x_in_DS). *)
-
-Admitted.  
-
-(******************VERSION 2******************)
-Lemma CU_sets_disjointsets2_equal : 
-  ∀ C : (ℕ ⇨ set), 
-    Countable_union (disjoint_seq2 C) = Countable_union C.
-
-Proof. 
-Take C : (ℕ ⇨ set).
-We prove equality by proving two inclusions. 
-
-Take x : U; Assume x_in_CU_disj. 
-Choose n0 such that x_in_disj_n according to x_in_CU_disj.
-It holds that (x ∈ Countable_union C). 
-
-Take x : U; Assume x_in_CU_C.
-Choose n0 such that x_in_Cn according to x_in_CU_C. 
-
-We prove by induction on n0. 
-(*Base case: *)
-It holds that (x ∈ Countable_union (disjoint_seq2 C)). 
-
-(*Induction step:*)
-By classic it holds that 
-  ((x ∈finite_union_up_to C (S n0)) 
-    ∨ (x ∉ finite_union_up_to C (S n0))) (in_FU_or_not). 
-Because in_FU_or_not either x_in_FU or x_not_in_FU. 
-(*x already in finite union: *)
-
-Choose n1 such that x_in_Cn1 according to x_in_FU. 
-
- (*
-(*x not yet in finite union: *)
-It holds that (x ∈ (C (S n0) \ finite_union_up_to C n0)) (x_in_C_without_FU).
-By classic it holds that ((x ∈ C n0) ∨ (x ∉ C n0)) (x_in_C_n0_or_not). 
-Because x_in_C_n0_or_not either x_in_C_n0 or x_not_in_C_n0. 
-(*x in C_n0: *)
-It holds that (x ∈ Countable_union (disjoint_seq C)). (*By IH*) 
-(*x not in C_n0: *) 
-
-It holds that (¬ (∃i : ℕ,  (i < (S n0) ∧ x ∈ (C n0)))) (no_i_le_n0).
-By no_i_le_n0 it holds that ((x ∉ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
-(*By x_not_in_C_and_FU it holds that ((x ∉ finite_union_up_to C (S n0))) (x_not_in_FU_S). 
-
-By x_in_C_without_FU it holds that (x ∈ disjoint_seq C (S n0)) (x_in_DS). *)
-*)
 Admitted.  
 
 
@@ -407,24 +385,6 @@ Write goal using (A \ B = A ∩ (Ω \ B)) as ((A ∩ (Ω \ B)) ∈ F).
 It holds that ((A ∩ (Ω \ B)) ∈ F). 
 
 Qed. 
-
-
-Lemma union_to_or : 
-  ∀ A B : (set), ∀ x : U, 
-    x ∈ (A ∪ B) ⇒ (x ∈ A ∨ x ∈ B).
-
-Proof. 
-Take A : (set); Take B : (set). 
-Take x : U; Assume x_in_union. 
-We argue by contradiction. 
-By H it holds that ((x ∉ A) ∧ (x ∉ B)) (x_not_in_A_and_B). 
-It holds that (x ∈ B ⇒ x ∈ (A ∪ B)) (xx). 
-(* Waarom werkt dit niet, ondanks Hint Resolve?*)
-(*
-It holds that (~(Union _ A B) x) (xxx). 
-By x_not_in_A_and_B it holds that 
-  (x ∉(A ∪ B)) (x_not_in_union). *)
-Admitted. 
 
 
 Lemma union_as_complements : 
@@ -675,9 +635,15 @@ Definition H (B : set) (λΠ : setOfSets)
 
 Lemma H_is_λ_system : 
   ∀ Π : setOfSets, Π is_a_π-system
-    ⇒ ∀ B : set, (H B (λ(Π)) is_a_λ-system).
+    ⇒ ∀ B : set, B ∈ (λ(Π)) 
+      ⇒ (H B (λ(Π))) is_a_λ-system.
 
 Proof. 
+Take Π : (setOfSets); Assume Π_is_a_π_system.
+Take B : (set); Assume B_in_λΠ. 
+Expand the definition of is_λ_system. 
+split.
+
 
 Admitted. 
 
@@ -710,9 +676,8 @@ Assume B_in_λΠ.
 By classic it holds that (B ∈ Π ∨ B ∉ Π) (B_in_Π_or_not).
 Because B_in_Π_or_not either B_in_Π or B_not_in_Π. 
 (* B ∈ Π *)
-By int_in_λΠ it holds that ((A ∩ B) ∈ λ(Π)) (xx).
+By int_in_λΠ it holds that ((A ∩ B) ∈ λ(Π)) (xx). (*extra tactic so that this can conclude proof?*) 
 This follows immediately. 
-(*extra tactic so that this can conclude proof?*) 
 
 (* B ∉ Π *)
 
