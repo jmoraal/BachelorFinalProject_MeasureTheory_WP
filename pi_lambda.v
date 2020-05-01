@@ -1,5 +1,6 @@
-(*Version 1.4.1 - 01-05-2020
-  FU/union of 2 lemma proven
+(*Version 1.4.2 - 01-05-2020
+  (earlier: error from meeting fixed)
+  
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -29,7 +30,7 @@ Notation "'Ω'" :=
   (Full_set U) (at level 0). 
 
 Notation "x ∩ y" := 
-  (Intersection _ x y) (at level 50). (*change level if brackets occur in wrong places*)
+  (Intersection _ x y) (at level 50). 
 
 Notation "x ∪ y" := 
   (Union _ x y) (at level 50). 
@@ -599,7 +600,6 @@ By disj_seq_disjoint it holds that
 (*By F_is_λ_system it holds that 
   (closed_under_disjoint_countable_union F) (CU_disj_CU2). Doesn't work here*)
 It holds that (Countable_union (disjoint_seq C) ∈ F).
-
 Qed. 
  
 
@@ -699,6 +699,18 @@ It holds that (∃ n : nat, x ∈ aux_seq A B n) (exists_n_B).
 It follows that (x ∈ Countable_union (aux_seq A B)).
 Qed. 
 
+Lemma disjoint_aux : 
+  ∀ A B : set, (Disjoint _ A B) 
+    ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (aux_seq A B m) (aux_seq A B m)). 
+
+Proof. 
+Take A : (set); Take B : (set). 
+Assume A_B_disjoint. 
+Take m : ℕ; Take n : ℕ. 
+Assume m_neq_n. 
+destruct A_B_disjoint.
+Admitted. 
+
 
 Lemma disj_union_in_λ_system : 
   ∀ Λ : setOfSets, Λ is_a_λ-system
@@ -709,7 +721,31 @@ Proof.
 Take Λ : (setOfSets); Assume Λ_is_a_λ_system. 
 Take A : (set); Take B : (set). 
 Assume A_in_Λ; Assume B_in_Λ. 
+Assume A_B_disjoint. 
 
+We claim that (∀ n : ℕ, aux_seq A B n ∈ Λ) (all_aux_in_Λ). 
+Take n : ℕ. 
+We prove by induction on n. 
+It holds that (aux_seq A B 0 ∈ Λ). 
+We prove by induction on n. (*0 and 1 defined, rest inductively. Other way? *)
+It holds that (aux_seq A B 1 ∈ Λ). 
+Write goal using (aux_seq A B (S (S n)) = ∅) as (∅ ∈ Λ). 
+By empty_in_λ it holds that (∅ ∈ Λ) (empty_in_Λ).
+Apply empty_in_Λ.  
+
+By CU_aux_is_union it holds that 
+  (A ∪ B = Countable_union (aux_seq A B)) (union_to_CU). 
+Write goal using (A ∪ B = Countable_union (aux_seq A B))
+  as (Countable_union (aux_seq A B) ∈ Λ). 
+
+By disjoint_aux it holds that 
+  (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (aux_seq A B m) (aux_seq A B m)) (aux_disjoint).
+By Λ_is_a_λ_system it holds that 
+  (closed_under_disjoint_countable_union Λ) (closed_under_disj_CU). 
+Expand the definition of closed_under_disjoint_countable_union in closed_under_disj_CU. 
+It holds that ((∀ m n : ℕ, m ≠ n ⇒ Disjoint U (aux_seq A B m) (aux_seq A B n))
+    ⇒ (for all n : ℕ, aux_seq A B n ∈ Λ)) (props_cu_disj_CU). 
+By closed_under_disj_CU it holds that ((Countable_union (aux_seq A B)) ∈ Λ) (xx). 
 
 Admitted. 
 
