@@ -1,5 +1,6 @@
 (*Version 1.3.7 - 30-04-2020
-  progress on proofs, cleaned up
+  meeting w/ Jim
+  something broke :( 
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -27,12 +28,6 @@ Notation "∅" :=
 Notation "'Ω'" := 
   (Full_set U) (at level 0). 
 
-Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
-   apply Extensionality_Ensembles; 
-   unfold Same_set; 
-   unfold Included;
-   split.
-
 Notation "x ∩ y" := 
   (Intersection _ x y) (at level 50). (*change level if brackets occur in wrong places*)
 
@@ -52,6 +47,15 @@ Notation "x ∉ A" :=
 Notation "x ⊂ y" := 
   (Included _ x y) (at level 50). 
 
+Notation "{ x : A | P }" := 
+  (fun (x : A) ↦ P) (x at level 99).
+
+Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
+   apply Extensionality_Ensembles; 
+   unfold Same_set; 
+   unfold Included;
+   split.
+
 Tactic Notation "We" "prove" "by" "induction" "on" ident(x) := 
   induction x. 
 (*Not nicest formulation, but 'Proof' is already taken*)
@@ -68,13 +72,20 @@ Definition is_π_system (Π : setOfSets)
       ∀ B : set, B ∈ Π ⇒ 
          (A ∩ B) ∈ Π. 
 (* The following notation would make proofs slightly more readable and 
-   similar to hand-written, but is it helpful? With spaces ipv underscores would be even better*)
+   similar to hand-written, but is it helpful? With spaces ipv underscores
+   would be even better. Only problem: cannot unfold this one, only original. *)
 Notation "A is_a_π-system" := 
   (is_π_system A) (at level 50). 
 
 Definition Countable_union (A : (ℕ → set)) 
   : set := 
     fun (x:U) ↦ ∃n : ℕ, x ∈ (A n).
+
+(*
+Definition Countable_union (A : (ℕ → set)) 
+  : set := 
+    { x:U | ∃n : ℕ, x ∈ (A n)}.
+*)
 
 Definition full_set_in_set (Λ : setOfSets) 
   : Prop :=
@@ -119,21 +130,45 @@ Definition  σ_algebra_generated_by (A : setOfSets)
     fun (B : set) ↦ 
     (∀ F : setOfSets, F is_a_σ-algebra ⇒ (A ⊂ F ⇒ B ∈ F)). 
 
+(*
+Definition  σ_algebra_generated_by (A : setOfSets) 
+  : (setOfSets) := 
+    {B : set | ∀ F : setOfSets, F is_a_σ-algebra ⇒ (A ⊂ F ⇒ B ∈ F))} . 
+*)
+
 Notation "σ( A )" := 
  (σ_algebra_generated_by A) (at level 50). 
 
 Definition restriction (F : setOfSets) (A : (set)) 
   : (setOfSets) := 
-    fun (C : set) ↦ (exists B : set, B ∈ F ⇒ C = A ∩ B). 
+    fun (C : set) ↦ (∃B : set, B ∈ F ⇒ C = A ∩ B). 
+
+(*
+Definition restriction (F : setOfSets) (A : (set)) 
+  : (setOfSets) := 
+    {C : set | ∃B : set, B ∈ F ⇒ C = A ∩ B}. 
+*)
 
 Definition finite_union (C : (ℕ ⇨ set)) (n : ℕ) 
-  : (set) := 
+  : set := 
     fun (x:U) ↦ (∃i : ℕ,  (i <= n ∧ x ∈ (C i))).
 (* ≤ only works for Reals *)
+
+(*
+Definition finite_union (C : (ℕ ⇨ set)) (n : ℕ) 
+  : set := 
+    {x:U | (∃i : ℕ,  (i <= n ∧ x ∈ (C i)))}.
+*)
 
 Definition finite_union_up_to (C : (ℕ ⇨ set)) (n : ℕ) 
   : (set) := 
     fun (x:U) ↦ (∃i : ℕ,  (i < n ∧ x ∈ (C i))).
+
+(*
+Definition finite_union_up_to (C : (ℕ ⇨ set)) (n : ℕ) 
+  : (set) := 
+    {x : U | (∃i : ℕ,  (i < n ∧ x ∈ (C i)))}.
+*)
 
 Definition disjoint_seq (C : (ℕ ⇨ set)) 
   : (ℕ ⇨ set) := 
@@ -164,7 +199,7 @@ Qed.
 
 
 Lemma complement_empty : 
-  ∀ A : (set), A \ ∅ = A. 
+  ∀ A : set, A \ ∅ = A. 
 
 Proof. 
 Take A : (set). 
@@ -184,9 +219,9 @@ Proof.
 Take A : (set). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_intersection. 
-We argue by contradiction. 
-By H it holds that 
-  (~(In _ Ω x -> In _ A x)) (intersection_def).
+destruct x_in_intersection. 
+It holds that (x ∈ A). 
+
 (* 
 It holds that ( x ∉ (Ω ∩ A) ) (xxx). 
 (*definition of Intersection does not allow this?*)
@@ -206,6 +241,7 @@ Proof.
 intros x y. omega.
 Qed. 
 
+
 Lemma leq_equiv : ∀ x y : ℕ,
   (x <= y) ⇒ (x < y ∨ x = y).
 
@@ -224,7 +260,9 @@ Take x : U; Assume x_in_union.
 We argue by contradiction. 
 By H it holds that 
   ((x ∉ A) ∧ (x ∉ B)) (x_not_in_A_and_B). 
-It holds that (x ∈ B ⇒ x ∈ (A ∪ B)) (xx). 
+It holds that (x ∈ B ⇒ x ∈ (A ∪ B)) (xx).
+
+(*destruct!*) 
 (* Waarom werkt dit niet, ondanks Hint Resolve?*)
 (*
 It holds that (~(Union _ A B) x) (xxx). 
@@ -255,12 +293,11 @@ Lemma disj_seq_disjoint :
       (disjoint_seq C m) (disjoint_seq C n)). 
 
 Proof. 
-(*Expand the definition of Disjoint. (Why does this not work?*)
 Take C : (ℕ ⇨ set). 
 Take m : ℕ; Take n : ℕ. (*tactic voor 2 in een keer?*)
 Assume m_neq_n.
 By neq_equiv it holds that 
-  (m ≠ n ⇒ (m < n) ∨ (m > n)) (m_l_g_n). (*uit welke library volgt dit?*)
+  (m ≠ n ⇒ (m < n) ∨ (m > n)) (m_l_g_n).
 It holds that ((m < n) ∨ (m > n)) (m_lg_n). 
 We argue by contradiction. 
 It holds that (exists x: U, 
@@ -293,7 +330,6 @@ Contradiction.
 Qed. 
 
 
-(******************VERSION 1******************)
 Lemma CU_sets_disjointsets_equal : 
   ∀ C : (ℕ ⇨ set), 
     Countable_union (disjoint_seq C) = Countable_union C.
@@ -308,6 +344,8 @@ It holds that (x ∈ Countable_union C).
 
 Take x : U; Assume x_in_CU_C.
 Choose n0 such that x_in_Cn according to x_in_CU_C. 
+(*rather: choose minimal n0*)
+
 
 We prove by induction on n0. 
 (*Base case: *)
@@ -448,7 +486,7 @@ Take F : (setOfSets).
 Assume F_is_π_system; Assume F_is_λ_system. 
 Take A : (set); Take B : (set). 
 Assume A_in_F; Assume B_in_F.
-
+(*
 By union_as_complements it holds that 
   ((A ∪ B) = (Ω \ ((Ω \ A) ∩ (Ω \ B)))) (union_is_comp). 
 Write goal using 
@@ -460,7 +498,8 @@ By F_is_π_system it holds that
   ((Ω \ A) ∩ (Ω \ B) ∈ F) (int_in_F). 
 It holds that ((Ω \ ((Ω \ A) ∩ (Ω \ B))) ∈ F). 
 Qed. 
-
+*)
+Admitted. 
 
 Lemma empty_in_λ : 
   ∀ F : setOfSets, 
@@ -471,9 +510,7 @@ Take F : (setOfSets); Assume F_is_λ_system.
 By complement_full_is_empty it holds that 
   (∅ = (Ω \ Ω)) (comp_full_empty).
 Write goal using (∅ = (Ω \ Ω)) as ((Ω \ Ω) ∈ F). 
-It holds that ((Ω \ Ω) ∈ F) (comp_full_in_F). (*does not immediately resolve goal*)
-Apply comp_full_in_F.
-
+It holds that ((Ω \ Ω) ∈ F). 
 Qed.  
 
 
@@ -537,12 +574,9 @@ Write goal using
     = (finite_union_up_to C n) ∪ (C n)) 
     as ((finite_union_up_to C n) ∪ (C n) ∈ F).
 By all_Cn_in_F it holds that (C n ∈ F) (Cn_in_F). 
-Apply unions_in_π_and_λ. 
-(*Moet elke assumptie apart af gaan. Kan dit korter?*)
-This follows by assumption. 
-This follows by assumption. 
-This follows by assumption. 
-This follows by assumption. 
+By unions_in_π_and_λ it holds that ((finite_union_up_to C n ∪ C n) ∈ F) (xx). 
+Apply xx. 
+
 Qed. 
 
 
@@ -591,23 +625,18 @@ Write goal using
   (disjoint_seq C n = (C n \ finite_union_up_to C n)) 
     as ((C n \ finite_union_up_to C n) ∈ F). 
 Apply comp_in_F. 
-
+(*
 By disj_seq_disjoint it holds that 
   ((∀ m n : ℕ, m ≠ n ⇒ 
     Disjoint _ 
       (disjoint_seq C m) (disjoint_seq C n))) (disj_seq_disj). 
-(*By F_is_λ_system it holds that (closed_under_disjoint_countable_union F) (CU_disj_CU2). Doesn't work here*)
+(*By F_is_λ_system it holds that 
+  (closed_under_disjoint_countable_union F) (CU_disj_CU2). Doesn't work here*)
 It holds that (Countable_union (disjoint_seq C) ∈ F).
 
 Qed. 
-
-(* Usual proof method: 
-   Let B_n := C_n \ (union i=1 to n-1 of C_i). 
-    (or: A_n := A_n-1 ∪ B_n-1, A_0 = empty
-         B_n := C_n \ A_n, B_0 = C_0)
-   These are in F by F_is_π_system, and their union
-   is in F by F_is_λ_system
 *)
+Admitted. 
 
 Definition  λ_system_generated_by (A : setOfSets) 
   : (setOfSets) := fun (B : set) ↦ 
@@ -623,7 +652,7 @@ Lemma generated_system_is_λ :
 
 Proof. 
 Take A : (setOfSets). 
-Expand the definition of is_λ_system. (*probleem dat hier niet is_a_λ-system staat?*)
+Expand the definition of is_λ_system. (*write goal as*)
 It holds that (∀ Λ : setOfSets, 
   Λ is_a_λ-system ⇒ (full_set_in_set Λ)
     ∧ complement_in_set Λ
@@ -660,10 +689,14 @@ It follows that (Countable_union C ∈ λ(A)).
 Qed.
 
 (*global variables? As not to re-define Π and others each time. *)
+(*yes, with 'Variable;*)
+Definition H (B : set) (λΠ : setOfSets)
+  : setOfSets := 
+    {A : (set) | (A ∩ B ∈ λΠ) }. 
 Definition H (B : set) (λΠ : setOfSets)
   : setOfSets := 
     fun (A : set) ↦ (A ∩ B ∈ λΠ). 
-(*notation using { : } for sets?*)
+
 
 Lemma H_is_λ_system : 
   ∀ Π : setOfSets, Π is_a_π-system
