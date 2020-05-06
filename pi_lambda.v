@@ -1,7 +1,5 @@
-(*Version 1.4.4 - 06-05-2020
-  disjoint_aux proven
-  additional lemmas intersection_symmetric and disjoint_symmetric stated and proven
-  disj_union_in_λ_system proof finished
+(*Version 1.4.5 - 06-05-2020
+  H_is_λ_system proven
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -840,7 +838,7 @@ Take A : (set); Take B : (set).
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_lhs. 
 destruct x_in_lhs.
-By H0 it holds that ((x ∉ (A ∩ B)) /\ (x ∉ (Ω \ B))) (x_not_in_int_comp). 
+By H0 it holds that ((x ∉ (A ∩ B)) ∧ (x ∉ (Ω \ B))) (x_not_in_int_comp). 
 Because x_not_in_int_comp both x_not_in_int and x_not_in_comp. 
 By x_not_in_int it holds that (x ∉ A) (x_not_in_A). 
 It holds that (x ∈ (Ω \ A)) (x_in_comp_A). 
@@ -863,6 +861,71 @@ Admitted.
 Definition H (B : set) (λΠ : setOfSets)
   : setOfSets := 
     {A : (set) | (A ∩ B ∈ λΠ) }. 
+
+Definition seq_intersection (C : (ℕ ⇨ set)) (B : set)
+  : ℕ ⇨ set := 
+    fun (n:nat) => ((C n) ∩ B).
+
+Lemma C_int_B_disjoint : 
+  ∀ C : (ℕ ⇨ set), ∀ B : set, 
+    (∀m n : ℕ, m ≠ n ⇨ Disjoint U (C m) (C n))
+      ⇒ ∀m n : ℕ, m ≠ n 
+        ⇒ Disjoint U (seq_intersection C B m) (seq_intersection C B n). 
+
+Proof. 
+Take C : (ℕ ⇨ set); Take B : (set). 
+Assume all_Cn_disjoint. 
+Take m : ℕ; Take n : ℕ. 
+Assume m_neq_n. 
+By all_Cn_disjoint it holds that 
+  (Disjoint U (C m) (C n)) (Cm_Cn_disj).
+We argue by contradiction. 
+By H0 it holds that 
+  (exists x : U, x ∈ ((C m ∩ B) ∩ (C n ∩ B))) (exists_x_in_CmB_CnB).
+Choose x such that x_in_CmB_CnB according to exists_x_in_CmB_CnB.
+By x_in_CmB_CnB it holds that 
+  (x ∈ (C m ∩ B) /\ x ∈ (C n ∩ B)) (x_in_CmB_and_CnB). 
+Because x_in_CmB_and_CnB both x_in_CmB and x_in_CnB. 
+By x_in_CmB it holds that 
+  (x ∈ C m /\ x ∈ B) (x_in_Cm_and_B).
+It holds that (x ∈ C m) (x_in_Cm). 
+By x_in_CnB it holds that 
+  (x ∈ C n /\ x ∈ B) (x_in_Cn_and_B).
+It holds that (x ∈ C n) (x_in_Cn).
+It holds that 
+  (x ∈ C n /\ x ∈ C m) (x_in_Cm_and_Cn). 
+By x_in_Cm_and_Cn it holds that 
+  (x ∈ (C m ∩ C n)) (x_in_Cm_Cn). 
+destruct Cm_Cn_disj.
+By H1 it holds that (x ∉ (C m ∩ C n)) (x_not_in_Cm_Cn). 
+Contradiction. 
+Qed. 
+
+Lemma CU_seq_int_is_CU_int : 
+  ∀ C : (ℕ ⇨ set), ∀ B : set, 
+    Countable_union (seq_intersection C B) = (Countable_union C) ∩ B. 
+
+Proof. 
+Take C : (ℕ ⇨ set); Take B : (set). 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_lhs. 
+Choose n such that x_in_seq_Cn according to x_in_lhs.
+destruct x_in_seq_Cn. 
+By H0 it holds that (x ∈ Countable_union C) (x_in_CU). 
+By H1 it holds that (x ∈ B) (x_in_B). 
+It follows that (x ∈ (Countable_union C ∩ B)). 
+
+Take x : U; Assume x_in_rhs. 
+By x_in_rhs it holds that 
+  (x ∈ Countable_union C ∧ x ∈ B) (x_in_CU_and_B).
+Because x_in_CU_and_B both x_in_CU and x_in_B. 
+Choose n such that x_in_Cn according to x_in_CU. 
+It holds that (x ∈ C n ∧ x ∈ B) (x_in_Cn_and_B). 
+By x_in_Cn_and_B it holds that (x ∈ ((C n) ∩ B)) (x_in_CnB). 
+It holds that (x ∈ (seq_intersection C B n)) (x_in_seq_n). 
+It follows that (x ∈ Countable_union (seq_intersection C B)). 
+Qed.
+
 
 Lemma H_is_λ_system : 
   ∀ Π : setOfSets, Π is_a_π-system
@@ -895,7 +958,7 @@ By intersection_and_complement_disjoint it holds that
   (Disjoint _ (A ∩ B) (Ω \ B)) (xx).
 Apply xx. 
 
-It holds that ((Ω \ ((A ∩ B) ∪ (Ω \ B)))∈ λ(Π)) (comp_in_λΠ).
+It holds that ((Ω \ ((A ∩ B) ∪ (Ω \ B))) ∈ λ(Π)) (comp_in_λΠ).
 By complement_as_union_intersection it holds that 
   ((Ω \ ((A ∩ B) ∪ (Ω \ B))) = (Ω \ A) ∩ B) (to_int).
 Write comp_in_λΠ using 
@@ -909,24 +972,23 @@ Take C : (ℕ ⇨ set).
 Assume all_Cn_disjoint; Assume all_Cn_in_H. 
 By all_Cn_in_H it holds that 
   (∀ n : ℕ, ((C n) ∩ B) ∈ λ(Π)) (all_CnB_in_λΠ).
-We claim that 
-  (∀m n : ℕ, m ≠ n ⇨ Disjoint U ((C m) ∩ B) ((C n) ∩ B)) (all_CnB_disj). 
-Take m : ℕ; Take n : ℕ. 
-Assume m_neq_n. 
-By all_Cn_disjoint it holds that 
-  (Disjoint U (C m) (C n)) (Cm_Cn_disj).
-We argue by contradiction. 
-By H0 it holds that 
-  (exists x : U, x ∈ ((C m ∩ B) ∩ (C n ∩ B))) (exists_x_in_CmB_CnB).
-Choose x such that x_in_CmB_CnB according to exists_x_in_CmB_CnB.
-destruct Cm_Cn_disj.
-Contradiction. 
+By C_int_B_disjoint it holds that 
+  (∀m n : ℕ, m ≠ n ⇒ Disjoint U 
+    (seq_intersection C B m) (seq_intersection C B n)) (all_CnB_disjoint). 
+We claim that (Countable_union (seq_intersection C B) ∈ λ(Π)) (CU_in_λΠ).
+By generated_system_is_λ it holds that 
+  ((λ(Π)) is_a_λ-system) (λΠ_is_λ).
+By λΠ_is_λ it holds that 
+  (closed_under_disjoint_countable_union (λ(Π))) (λΠ_closed_under_CU). 
+It follows that (Countable_union (seq_intersection C B) ∈ (λ( Π))). 
+By CU_seq_int_is_CU_int it holds that 
+  (Countable_union (seq_intersection C B) = (Countable_union C) ∩ B) (CUs_equal).
+Write CU_in_λΠ using 
+  (Countable_union (seq_intersection C B) = (Countable_union C) ∩ B)
+    as ((Countable_union C) ∩ B ∈ (λ( Π))). 
+It follows that (Countable_union C ∈ H B (λ( Π))). 
+Qed.
 
- 
-By H0 it holds that 
-
-
-Admitted. 
 
 Lemma int_in_λΠ : 
   ∀ Π : setOfSets, Π is_a_π-system
