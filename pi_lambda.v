@@ -1,13 +1,14 @@
-(*Version 1.4.3 - 06-05-2020
-  CU_sets_disjointsets_equal proven using minimal n
-  
+(*Version 1.4.4 - 06-05-2020
+  disjoint_aux proven
+  additional lemmas intersection_symmetric and disjoint_symmetric stated and proven
+  disj_union_in_λ_system proof finished
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
 Require Import wplib.Tactics.Tactics.
 Require Import wplib.Tactics.TacticsContra.
 Require Import Sets.Powerset.
-Require Import Coq.Logic.Classical_Pred_Type. 
+Require Import Logic. 
 Require Import ClassicalFacts. 
 Require Import Omega. 
 Require Import Coq.Arith.Wf_nat. 
@@ -200,6 +201,32 @@ It holds that (x ∈ Ω) (x_in_omega).
 It follows that (x ∈ (Ω ∩ A)). 
 Qed. 
 
+Lemma intersection_empty : ∀A : set, 
+  (A ∩ ∅) = ∅. 
+
+Proof. 
+Take A : (set). 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_intersection. 
+destruct x_in_intersection. 
+Contradiction. 
+
+Take x : U; Assume x_in_empty. 
+Contradiction. 
+Qed. 
+
+Lemma empty_disjoint : ∀A : set, 
+  Disjoint _ A ∅. 
+
+Proof. 
+Take A : (set).
+It suffices to show that (∀ x:U, x ∉ (A ∩ ∅)).
+Take x : U. 
+By intersection_empty it holds that ((A ∩ ∅) = ∅) (int_empty). 
+Write goal using ((A ∩ ∅) = ∅) as (x ∉ ∅). 
+It holds that (x ∉ ∅). 
+Qed. 
+
 
 Lemma neq_equiv : ∀ x y : ℕ,
   (x ≠ y) ⇒ (x < y ∨ y < x).
@@ -306,7 +333,6 @@ We prove equality by proving two inclusions.
 Take x : U; Assume x_in_CU_disj. 
 It holds that (x ∈ Countable_union C). 
 
-
 (* CU C in CU disjoint sets: *)
 Take x : U; Assume x_in_CU_C. 
 (*now choose minimal n such that x is in disj_C n*)
@@ -318,7 +344,6 @@ By dec_inh_nat_subset_has_unique_least_element it holds that
 Choose n1 such that x_in_C_minimal_n according to exists_least_n. 
 
 We prove by induction on n1. 
-
 (*Base case: *)
 It holds that (x ∈ Countable_union (disjoint_seq C)). 
 (*Induction step: *)
@@ -367,7 +392,6 @@ By complement_as_intersection it holds that
   (A \ B = (Ω \ B) ∩ A) (set_is_complement). 
 Write goal using (A \ B = ((Ω \ B) ∩ A)) as (((Ω \ B) ∩ A) ∈ F). 
 It holds that (((Ω \ B) ∩ A) ∈ F). 
-
 Qed. 
 
 
@@ -503,7 +527,6 @@ Write goal using
 By all_Cn_in_F it holds that (C n ∈ F) (Cn_in_F). 
 By unions_in_π_and_λ it holds that ((finite_union_up_to C n ∪ C n) ∈ F) (xx). 
 Apply xx. 
-
 Qed. 
 
 
@@ -659,6 +682,39 @@ It holds that (∃ n : nat, x ∈ aux_seq A B n) (exists_n_B).
 It follows that (x ∈ Countable_union (aux_seq A B)).
 Qed. 
 
+
+Lemma intersection_symmetric : 
+  ∀ A B : set, A ∩ B = B ∩ A. 
+
+Proof. 
+Take A : (set); Take B : (set). 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_AB. 
+destruct x_in_AB. 
+It holds that (x ∈ (B ∩ A)). 
+
+Take x : U; Assume x_in_BA. 
+destruct x_in_BA. 
+It holds that (x ∈ (A ∩ B)). 
+Qed. 
+
+
+Lemma disjoint_symmetric : 
+  ∀ A B : set, (Disjoint _ A B) ⇒ (Disjoint _ B A). 
+
+Proof. 
+Take A : (set); Take B : (set). 
+Assume A_B_disjoint. 
+destruct A_B_disjoint.
+By intersection_symmetric it holds that 
+  ((A ∩ B) = (B ∩ A)) (AB_is_BA).
+Write H using ((A ∩ B) = (B ∩ A)) 
+  as (∀ x : U, x ∉ (B ∩ A)). 
+It follows that (Disjoint U B A). 
+Qed. 
+(*write "By ... it holds that ..." as "... implies ..."?*)
+
+
 Lemma disjoint_aux : 
   ∀ A B : set, (Disjoint _ A B) 
     ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (aux_seq A B m) (aux_seq A B n)). 
@@ -668,7 +724,8 @@ Take A : (set); Take B : (set).
 Assume A_B_disjoint. 
 Take m : ℕ; Take n : ℕ. 
 Assume m_neq_n. 
-
+(*non-constructive and inefficient. What would be a better way? *)
+(*Better/other case distinction tactic?*)
 We prove by induction on m. 
 We prove by induction on n. 
 (*Case m = n = 0:*)
@@ -679,9 +736,34 @@ Write goal using (aux_seq A B 1 = B) as (Disjoint U (aux_seq A B 0) B).
 Write goal using (aux_seq A B 0 = A) as (Disjoint U A B).
 It holds that (Disjoint U A B).
 (*Case m=0, n>1*)
-
-
-Admitted. 
+Write goal using (aux_seq A B (S (S n)) = ∅) 
+  as (Disjoint U (aux_seq A B 0) ∅). 
+By empty_disjoint it holds that (Disjoint U (aux_seq A B 0) ∅) (xx). 
+Apply xx. 
+(*Case m =1, n=0: *)
+We prove by induction on m. 
+We prove by induction on n. 
+Write goal using (aux_seq A B 1 = B) as (Disjoint U B (aux_seq A B 0)).
+Write goal using (aux_seq A B 0 = A) as (Disjoint U B A).
+By disjoint_symmetric it holds that 
+  ((Disjoint _ B A)) (xx).
+Apply xx. 
+(*Case m=n=1: *)
+We prove by induction on n. 
+Contradiction. 
+(*Case m=1, n>1: *)
+Write goal using (aux_seq A B (S (S n)) = ∅) 
+  as (Disjoint U (aux_seq A B 1) ∅). 
+By empty_disjoint it holds that (Disjoint U (aux_seq A B 1) ∅) (xx). 
+Apply xx.
+(*Case m>n: *)
+Write goal using (aux_seq A B (S (S m)) = ∅) 
+  as (Disjoint U ∅ (aux_seq A B n)). 
+By disjoint_symmetric it holds that 
+  (Disjoint U (aux_seq A B n) ∅ ⇒ Disjoint U ∅ (aux_seq A B n)) (disj_symm). 
+It suffices to show that (Disjoint U (aux_seq A B n) ∅). 
+Apply empty_disjoint. 
+Qed. 
 
 
 Lemma disj_union_in_λ_system : 
@@ -711,14 +793,71 @@ Write goal using (A ∪ B = Countable_union (aux_seq A B))
   as (Countable_union (aux_seq A B) ∈ Λ). 
 
 By disjoint_aux it holds that 
-  (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (aux_seq A B m) (aux_seq A B m)) (aux_disjoint).
+  (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (aux_seq A B m) (aux_seq A B n)) (aux_disjoint).
 By Λ_is_a_λ_system it holds that 
   (closed_under_disjoint_countable_union Λ) (closed_under_disj_CU). 
 Expand the definition of closed_under_disjoint_countable_union in closed_under_disj_CU. 
 It holds that ((∀ m n : ℕ, m ≠ n ⇒ Disjoint U (aux_seq A B m) (aux_seq A B n))
     ⇒ (for all n : ℕ, aux_seq A B n ∈ Λ)) (props_cu_disj_CU). 
-(*By closed_under_disj_CU it holds that ((Countable_union (aux_seq A B)) ∈ Λ) (xx). *)
+By closed_under_disj_CU it holds that ((Countable_union (aux_seq A B)) ∈ Λ) (xx). 
+Apply xx. 
+Qed. 
 
+Lemma intersection_and_complement_disjoint : 
+  ∀ A B : set, Disjoint _ (A ∩ B) (Ω \ B). 
+
+Proof. 
+Take A : (set); Take B : (set). 
+(*this step is not trivial; hint?*)
+It suffices to show that (∀ x:U, x ∉ ((A ∩ B) ∩ (Ω \ B))).
+Take x : U. 
+We argue by contradiction. 
+Define P := (x ∈ ((A ∩ B) ∩ (Ω \ B))). 
+
+(*
+By NNPP it holds that (forall p:Prop, ¬¬p ⇒ p) (double_neg).
+By double_neg it holds that (¬¬P ⇒ P) (xx). (*Why not?*)
+*)
+Admitted. 
+
+Lemma not_in_comp : 
+  ∀ A : set, ∀ x : U, 
+    x ∉ (Ω \ A) ⇒ x ∈ A.
+
+Proof. 
+Take A : (set); Take x : U. 
+Assume x_not_in_complement. 
+We argue by contradiction. 
+It holds that (x ∈ (Ω \ A)) (x_in_complement).
+Contradiction. 
+Qed.  
+
+Lemma complement_as_union_intersection : 
+  ∀ A B : set, (Ω \ ((A ∩ B) ∪ (Ω \ B))) = (Ω \ A) ∩ B.
+
+Proof. 
+Take A : (set); Take B : (set). 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_lhs. 
+destruct x_in_lhs.
+By H0 it holds that ((x ∉ (A ∩ B)) /\ (x ∉ (Ω \ B))) (x_not_in_int_comp). 
+Because x_not_in_int_comp both x_not_in_int and x_not_in_comp. 
+By x_not_in_int it holds that (x ∉ A) (x_not_in_A). 
+It holds that (x ∈ (Ω \ A)) (x_in_comp_A). 
+By not_in_comp it holds that (x ∈ B) (x_in_B).
+It follows that (x ∈ ((Ω \ A) ∩ B)). 
+
+Take x : U; Assume x_in_rhs. 
+destruct x_in_rhs. (*"Because x_in_rhs both x_in_comp_A and x_in_B" doesn't work*)
+By H it holds that (x ∉ A) (x_not_in_A). 
+We claim that (x ∉ (A ∩ B)) (x_not_in_AB).
+We argue by contradiction. 
+(*again, double negation does not work: 
+By NNPP it holds that (x ∈ (A ∩ B)) (xx). 
+*)
+(*
+By H0 it holds that (x ∉ (Ω \ B)) (x_not_in_comp_B). 
+*)
 Admitted. 
 
 Definition H (B : set) (λΠ : setOfSets)
@@ -736,16 +875,55 @@ Take B : (set); Assume B_in_λΠ.
 Expand the definition of is_λ_system. 
 split.
 
-We claim that (Ω ∩ B ∈λ(Π)) (omega_int_B_in_λΠ). 
+We claim that (Ω ∩ B ∈ λ(Π)) (omega_int_B_in_λΠ). 
 By intersection_full it holds that 
   (Ω ∩ B = B) (omega_int_B_is_B). 
 Write goal using (Ω ∩ B = B) as (B ∈ λ(Π)). 
-This follows immediately. 
+It holds that (B ∈ (λ(Π))). 
 It follows that (full_set_in_set (H B (λ(Π)))). 
 split. 
 Expand the definition of complement_in_set. 
 Take A : (set); Assume A_in_H.
-It holds that (A ∩ B ∈λ(Π)) (A_int_B_in_λΠ). 
+
+We claim that (((A ∩ B) ∪ (Ω \ B)) ∈ λ(Π)) (union_in_λΠ). 
+Apply disj_union_in_λ_system. 
+By generated_system_is_λ it holds that ((λ( Π)) is_a_λ-system) (xx). 
+Apply xx. 
+It holds that (A ∩ B ∈ λ(Π)).
+It holds that (Ω \ B ∈ λ(Π)). 
+By intersection_and_complement_disjoint it holds that 
+  (Disjoint _ (A ∩ B) (Ω \ B)) (xx).
+Apply xx. 
+
+It holds that ((Ω \ ((A ∩ B) ∪ (Ω \ B)))∈ λ(Π)) (comp_in_λΠ).
+By complement_as_union_intersection it holds that 
+  ((Ω \ ((A ∩ B) ∪ (Ω \ B))) = (Ω \ A) ∩ B) (to_int).
+Write comp_in_λΠ using 
+  ((Ω \ ((A ∩ B) ∪ (Ω \ B))) = (Ω \ A) ∩ B)
+    as ((Ω \ A) ∩ B ∈ λ(Π)). 
+By comp_in_λΠ it holds that ((Ω \ A) ∈ H B (λ( Π))) (xx).
+Apply xx.  
+
+Expand the definition of closed_under_disjoint_countable_union. 
+Take C : (ℕ ⇨ set). 
+Assume all_Cn_disjoint; Assume all_Cn_in_H. 
+By all_Cn_in_H it holds that 
+  (∀ n : ℕ, ((C n) ∩ B) ∈ λ(Π)) (all_CnB_in_λΠ).
+We claim that 
+  (∀m n : ℕ, m ≠ n ⇨ Disjoint U ((C m) ∩ B) ((C n) ∩ B)) (all_CnB_disj). 
+Take m : ℕ; Take n : ℕ. 
+Assume m_neq_n. 
+By all_Cn_disjoint it holds that 
+  (Disjoint U (C m) (C n)) (Cm_Cn_disj).
+We argue by contradiction. 
+By H0 it holds that 
+  (exists x : U, x ∈ ((C m ∩ B) ∩ (C n ∩ B))) (exists_x_in_CmB_CnB).
+Choose x such that x_in_CmB_CnB according to exists_x_in_CmB_CnB.
+destruct Cm_Cn_disj.
+Contradiction. 
+
+ 
+By H0 it holds that 
 
 
 Admitted. 
