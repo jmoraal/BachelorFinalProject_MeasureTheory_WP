@@ -1,5 +1,5 @@
-(*Version 1.4.2 - 01-05-2020
-  (earlier: error from meeting fixed)
+(*Version 1.4.3 - 06-05-2020
+  CU_sets_disjointsets_equal proven using minimal n
   
 *)
 Require Import Sets.Ensembles.
@@ -29,15 +29,14 @@ Notation "∅" :=
 Notation "'Ω'" := 
   (Full_set U) (at level 0). 
 
-Notation "x ∩ y" := 
-  (Intersection _ x y) (at level 50). 
+Notation "A ∩ B" := 
+  (Intersection _ A B) (at level 50). 
 
-Notation "x ∪ y" := 
-  (Union _ x y) (at level 50). 
+Notation "A ∪ B" := 
+  (Union _ A B) (at level 50). 
 
-
-Notation "x \ y" := 
-  (Setminus _ x y) (at level 50). 
+Notation "A \ B" := 
+  (Setminus _ A B) (at level 50). 
 
 Notation "x ∈ A" := 
   (In _ A x) (at level 50). 
@@ -45,11 +44,11 @@ Notation "x ∈ A" :=
 Notation "x ∉ A" :=  
   (~ In _ A x) (at level 50). 
 
-Notation "x ⊂ y" := 
-  (Included _ x y) (at level 50). 
+Notation "A ⊂ B" := 
+  (Included _ A B) (at level 50). 
 
-Notation "{ x : A | P }" := 
-  (fun (x : A) ↦ P) (x at level 99).
+Notation "{ x : T | P }" := 
+  (fun (x : T) ↦ P) (x at level 99).
 
 Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
    apply Extensionality_Ensembles; 
@@ -60,6 +59,12 @@ Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
 Tactic Notation "We" "prove" "by" "induction" "on" ident(x) := 
   induction x. 
 (*Not nicest formulation, but 'Proof' is already taken*)
+
+Tactic Notation "Let" ident(A) "be" "a" "set" := 
+  Take A : (set).
+
+Tactic Notation "Let" ident(F) "be" "a" "set" "of" "sets" := 
+  Take A : (setOfSets).
 
 Hint Resolve Full_intro : measure_theory.  (*nieuwe database measure theory*)
 Hint Resolve Intersection_intro : measure_theory. 
@@ -157,7 +162,7 @@ Lemma complement_full_is_empty :
 Proof. 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_empty.
-contradiction. 
+Contradiction. 
 
 Take x : U; Assume x_in_complement_full.
 Because x_in_complement_full 
@@ -285,17 +290,9 @@ By x_in_m it holds that (x ∈ C n) (x_in_Cn).
 Contradiction.  
 Qed. 
 
-Definition has_minimal_n (P : nat -> Prop) 
-  : Prop := 
-    (∃ n : ℕ, P n ∧ (∀ n1 : nat, P n1 -> n1 >= n)). 
-
-Lemma prop_for_some_nat_has_minimal_n : 
-  forall (P : ℕ ⇨ Prop), 
-    (∃ n : ℕ, P n ⇒ has_minimal_n P). 
-
-Proof. 
-Take P : (ℕ ⇨ Prop). 
-Admitted.  
+Definition aux_prop (C : (ℕ ⇨ set)) (x : U) : 
+  ℕ ⇨ Prop := 
+    fun (n : ℕ) ↦ (x ∈ C n). 
 
 Lemma CU_sets_disjointsets_equal : 
   ∀ C : (ℕ ⇨ set), 
@@ -305,65 +302,28 @@ Proof.
 Take C : (ℕ ⇨ set).
 We prove equality by proving two inclusions. 
 
+(* CU disjoint sets in CU C: *)
 Take x : U; Assume x_in_CU_disj. 
-Choose n0 such that x_in_disj_n according to x_in_CU_disj.
 It holds that (x ∈ Countable_union C). 
 
-Take x : U; Assume x_in_CU_C.
 
-Choose n0 such that x_in_Cn according to x_in_CU_C. 
-(*rather: choose minimal n0*)
+(* CU C in CU disjoint sets: *)
+Take x : U; Assume x_in_CU_C. 
+(*now choose minimal n such that x is in disj_C n*)
+Choose n such that x_in_C_n according to x_in_CU_C.
+By classic it holds that 
+  (∀ n, (aux_prop C x) n ∨ ¬(aux_prop C x) n) (aux_prop_decidable). 
+By dec_inh_nat_subset_has_unique_least_element it holds that
+  (has_unique_least_element le (aux_prop C x)) (exists_least_n). 
+Choose n1 such that x_in_C_minimal_n according to exists_least_n. 
 
+We prove by induction on n1. 
 
-We prove by induction on n0. 
 (*Base case: *)
-We claim that (x ∈ disjoint_seq C 0) (x_in_disj_C0). 
-Expand the definition of disjoint_seq. 
-By FU_up_to_0_empty it holds that 
-  (finite_union_up_to C 0 = ∅) (FU_0_empty).
-Write goal using (finite_union_up_to C 0 = ∅) as (x ∈ (C 0 \ ∅)). 
-By complement_empty it holds that 
-  ((C 0 \ ∅) = C 0) (C0_empty_is_C0). 
-Write goal using ((C 0 \ ∅) = C 0) as (x ∈ (C 0)). 
-Apply x_in_Cn. 
 It holds that (x ∈ Countable_union (disjoint_seq C)). 
-
-(*Induction step:*)
-By classic it holds that 
-  ((x ∈ C n0) ∨ (x ∉ C n0)) (x_in_C_n0_or_not). 
-Because x_in_C_n0_or_not either x_in_C_n0 or x_not_in_C_n0. 
-(*x in C_n0: *)
-It holds that (x ∈ Countable_union (disjoint_seq C)). (*By IH*) 
-(*x not in C_n0: *) 
-By classic it holds that 
-  ((x ∈finite_union_up_to C n0) 
-    ∨ (x ∉ finite_union_up_to C n0)) (in_FU_or_not). 
-Because in_FU_or_not either x_in_FU or x_not_in_FU. 
-(*x already in finite union: *)
-Choose n1 such that x_in_Cn1 according to x_in_FU.
-(*possible to choose smallest n1 such that... ?*)
-We argue by contradiction. 
-By H it holds that 
-  (¬ (∃ n : ℕ , x ∈ disjoint_seq C n)) (no_n). 
-It holds that (∀n : ℕ , x ∉ disjoint_seq C n) (x_in_no_disjCn).
-Expand the definition of disjoint_seq in x_in_no_disjCn. 
-
-
-
-
-(*By disj_seq_disjoint it holds that 
-  (Disjoint _ (disjoint_seq C n1) 
-    (disjoint_seq C (S n0))) (n1_Sn0_disjoint). 
-By x_in_Cn1 it holds that (x ∈ C n1) (x_in_C_n1). 
-By disj_in_A_not_in_B it holds that 
-  ((x ∉ disjoint_seq C (S n0))) (x_not_in_disj_Sn0). 
-Expand the definition of disjoint_seq in x_not_in_disj_Sn0.*)
-
-
-(*x not yet in finite union: *)
-
-
-Admitted. 
+(*Induction step: *)
+It holds that (x ∈ Countable_union (disjoint_seq C)). 
+Qed. 
 
 
 Lemma complement_as_intersection : 
@@ -701,14 +661,26 @@ Qed.
 
 Lemma disjoint_aux : 
   ∀ A B : set, (Disjoint _ A B) 
-    ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (aux_seq A B m) (aux_seq A B m)). 
+    ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (aux_seq A B m) (aux_seq A B n)). 
 
 Proof. 
 Take A : (set); Take B : (set). 
 Assume A_B_disjoint. 
 Take m : ℕ; Take n : ℕ. 
 Assume m_neq_n. 
-destruct A_B_disjoint.
+
+We prove by induction on m. 
+We prove by induction on n. 
+(*Case m = n = 0:*)
+Contradiction. 
+(*Case m=0, n=1:*)
+We prove by induction on n.
+Write goal using (aux_seq A B 1 = B) as (Disjoint U (aux_seq A B 0) B).
+Write goal using (aux_seq A B 0 = A) as (Disjoint U A B).
+It holds that (Disjoint U A B).
+(*Case m=0, n>1*)
+
+
 Admitted. 
 
 
@@ -745,7 +717,7 @@ By Λ_is_a_λ_system it holds that
 Expand the definition of closed_under_disjoint_countable_union in closed_under_disj_CU. 
 It holds that ((∀ m n : ℕ, m ≠ n ⇒ Disjoint U (aux_seq A B m) (aux_seq A B n))
     ⇒ (for all n : ℕ, aux_seq A B n ∈ Λ)) (props_cu_disj_CU). 
-By closed_under_disj_CU it holds that ((Countable_union (aux_seq A B)) ∈ Λ) (xx). 
+(*By closed_under_disj_CU it holds that ((Countable_union (aux_seq A B)) ∈ Λ) (xx). *)
 
 Admitted. 
 
