@@ -1,6 +1,6 @@
-(*Version 1.4.7 - 07-05-2020
-  everything up to NNPP problems finished
-  some code cleaning
+(*Version 1.5 - 07-05-2020
+  all proofs finished
+  new tactic to introduce two variables at once
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -12,8 +12,10 @@ Require Import ClassicalFacts.
 Require Import Omega. 
 Require Import Coq.Arith.Wf_nat. 
 
-Add LoadPath "../". (*import v-file from same directory*)
-(*Require Import trivial_sigma_algebra.v. *)
+Hint Resolve Full_intro : measure_theory.  (*nieuwe database measure theory*)
+Hint Resolve Intersection_intro : measure_theory. 
+Hint Resolve Union_introl Union_intror : measure_theory. 
+Hint Resolve Disjoint_intro : measure_theory. 
 
 Variable U : Type.
 
@@ -59,6 +61,15 @@ Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
 Tactic Notation "We" "prove" "by" "induction" "on" ident(x) := 
   induction x. 
 (*Not nicest formulation, but 'Proof' is already taken*)
+
+Ltac intros_strict x y t :=
+  match goal with
+    | [ |- forall _ _ : t, _] => intros x y
+  end.
+
+Tactic Notation "Take" ident(x) ident(y) ":" constr(t):=
+  intros_strict x y t. 
+
 (*
 Tactic Notation "Let" ident(A) "be" "a" "set" := 
   Take A : (set).
@@ -66,17 +77,13 @@ Tactic Notation "Let" ident(A) "be" "a" "set" :=
 Tactic Notation "Let" ident(F) "be" "a" "set" "of" "sets" := 
   Take F : (setOfSets).
 *)
-Hint Resolve Full_intro : measure_theory.  (*nieuwe database measure theory*)
-Hint Resolve Intersection_intro : measure_theory. 
-Hint Resolve Union_introl Union_intror : measure_theory. 
-Hint Resolve Disjoint_intro : measure_theory. 
 
 
 Definition is_π_system (Π : setOfSets) 
   : Prop := 
-    ∀ A : set, A ∈ Π ⇒ 
-      ∀ B : set, B ∈ Π ⇒ 
-         (A ∩ B) ∈ Π. 
+    ∀ A : set, A ∈ Π 
+      ⇒ ∀ B : set, B ∈ Π 
+        ⇒ (A ∩ B) ∈ Π. 
 
 Notation "A is_a_π-system" := 
   (is_π_system A) (at level 50). 
@@ -113,6 +120,14 @@ Definition is_λ_system (Λ : setOfSets)
 
 Notation "A is_a_λ-system" := 
   (is_λ_system A) (at level 50). 
+
+Definition λ_system_generated_by (A : setOfSets) 
+  : (setOfSets) := 
+    {B : set | (∀ Λ : setOfSets, Λ is_a_λ-system 
+       ⇒ (A ⊂ Λ ⇒ B ∈ Λ))}. 
+
+Notation "λ( A )" := 
+ (λ_system_generated_by A) (at level 50). 
 
 Definition is_σ_algebra (F : setOfSets) 
   : Prop := 
@@ -241,7 +256,7 @@ Lemma union_to_or :
     x ∈ (A ∪ B) ⇒ (x ∈ A ∨ x ∈ B).
 
 Proof. 
-Take A : (set); Take B : (set). 
+Take A B : (set). 
 Take x : U; Assume x_in_union. 
 destruct x_in_union. 
 (* x ∈ A: *)
@@ -274,7 +289,7 @@ Lemma disj_seq_disjoint :
 
 Proof. 
 Take C : (ℕ ⇨ set). 
-Take m : ℕ; Take n : ℕ. (*tactic voor 2 in een keer?*)
+Take m n : ℕ. 
 Assume m_neq_n.
 By neq_equiv it holds that 
   (m ≠ n ⇒ (m < n) ∨ (m > n)) (m_l_g_n).
@@ -297,21 +312,15 @@ It holds that
 Because no_i both no_i_m and no_i_n. 
 Because m_lg_n either m_l_n or m_g_n. 
 (* m < n: *)
-
 By no_i_m it holds that ((x ∉  C m)) (x_not_in_Cm). 
 By x_in_m it holds that (x ∈ C m) (x_in_Cm).
 Contradiction.  
-
 (* m > n: *)
-
 By no_i_n it holds that ((x ∉ C n)) (x_not_in_Cn). 
 By x_in_m it holds that (x ∈ C n) (x_in_Cn).
 Contradiction.  
 Qed. 
 
-Definition aux_prop (C : (ℕ ⇨ set)) (x : U) : 
-  ℕ ⇨ Prop := 
-    fun (n : ℕ) ↦ (x ∈ C n). 
 
 Lemma CU_sets_disjointsets_equal : 
   ∀ C : (ℕ ⇨ set), 
@@ -329,10 +338,11 @@ It holds that (x ∈ Countable_union C).
 Take x : U; Assume x_in_CU_C. 
 (*now choose minimal n such that x is in disj_C n*)
 Choose n such that x_in_C_n according to x_in_CU_C.
+Define aux_prop := (fun (n : ℕ) ↦ (x ∈ C n)).
 By classic it holds that 
-  (∀ n, (aux_prop C x) n ∨ ¬(aux_prop C x) n) (aux_prop_decidable). 
+  (∀ n, aux_prop n ∨ ¬aux_prop n) (aux_prop_decidable). 
 By dec_inh_nat_subset_has_unique_least_element it holds that
-  (has_unique_least_element le (aux_prop C x)) (exists_least_n). 
+  (has_unique_least_element le aux_prop) (exists_least_n). 
 Choose n1 such that x_in_C_minimal_n according to exists_least_n. 
 
 We prove by induction on n1. 
@@ -348,7 +358,7 @@ Lemma complement_as_intersection :
     A \ B = (Ω \ B) ∩ A. 
 
 Proof. 
-Take A : (set); Take B : (set). 
+Take A B : (set). 
 We prove equality by proving two inclusions. 
 
 Take x : U. 
@@ -360,7 +370,6 @@ Assume x_in_rhs.
 By x_in_rhs it holds that 
   (x ∈ (Ω \ B) ∧ (x ∈ A)) (x_in_A_and_comp_B). 
 It holds that (x ∈ (A \ B)). 
-
 Qed. 
 
 Lemma complements_in_π_and_λ : 
@@ -376,7 +385,7 @@ By F_is_π_and_λ_system
   it holds that (F is_a_π-system) (F_is_π_system). 
 By F_is_π_and_λ_system 
   it holds that (F is_a_λ-system) (F_is_λ_system). 
-Take A : (set); Take B : (set). 
+Take A B : (set). 
 Assume A_and_B_in_F. 
 By F_is_λ_system it holds that (Ω \ B ∈ F) (comp_B_in_F). 
 By F_is_π_system it holds that (A ∩ (Ω \ B) ∈ F) (set_in_F). 
@@ -392,7 +401,7 @@ Lemma union_as_complements :
     (A ∪ B) = (Ω \ ((Ω \ A) ∩ (Ω \ B))). 
 
 Proof. 
-Take A : (set); Take B : (set). 
+Take A B : (set). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_union. 
 By union_to_or it holds that (x ∈ A ∨ x ∈ B) (x_in_A_or_B). 
@@ -419,6 +428,7 @@ By not_not_A_and_not_B it holds that
 Contradiction. 
 Qed. 
 
+
 Lemma unions_in_π_and_λ : 
   ∀ F : setOfSets, 
     F is_a_π-system ⇒ F is_a_λ-system
@@ -428,7 +438,7 @@ Lemma unions_in_π_and_λ :
 Proof. 
 Take F : (setOfSets). 
 Assume F_is_π_system; Assume F_is_λ_system. 
-Take A : (set); Take B : (set). 
+Take A B : (set). 
 Assume A_in_F; Assume B_in_F.
 
 By union_as_complements it holds that 
@@ -576,16 +586,8 @@ By disj_seq_disjoint it holds that
   (closed_under_disjoint_countable_union F) (CU_disj_CU2). Doesn't work here*)
 It holds that (Countable_union (disjoint_seq C) ∈ F).
 Qed. 
- 
 
-Definition λ_system_generated_by (A : setOfSets) 
-  : (setOfSets) := 
-    {B : set | (∀ Λ : setOfSets, Λ is_a_λ-system 
-       ⇒ (A ⊂ Λ ⇒ B ∈ Λ))}. 
 
-Notation "λ( A )" := 
- (λ_system_generated_by A) (at level 50). 
- 
 Lemma generated_system_is_λ : 
   ∀ A : setOfSets, 
     λ(A) is_a_λ-system.
@@ -649,7 +651,7 @@ Lemma CU_aux_is_union :
   ∀ A B : set, Countable_union (aux_seq A B) = A ∪ B. 
 
 Proof. 
-Take A : (set); Take B : (set). 
+Take A B : (set). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_CU. 
 Choose n such that x_in_C_n according to x_in_CU. 
@@ -679,7 +681,7 @@ Lemma intersection_symmetric :
   ∀ A B : set, A ∩ B = B ∩ A. 
 
 Proof. 
-Take A : (set); Take B : (set). 
+Take A B : (set). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_AB. 
 destruct x_in_AB. 
@@ -695,7 +697,7 @@ Lemma disjoint_symmetric :
   ∀ A B : set, (Disjoint _ A B) ⇒ (Disjoint _ B A). 
 
 Proof. 
-Take A : (set); Take B : (set). 
+Take A B : (set). 
 Assume A_B_disjoint. 
 destruct A_B_disjoint.
 By intersection_symmetric it holds that 
@@ -712,9 +714,9 @@ Lemma disjoint_aux :
     ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (aux_seq A B m) (aux_seq A B n)). 
 
 Proof. 
-Take A : (set); Take B : (set). 
+Take A B : (set). 
 Assume A_B_disjoint. 
-Take m : ℕ; Take n : ℕ. 
+Take m n : ℕ. 
 Assume m_neq_n. 
 (*non-constructive and inefficient. What would be a better way? *)
 (*Better/other case distinction tactic?*)
@@ -765,7 +767,7 @@ Lemma disj_union_in_λ_system :
 
 Proof. 
 Take Λ : (setOfSets); Assume Λ_is_a_λ_system. 
-Take A : (set); Take B : (set). 
+Take A B : (set). 
 Assume A_in_Λ; Assume B_in_Λ. 
 Assume A_B_disjoint. 
 
@@ -799,18 +801,18 @@ Lemma intersection_and_complement_disjoint :
   ∀ A B : set, Disjoint _ (A ∩ B) (Ω \ B). 
 
 Proof. 
-Take A : (set); Take B : (set). 
+Take A B : (set). 
 (*this step is not trivial; hint?*)
 It suffices to show that (∀ x:U, x ∉ ((A ∩ B) ∩ (Ω \ B))).
 Take x : U. 
 We argue by contradiction. 
-Define P := (x ∈ ((A ∩ B) ∩ (Ω \ B))). 
-
-(*
-By NNPP it holds that (forall p:Prop, ¬¬p ⇒ p) (double_neg).
-By double_neg it holds that (¬¬P ⇒ P) (xx). (*Why not?*)
-*)
-Admitted. 
+We claim that (x ∈ ((A ∩ B) ∩ (Ω \ B))) (x_in_AB_and_comp).
+Apply NNPP; Apply H.
+destruct x_in_AB_and_comp. 
+destruct H0. 
+By H1 it holds that (x ∉ B) (x_not_in_B).
+Contradiction.  
+Qed.
 
 Lemma not_in_comp : 
   ∀ A : set, ∀ x : U, 
@@ -828,7 +830,7 @@ Lemma complement_as_union_intersection :
   ∀ A B : set, (Ω \ ((A ∩ B) ∪ (Ω \ B))) = (Ω \ A) ∩ B.
 
 Proof. 
-Take A : (set); Take B : (set). 
+Take A B : (set). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_lhs. 
 destruct x_in_lhs.
@@ -842,15 +844,25 @@ It follows that (x ∈ ((Ω \ A) ∩ B)).
 Take x : U; Assume x_in_rhs. 
 destruct x_in_rhs. (*"Because x_in_rhs both x_in_comp_A and x_in_B" doesn't work*)
 By H it holds that (x ∉ A) (x_not_in_A). 
+By H0 it holds that (x ∉ (Ω \ B)) (x_not_in_comp). 
+
 We claim that (x ∉ (A ∩ B)) (x_not_in_AB).
 We argue by contradiction. 
-(*again, double negation does not work: 
-By NNPP it holds that (x ∈ (A ∩ B)) (xx). 
-*)
-(*
-By H0 it holds that (x ∉ (Ω \ B)) (x_not_in_comp_B). 
-*)
-Admitted. 
+We claim that (x ∈ (A ∩ B)) (x_in_AB).
+Apply NNPP; Apply H1.   
+destruct x_in_AB. 
+Contradiction. 
+
+We claim that (x ∉ ((A ∩ B) ∪ (Ω \ B))) (x_not_in_union).
+We argue by contradiction. 
+We claim that (x ∈ ((A ∩ B) ∪ (Ω \ B))) (x_in_union). 
+Apply NNPP; Apply H1. 
+Because x_in_union either x_in_AB or x_in_comp. 
+Contradiction. 
+Contradiction. (*tactic 'contradiction in both cases'? *)
+
+It follows that (x ∈ (Ω \ ((A ∩ B) ∪ (Ω \ B)))). 
+Qed.  
 
 Definition H (B : set) (λΠ : setOfSets)
   : setOfSets := 
@@ -869,7 +881,7 @@ Lemma C_int_B_disjoint :
 Proof. 
 Take C : (ℕ ⇨ set); Take B : (set). 
 Assume all_Cn_disjoint. 
-Take m : ℕ; Take n : ℕ. 
+Take m n : ℕ. 
 Assume m_neq_n. 
 By all_Cn_disjoint it holds that 
   (Disjoint U (C m) (C n)) (Cm_Cn_disj).
@@ -1024,7 +1036,7 @@ Qed.
 Lemma λΠ_is_σ_algebra : 
   ∀ Π : setOfSets, Π is_a_π-system
     ⇒ λ(Π) is_a_σ-algebra.
-(*Suffices to show that λ(Π) is a π-system *)
+
 Proof. 
 Take Π : (setOfSets).
 Assume Π_is_π_system.
