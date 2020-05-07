@@ -1,5 +1,7 @@
-(*Version 1.4.5 - 06-05-2020
-  H_is_λ_system proven
+(*Version 1.4.6 - 07-05-2020
+  int_in_λΠ proven
+  λΠ_is_σ_algebra proven
+  everything up to NNPP problems finished
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -990,6 +992,23 @@ It follows that (Countable_union C ∈ H B (λ( Π))).
 Qed.
 
 
+Lemma Π_subset_H : 
+  ∀ Π : setOfSets, Π is_a_π-system
+    ⇒ ∀ B : set, B ∈ Π
+        ⇒ Π ⊂ H B (λ(Π)).
+
+Proof. 
+Take Π : (setOfSets); Assume Π_is_π_system.
+Take B : (set); Assume B_in_Π. 
+We need to show that (∀ C : set,
+  C ∈ Π ⇒ C ∈ H B (λ( Π))).
+Take C : (set); Assume C_in_Π.
+By Π_is_π_system it holds that 
+  (C ∩ B ∈ Π) (CB_in_Π).
+It follows that (C ∈ H B (λ(Π))). 
+Qed. 
+
+
 Lemma int_in_λΠ : 
   ∀ Π : setOfSets, Π is_a_π-system
     ⇒ ∀ A : set, A ∈(λ(Π))
@@ -997,8 +1016,17 @@ Lemma int_in_λΠ :
         ⇒ (A ∩ B) ∈ (λ(Π)).
 
 Proof. 
-
-Admitted. 
+Take Π : (setOfSets); Assume Π_is_π_system.
+Take A : (set); Assume A_in_λΠ. 
+Take B : (set); Assume B_in_Π. 
+It holds that (B ∈ λ(Π)) (B_in_λΠ). 
+By H_is_λ_system it holds that 
+  ((H B (λ(Π))) is_a_λ-system) (H_is_λ_system).
+By Π_subset_H it holds that (Π ⊂ H B (λ(Π))) (Π_subs_H).
+It holds that (λ(Π) ⊂ H B (λ(Π))) (λΠ_subs_H).
+It holds that (A ∈ H B (λ(Π))) (A_in_H). 
+It follows that ((A ∩ B) ∈ λ(Π)). 
+Qed. 
 
 
 Lemma λΠ_is_σ_algebra : 
@@ -1007,27 +1035,39 @@ Lemma λΠ_is_σ_algebra :
 (*Suffices to show that λ(Π) is a π-system *)
 Proof. 
 Take Π : (setOfSets).
-Assume Π_is_π_system. 
-(*
-We claim that (λ(Π) is_a_π-system) (λΠ_is_π_system). 
-We need to show that (∀ A : set, A ∈ (λ(Π)) ⇒ 
-      ∀ B : set, B ∈ (λ(Π)) ⇒ 
-         (A ∩ B) ∈ (λ(Π))).
-Take A : (set). 
-Assume A_in_λΠ. 
-Take B : (set). 
-Assume B_in_λΠ.
+Assume Π_is_π_system.
 
-By classic it holds that (B ∈ Π ∨ B ∉ Π) (B_in_Π_or_not).
-Because B_in_Π_or_not either B_in_Π or B_not_in_Π. 
-(* B ∈ Π *)
-By int_in_λΠ it holds that ((A ∩ B) ∈ λ(Π)) (xx). (*extra tactic so that this can conclude proof?*) 
-This follows immediately. 
+We claim that (λ(Π) is_a_π-system) (λΠ_is_π). 
+We need to show that (
+  ∀ A : set, A ∈ (λ(Π)) 
+    ⇒ ∀ B : set, B ∈ (λ(Π))
+      ⇒ (A ∩ B) ∈ (λ(Π))).
+Take A : (set); Assume A_in_λΠ. 
+Take B : (set); Assume B_in_λΠ. 
+We claim that (Π ⊂ H B (λ(Π))) (Π_subs_H).
+We need to show that 
+  (∀ C : set, C ∈ Π ⇒ C ∈ H B (λ(Π))). 
+Take C : (set); Assume C_in_Π. 
+By int_in_λΠ it holds that 
+  ((B ∩ C) ∈ λ(Π)) (BC_in_λΠ). 
+By intersection_symmetric it holds that 
+  (B ∩ C = C ∩ B) (CB_is_BC). 
+Write BC_in_λΠ using (B ∩ C = C ∩ B)
+  as ((C ∩ B) ∈ λ(Π)). 
+It follows that (C ∈ H B (λ(Π))).
 
-(* B ∉ Π *)
-*)
+By H_is_λ_system it holds that 
+  ((H B (λ(Π))) is_a_λ-system) (H_is_λ_system).
+It holds that (λ(Π) ⊂ H B (λ(Π))) (λΠ_subs_H).
+It holds that (A ∈ H B (λ(Π))) (A_in_H). 
+It follows that ((A ∩ B) ∈ (λ( Π))). 
+By generated_system_is_λ it holds that 
+  (λ(Π) is_a_λ-system) (λΠ_is_λ). 
+By π_and_λ_is_σ it holds that 
+  ((λ( Π)) is_a_σ-algebra) (xx).
+Apply xx. 
+Qed. 
 
-Admitted. 
 
 Theorem π_λ_theorem : 
   ∀ Π Λ : setOfSets, 
