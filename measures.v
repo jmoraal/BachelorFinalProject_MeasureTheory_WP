@@ -184,9 +184,10 @@ Theorem uniqueness_of_prob_meas :
         ⇒ ∀ A : set, A ∈ Π ⇒ μ1 A = μ2 A
           ⇒ ∀ B : set, B ∈ (σ(Π)) ⇒ μ1 A = μ2 A. 
 Admitted. 
-(*definition of open not suitable?*)
+(*definition of open not suitable?
 Definition Borel_σ_alg : (Ensemble (Ensemble ℝ)) := 
   σ(fun (A:(ℝ ⇨ Prop)) ↦ open_set A). 
+*)
 
 
 
