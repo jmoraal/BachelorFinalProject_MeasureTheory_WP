@@ -1,7 +1,6 @@
-(*Version 1.4.6 - 07-05-2020
-  int_in_λΠ proven
-  λΠ_is_σ_algebra proven
+(*Version 1.4.7 - 07-05-2020
   everything up to NNPP problems finished
+  some code cleaning
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -17,7 +16,7 @@ Add LoadPath "../". (*import v-file from same directory*)
 (*Require Import trivial_sigma_algebra.v. *)
 
 Variable U : Type.
-(*notations for generated sigma-alg and lambda-syst?*)
+
 Notation "'set'" := 
   (Ensemble U) (at level 50). 
 
@@ -60,13 +59,13 @@ Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
 Tactic Notation "We" "prove" "by" "induction" "on" ident(x) := 
   induction x. 
 (*Not nicest formulation, but 'Proof' is already taken*)
-
+(*
 Tactic Notation "Let" ident(A) "be" "a" "set" := 
   Take A : (set).
 
 Tactic Notation "Let" ident(F) "be" "a" "set" "of" "sets" := 
-  Take A : (setOfSets).
-
+  Take F : (setOfSets).
+*)
 Hint Resolve Full_intro : measure_theory.  (*nieuwe database measure theory*)
 Hint Resolve Intersection_intro : measure_theory. 
 Hint Resolve Union_introl Union_intror : measure_theory. 
@@ -148,14 +147,6 @@ Definition disjoint_seq (C : (ℕ ⇨ set))
   : (ℕ ⇨ set) := 
     fun (n:ℕ) ↦ (C n \ (finite_union_up_to C n)). 
 
-(* 
-Fixpoint disjoint_seq (C : (ℕ ⇨ set)) (n : ℕ) {struct n}
-  : (set) :=
-    match n with 
-      0 => C 0 
-    | S p => (C (S p)) \ (finite_union C p)
-    end. 
-*)
 
 Lemma complement_full_is_empty : 
   ∅ = (Ω \ Ω). 
@@ -200,6 +191,7 @@ Take x : U; Assume x_in_A.
 It holds that (x ∈ Ω) (x_in_omega). 
 It follows that (x ∈ (Ω ∩ A)). 
 Qed. 
+
 
 Lemma intersection_empty : ∀A : set, 
   (A ∩ ∅) = ∅. 
@@ -1036,7 +1028,6 @@ Lemma λΠ_is_σ_algebra :
 Proof. 
 Take Π : (setOfSets).
 Assume Π_is_π_system.
-
 We claim that (λ(Π) is_a_π-system) (λΠ_is_π). 
 We need to show that (
   ∀ A : set, A ∈ (λ(Π)) 
