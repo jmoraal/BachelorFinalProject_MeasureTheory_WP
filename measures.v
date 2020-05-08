@@ -151,7 +151,7 @@ Definition σ_additive (μ : (set → ℝ)) : Prop :=
 (*infinite_sum fn l is the proposition 'the sum of all terms of fn converges to l'*)
 Notation "μ is_σ-additive" := 
   (σ_additive μ) (at level 50). 
-
+(*incorrect domain*)
 Definition is_measure (μ : (set → ℝ)) : Prop := 
   μ ∅ = 0 ∧ μ is_σ-additive.
 (*requirement that domain is sigma-algebra? *) 
