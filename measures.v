@@ -1,7 +1,7 @@
-(*Version 1.1 - 11-05-2020
+(*Version 1.1.2 - 11-05-2020
   new brackets as not to conflict coq notation {x : A | P}
   imported lemmas on CU, disjointness and disjoint sets
-  begun proof of incr_cont_meas
+  proof of incr_cont_meas continued
 *)
 
 Require Import Sets.Ensembles.
@@ -329,12 +329,17 @@ Definition is_probability_measure (μ : (set → ℝ))
   : Prop := 
     (is_measure_on F μ) ∧ (μ Ω = 1).
 
-
 Definition is_increasing_seq_sets (C : (ℕ → (set)))
   : Prop := 
     ∀n : ℕ, (C n) ⊂ C (S n).
 
+Lemma finite_additivity_meas : 
+  ∀μ : (set → ℝ), is_measure_on F μ 
+    ⇒ ∀ A B : set, A ⊂ B 
+      ⇒ μ A ≤ μ B. 
+Admitted. 
 
+(*Proof using alternative sequence from pi-lambda proof*)
 Lemma incr_cont_meas : 
   ∀μ : (set → ℝ), is_measure_on F μ 
     ⇒ ∀C : (ℕ → (set)), is_increasing_seq_sets C
@@ -345,14 +350,27 @@ Take μ : (set ⇨ ℝ).
 Assume μ_is_measure_on_F. 
 Take C : (ℕ ⇨ set). 
 Assume C_is_incr_seq.
-We need to show that (
+(*We need to show that (
   ∀ ε : ℝ, ε > 0
     ⇒ ∃ N : ℕ , ∀ n : ℕ,  (n ≥ N)%nat 
       ⇒ R_dist (μ (C n)) (μ (Countable_union C)) < ε). 
 (*notation |.| for R_dist?*)
-Take ε : ℝ; Assume ε_g0. 
-We argue by contradiction. 
-
+Take ε : ℝ; Assume ε_g0. *)
+Define D := (disjoint_seq C). 
+By CU_sets_disjointsets_equal it holds that 
+  ((Countable_union C) = (Countable_union D)) (CUC_is_CUD).
+Write goal using 
+  ((Countable_union C) = (Countable_union D)) 
+    (*as (∃ N : ℕ , ∀ n : ℕ,  (n ≥ N)%nat 
+      ⇒ R_dist (μ (C n)) (μ (Countable_union D)) < ε).*) 
+    as (Un_cv (fun (n : ℕ) ↦ (μ (C n))) (μ (Countable_union D))). 
+By μ_is_measure_on_F it holds that 
+  (μ is_σ-additive) (μ_is_σ_additive). 
+By disj_seq_disjoint it holds that 
+  (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (D m) (D n)) (D_disj). 
+By μ_is_σ_additive it holds that 
+  (infinite_sum (fun (n:ℕ) ↦ (μ (D n))) 
+    (μ (Countable_union D))) (μDn_is_μCUD).
 
 
 
@@ -361,11 +379,7 @@ Admitted.
 
 
 
-Lemma finite_additivity_meas : 
-  ∀μ : (set → ℝ), is_measure_on F μ 
-    ⇒ ∀ A B : set, A ⊂ B 
-      ⇒ μ A ≤ μ B. 
-Admitted. 
+
 
 
 Theorem uniqueness_of_prob_meas : 
