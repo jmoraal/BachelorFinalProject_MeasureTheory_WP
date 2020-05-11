@@ -1,7 +1,8 @@
-(*Version 1.5.1 - 08-05-2020
+(*Version 1.5.2 - 11-05-2020
   all proofs finished
   new tactic to introduce two variables at once
   all 'Expand the definition of...' replaced
+  proof of CU_sets_disjointsets_equal slightly shortened
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -327,10 +328,11 @@ Lemma CU_sets_disjointsets_equal :
 
 Proof. 
 Take C : (ℕ ⇨ set).
+Define D := (disjoint_seq C). 
 We prove equality by proving two inclusions. 
 
 (* CU disjoint sets in CU C: *)
-Take x : U; Assume x_in_CU_disj. 
+Take x : U; Assume x_in_CU_D. 
 It holds that (x ∈ Countable_union C). 
 
 (* CU C in CU disjoint sets: *)
@@ -344,11 +346,7 @@ By dec_inh_nat_subset_has_unique_least_element it holds that
   (has_unique_least_element le aux_prop) (exists_least_n). 
 Choose n1 such that x_in_C_minimal_n according to exists_least_n. 
 
-We prove by induction on n1. 
-(*Base case: *)
-It holds that (x ∈ Countable_union (disjoint_seq C)). 
-(*Induction step: *)
-It holds that (x ∈ Countable_union (disjoint_seq C)). 
+It holds that (x ∈ Countable_union D). 
 Qed. 
 
 
