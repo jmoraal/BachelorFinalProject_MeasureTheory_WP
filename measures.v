@@ -1,7 +1,8 @@
-(*Version 1.1.2 - 11-05-2020
+(*Version 1.1.3 - 12-05-2020
   new brackets as not to conflict coq notation {x : A | P}
   imported lemmas on CU, disjointness and disjoint sets
   proof of incr_cont_meas continued
+  notations for set and setOfSets adapted
 *)
 
 Require Import Sets.Ensembles.
@@ -16,11 +17,11 @@ Require Import Coq.Arith.Wf_nat.
 
 Variable U : Type.
 
-Notation "'set'" := 
+Notation "'subsetU'" := (*let op: subset van U*)
   (Ensemble U) (at level 50). 
 
-Notation "'setOfSets'" := 
-  (Ensemble (set)) (at level 50). 
+Notation "'setOfSubsetsU'" := 
+  (Ensemble (subsetU)) (at level 50). 
 
 Notation "∅" := 
   (Empty_set U). 
@@ -68,10 +69,10 @@ Tactic Notation "Take" ident(x) ident(y) ":" constr(t):=
   intros_strict x y t. 
 (*
 Tactic Notation "Let" ident(A) "be" "a" "set" := 
-  Take A : (set).
+  Take A : (subsetU).
 
 Tactic Notation "Let" ident(F) "be" "a" "set" "of" "sets" := 
-  Take F : (setOfSets).
+  Take F : (setOfSubsetsU).
 *)
 Hint Resolve Full_intro : measure_theory.  (*nieuwe database measure theory*)
 Hint Resolve Intersection_intro : measure_theory. 
@@ -79,40 +80,40 @@ Hint Resolve Union_introl Union_intror : measure_theory.
 Hint Resolve Disjoint_intro : measure_theory. 
 
 
-Definition is_π_system (Π : setOfSets) 
+Definition is_π_system (Π : setOfSubsetsU) 
   : Prop := 
-    ∀ A : set, A ∈ Π ⇒ 
-      ∀ B : set, B ∈ Π ⇒ 
+    ∀ A : subsetU, A ∈ Π ⇒ 
+      ∀ B : subsetU, B ∈ Π ⇒ 
          (A ∩ B) ∈ Π. 
 
 Notation "A is_a_π-system" := 
   (is_π_system A) (at level 50). 
 
-Definition Countable_union (A : (ℕ → set)) 
-  : set := 
+Definition Countable_union (A : (ℕ → subsetU) ) 
+  : subsetU := 
     ｛ x:U | ∃n : ℕ, x ∈ (A n)｝.
 
-Definition full_set_in_set (Λ : setOfSets) 
+Definition full_set_in_set (Λ : setOfSubsetsU) 
   : Prop :=
     Ω ∈ Λ. 
 
-Definition complement_in_set (Λ : setOfSets) 
+Definition complement_in_set (Λ : setOfSubsetsU) 
   : Prop := 
-    ∀A  : set, A ∈ Λ 
+    ∀A  : subsetU, A ∈ Λ 
       ⇒ (Ω \ A) ∈ Λ. 
 
-Definition closed_under_disjoint_countable_union (Λ : setOfSets) 
+Definition closed_under_disjoint_countable_union (Λ : setOfSubsetsU) 
   : Prop :=
-    ∀C : (ℕ → (set)), 
+    ∀C : (ℕ → (subsetU)), 
       (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
         ⇒ (∀ n : ℕ, (C n) ∈ Λ) ⇒  (Countable_union C) ∈ Λ.
 
-Definition closed_under_countable_union (Λ : setOfSets) 
+Definition closed_under_countable_union (Λ : setOfSubsetsU) 
   : Prop :=  
-    ∀C : (ℕ → (set)), (∀ n : ℕ, (C n) ∈ Λ) 
+    ∀C : (ℕ → (subsetU)), (∀ n : ℕ, (C n) ∈ Λ) 
       ⇒ (Countable_union C) ∈ Λ.
 
-Definition is_λ_system (Λ : setOfSets) 
+Definition is_λ_system (Λ : setOfSubsetsU) 
   : Prop :=
     full_set_in_set Λ ∧ 
     complement_in_set Λ ∧
@@ -121,13 +122,13 @@ Definition is_λ_system (Λ : setOfSets)
 Notation "A is_a_λ-system" := 
   (is_λ_system A) (at level 50). 
 
-Definition is_σ_algebra (F : setOfSets) 
+Definition is_σ_algebra (F : setOfSubsetsU) 
   : Prop := 
     full_set_in_set F ∧ 
     complement_in_set F ∧
     closed_under_countable_union F.
 
-Inductive σ_algebra : setOfSets := 
+Inductive σ_algebra : setOfSubsetsU := 
   | σ_alg_omeg : full_set_in_set σ_algebra
   | σ_alg_comp : complement_in_set σ_algebra
   | σ_alg_cuCU : closed_under_countable_union σ_algebra. 
@@ -136,36 +137,36 @@ Inductive σ_algebra : setOfSets :=
 Notation "A is_a_σ-algebra" := 
   (is_σ_algebra A) (at level 50). 
 
-Definition  σ_algebra_generated_by (A : setOfSets) 
-  : (setOfSets) := 
-    ｛B : set | ∀ F : setOfSets, F is_a_σ-algebra ⇒ (A ⊂ F ⇒ B ∈ F)｝ . 
+Definition  σ_algebra_generated_by (A : setOfSubsetsU) 
+  : (setOfSubsetsU) := 
+    ｛B : subsetU | ∀ F : setOfSubsetsU, F is_a_σ-algebra ⇒ (A ⊂ F ⇒ B ∈ F)｝ . 
 
 Notation "σ( A )" := 
  (σ_algebra_generated_by A) (at level 50). 
 
-Definition restriction (F : setOfSets) (A : (set)) 
-  : (setOfSets) := 
-    ｛C : set | ∃B : set, B ∈ F ⇒ C = A ∩ B｝. 
+Definition restriction (F : setOfSubsetsU) (A : (subsetU)) 
+  : (setOfSubsetsU) := 
+    ｛C : subsetU | ∃B : subsetU, B ∈ F ⇒ C = A ∩ B｝. 
 
 (* ≤ only works for Reals *)
-Definition finite_union (C : (ℕ ⇨ set)) (n : ℕ) 
-  : set := 
+Definition finite_union (C : (ℕ ⇨ subsetU) ) (n : ℕ) 
+  : subsetU := 
     ｛x:U | (∃i : ℕ,  (i <= n ∧ x ∈ (C i)))｝.
 
-Definition finite_union_up_to (C : (ℕ ⇨ set)) (n : ℕ) 
-  : (set) := 
+Definition finite_union_up_to (C : (ℕ ⇨ subsetU) ) (n : ℕ) 
+  : (subsetU) := 
     ｛x : U | (∃i : ℕ,  (i < n ∧ x ∈ (C i)))｝.
 
-Definition disjoint_seq (C : (ℕ ⇨ set)) 
-  : (ℕ ⇨ set) := 
+Definition disjoint_seq (C : (ℕ ⇨ subsetU) ) 
+  : (ℕ ⇨ subsetU)  := 
     fun (n:ℕ) ↦ (C n \ (finite_union_up_to C n)). 
 
 
-Lemma intersection_empty : ∀A : set, 
+Lemma intersection_empty : ∀A : subsetU, 
   (A ∩ ∅) = ∅. 
 
 Proof. 
-Take A : (set). 
+Take A : (subsetU). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_intersection. 
 destruct x_in_intersection. 
@@ -175,11 +176,11 @@ Take x : U; Assume x_in_empty.
 Contradiction. 
 Qed. 
 
-Lemma empty_disjoint : ∀A : set, 
+Lemma empty_disjoint : ∀A : subsetU, 
   Disjoint _ A ∅. 
 
 Proof. 
-Take A : (set).
+Take A : (subsetU).
 It suffices to show that (∀ x:U, x ∉ (A ∩ ∅)).
 Take x : U. 
 By intersection_empty it holds that 
@@ -206,11 +207,11 @@ Qed.
 
 
 Lemma union_to_or : 
-  ∀ A B : (set), ∀ x : U, 
+  ∀ A B : (subsetU), ∀ x : U, 
     x ∈ (A ∪ B) ⇒ (x ∈ A ∨ x ∈ B).
 
 Proof. 
-Take A B : (set). 
+Take A B : (subsetU). 
 Take x : U; Assume x_in_union. 
 destruct x_in_union. 
 (* x ∈ A: *)
@@ -221,10 +222,10 @@ Qed.
 
 
 Lemma FU_up_to_0_empty : 
-  ∀ C : (ℕ ⇨ set), finite_union_up_to C 0 = ∅. 
+  ∀ C : (ℕ ⇨ subsetU) , finite_union_up_to C 0 = ∅. 
 
 Proof. 
-Take C : (ℕ ⇨ set). 
+Take C : (ℕ ⇨ subsetU) . 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_FU_0. 
 Write x_in_FU_0 as 
@@ -238,12 +239,12 @@ Qed.
 
 
 Lemma disj_seq_disjoint : 
-  ∀ C : (ℕ ⇨ set), 
+  ∀ C : (ℕ ⇨ subsetU) , 
     (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ 
       (disjoint_seq C m) (disjoint_seq C n)). 
 
 Proof. 
-Take C : (ℕ ⇨ set). 
+Take C : (ℕ ⇨ subsetU) . 
 Take m n : ℕ. 
 Assume m_neq_n.
 By neq_equiv it holds that 
@@ -280,11 +281,11 @@ Qed.
 
 
 Lemma CU_sets_disjointsets_equal : 
-  ∀ C : (ℕ ⇨ set), 
+  ∀ C : (ℕ ⇨ subsetU) , 
     Countable_union (disjoint_seq C) = Countable_union C.
 
 Proof. 
-Take C : (ℕ ⇨ set).
+Take C : (ℕ ⇨ subsetU) .
 Define D := (disjoint_seq C). 
 We prove equality by proving two inclusions. 
 
@@ -311,44 +312,72 @@ Require Import Reals.
 
 (*Definition σ_algebras := (sig (is_σ_algebra)). *)
 
-Variable F : setOfSets.
-
-
-Definition σ_additive (μ : (set ⇨ ℝ)) : Prop := 
-  ∀C : (ℕ → (set)), 
-    (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
+(*
+Definition σ_algebra1 := sig is_σ_algebra. 
+Variable F : σ_algebra1. 
+Definition myclass :=  Ensemble (Ensemble U). 
+Definition myprojection : (σ_algebra1 -> myclass) := (@proj1_sig myclass is_σ_algebra). 
+Coercion myprojection : σ_algebra1 >-> myclass.  
+*)
+Definition σ_additive_on (F : setOfSubsetsU) (μ : (subsetU ⇨ ℝ)) : Prop := (*F toevoegen*)
+  ∀C : (ℕ → (subsetU)), (∀n : ℕ, C n ∈ F) 
+    ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
       ⇒ infinite_sum (fun (n:ℕ) ↦ (μ (C n))) (μ (Countable_union C)).
 (*infinite_sum fn l is the proposition 'the sum of all terms of fn converges to l'*)
-Notation "μ is_σ-additive" := 
-  (σ_additive μ) (at level 50). 
-(*incorrect domain*)
-Definition is_measure_on (F : setOfSets) (μ : (set → ℝ)) : Prop := 
-  is_σ_algebra F ∧ μ ∅ = 0 ∧ μ is_σ-additive.
+Notation "μ is_σ-additive_on F" := 
+  (σ_additive_on F μ) (at level 50). 
 
-Definition is_probability_measure (μ : (set → ℝ)) 
+
+Definition is_measure_on (F : setOfSubsetsU) (μ : (subsetU → ℝ)) : Prop := 
+  is_σ_algebra F ∧ μ ∅ = 0 ∧ μ is_σ-additive_on F.
+
+Definition is_probability_measure_on (F : setOfSubsetsU) (μ : (subsetU → ℝ)) 
   : Prop := 
     (is_measure_on F μ) ∧ (μ Ω = 1).
 
-Definition is_increasing_seq_sets (C : (ℕ → (set)))
+Definition is_increasing_seq_sets (C : (ℕ → (subsetU)))
   : Prop := 
     ∀n : ℕ, (C n) ⊂ C (S n).
 
+Fixpoint finite_seq (C : (ℕ → (subsetU))) (p : Prop) (n : ℕ) {struct p}
+  : (subsetU) :=
+    match p with 
+      0 => C 0
+    | S p => (fun  ↦ ∅)
+    end.  
+
 Lemma finite_additivity_meas : 
-  ∀μ : (set → ℝ), is_measure_on F μ 
-    ⇒ ∀ A B : set, A ⊂ B 
+  ∀μ : (subsetU → ℝ), is_measure_on F μ 
+    ⇒ ∀C : (ℕ → (subsetU)), 
+      (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n))  
+         ⇒ ∀ N : ℕ, μ (finite_union_up_to C N) 
+          = sum_f_R0 (fun (n : ℕ) ↦ (μ (C n))) (N-1).
+
+Proof. 
+Take μ : (subsetU ⇨ ℝ). 
+Assume μ_is_measure_on_F. 
+Take C : (ℕ ⇨ subsetU) . 
+Assume C_n_disjoint. 
+Take N : ℕ. 
+
+ 
+
+Lemma monotonicity_meas :
+  ∀μ : (subsetU → ℝ), is_measure_on F μ 
+    ⇒ ∀ A B : subsetU, A ⊂ B 
       ⇒ μ A ≤ μ B. 
 Admitted. 
 
 (*Proof using alternative sequence from pi-lambda proof*)
 Lemma incr_cont_meas : 
-  ∀μ : (set → ℝ), is_measure_on F μ 
-    ⇒ ∀C : (ℕ → (set)), is_increasing_seq_sets C
+  ∀μ : (subsetU → ℝ), is_measure_on F μ 
+    ⇒ ∀C : (ℕ → (subsetU)), is_increasing_seq_sets C
       ⇒ Un_cv (fun (n : ℕ) ↦ (μ (C n))) (μ (Countable_union C)). 
 (*Un_cv Cn l is the proposition 'sequence Cn converges to limit l'*)
 Proof. 
-Take μ : (set ⇨ ℝ). 
+Take μ : (subsetU ⇨ ℝ). 
 Assume μ_is_measure_on_F. 
-Take C : (ℕ ⇨ set). 
+Take C : (ℕ ⇨ subsetU) . 
 Assume C_is_incr_seq.
 (*We need to show that (
   ∀ ε : ℝ, ε > 0
@@ -383,27 +412,27 @@ Admitted.
 
 
 Theorem uniqueness_of_prob_meas : 
-  ∀μ1 : (set → ℝ), is_measure μ1 
-    ⇒ ∀μ2 : (set → ℝ), is_measure μ2 
+  ∀μ1 : (subsetU → ℝ), is_measure μ1 
+    ⇒ ∀μ2 : (subsetU → ℝ), is_measure μ2 
       ⇒ ∀Π, Π is_a_π-system (* ⇒ Π ⊂ F *)
-        ⇒ ∀ A : set, A ∈ Π ⇒ μ1 A = μ2 A
-          ⇒ ∀ B : set, B ∈ (σ(Π)) ⇒ μ1 A = μ2 A. 
+        ⇒ ∀ A : subsetU, A ∈ Π ⇒ μ1 A = μ2 A
+          ⇒ ∀ B : subsetU, B ∈ (σ(Π)) ⇒ μ1 A = μ2 A. 
 Admitted. 
 
 (************)
 (*   Old:   *)
 (************)
-Definition aux_seq (C : (ℕ → (set))) 
-  : ℕ → (set) := 
+Definition aux_seq (C : (ℕ → (subsetU))) 
+  : ℕ → (subsetU) := 
     fun (n : nat) ↦ (C (S n) \ C n).
 
 Lemma aux_set_disjoint : 
-  ∀ C : (ℕ → (set)), 
+  ∀ C : (ℕ → (subsetU)), 
     is_increasing_seq_sets C 
       ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (aux_seq C m) (aux_seq C n)). 
 
 Proof. 
-Take C : (ℕ ⇨ set). 
+Take C : (ℕ ⇨ subsetU) . 
 Assume C_is_incr_seq.
 Take m n : ℕ; Assume m_neq_n. 
 Define E := (aux_seq C). 
@@ -416,12 +445,12 @@ Apply NNPP; Apply H.
 Admitted. 
 
 Lemma CU_aux_is_CU : 
-  ∀ C : (ℕ → (set)), 
+  ∀ C : (ℕ → (subsetU)), 
     is_increasing_seq_sets C 
       ⇒ Countable_union (aux_seq C) = Countable_union C.
 
 Proof. 
-Take C  : (ℕ ⇨ set). 
+Take C  : (ℕ ⇨ subsetU) . 
 Assume C_is_incr_seq.
 Define E := (aux_seq C). 
 We prove equality by proving two inclusions. 
