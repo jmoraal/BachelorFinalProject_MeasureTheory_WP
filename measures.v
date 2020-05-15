@@ -1,8 +1,9 @@
-(*Version 1.1.3 - 12-05-2020
+(*Version 1.1.4 - 15-05-2020
   new brackets as not to conflict coq notation {x : A | P}
   imported lemmas on CU, disjointness and disjoint sets
   proof of incr_cont_meas continued
-  notations for set and setOfSets adapted
+  notations for set and setOfSets adapted to subsets of U
+  adapted notation improved, dependent on U
 *)
 
 Require Import Sets.Ensembles.
@@ -15,13 +16,13 @@ Require Import ClassicalFacts.
 Require Import Omega. 
 Require Import Coq.Arith.Wf_nat. 
 
-Variable U : Type.
-
-Notation "'subsetU'" := (*let op: subset van U*)
+Notation "subset_of U" := 
   (Ensemble U) (at level 50). 
 
 Notation "'setOfSubsetsU'" := 
   (Ensemble (subsetU)) (at level 50). 
+
+Variable U : Type.
 
 Notation "∅" := 
   (Empty_set U). 
@@ -309,7 +310,7 @@ Qed.
 
 (***********************************************************)
 Require Import Reals. 
-
+Variable F : setOfSubsetsU. 
 (*Definition σ_algebras := (sig (is_σ_algebra)). *)
 
 (*
@@ -319,7 +320,7 @@ Definition myclass :=  Ensemble (Ensemble U).
 Definition myprojection : (σ_algebra1 -> myclass) := (@proj1_sig myclass is_σ_algebra). 
 Coercion myprojection : σ_algebra1 >-> myclass.  
 *)
-Definition σ_additive_on (F : setOfSubsetsU) (μ : (subsetU ⇨ ℝ)) : Prop := (*F toevoegen*)
+Definition σ_additive_on (F : setOfSubsetsU) (μ : (subsetU ⇨ ℝ)) : Prop := 
   ∀C : (ℕ → (subsetU)), (∀n : ℕ, C n ∈ F) 
     ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
       ⇒ infinite_sum (fun (n:ℕ) ↦ (μ (C n))) (μ (Countable_union C)).
@@ -338,14 +339,14 @@ Definition is_probability_measure_on (F : setOfSubsetsU) (μ : (subsetU → ℝ)
 Definition is_increasing_seq_sets (C : (ℕ → (subsetU)))
   : Prop := 
     ∀n : ℕ, (C n) ⊂ C (S n).
-
+(*
 Fixpoint finite_seq (C : (ℕ → (subsetU))) (p : Prop) (n : ℕ) {struct p}
   : (subsetU) :=
     match p with 
       0 => C 0
     | S p => (fun  ↦ ∅)
     end.  
-
+*)
 Lemma finite_additivity_meas : 
   ∀μ : (subsetU → ℝ), is_measure_on F μ 
     ⇒ ∀C : (ℕ → (subsetU)), 
@@ -360,6 +361,7 @@ Take C : (ℕ ⇨ subsetU) .
 Assume C_n_disjoint. 
 Take N : ℕ. 
 
+Admitted.
  
 
 Lemma monotonicity_meas :
@@ -394,9 +396,10 @@ Write goal using
       ⇒ R_dist (μ (C n)) (μ (Countable_union D)) < ε).*) 
     as (Un_cv (fun (n : ℕ) ↦ (μ (C n))) (μ (Countable_union D))). 
 By μ_is_measure_on_F it holds that 
-  (μ is_σ-additive) (μ_is_σ_additive). 
+  (μ is_σ-additive_on F) (μ_is_σ_additive). 
 By disj_seq_disjoint it holds that 
   (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (D m) (D n)) (D_disj). 
+(*To show: all D n in F*)
 By μ_is_σ_additive it holds that 
   (infinite_sum (fun (n:ℕ) ↦ (μ (D n))) 
     (μ (Countable_union D))) (μDn_is_μCUD).
