@@ -1,8 +1,9 @@
-(*Version 1.5.2 - 11-05-2020
+(*Version 1.5.3 - 15-05-2020
   all proofs finished
   new tactic to introduce two variables at once
   all 'Expand the definition of...' replaced
   proof of CU_sets_disjointsets_equal slightly shortened
+  consistent spacing after ∀ and ∃
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -57,10 +58,10 @@ Notation "{ x : T | P }" :=
 
 
 Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
-   apply Extensionality_Ensembles; 
-   unfold Same_set; 
-   unfold Included;
-   split.
+  apply Extensionality_Ensembles; 
+  unfold Same_set; 
+  unfold Included;
+  split.
 
 Tactic Notation "We" "prove" "by" "induction" "on" ident(x) := 
   induction x. 
@@ -86,7 +87,7 @@ Notation "A is_a_π-system" :=
 
 Definition Countable_union (A : (ℕ → set)) 
   : set := 
-    { x:U | ∃n : ℕ, x ∈ (A n)}.
+    { x:U | ∃ n : ℕ, x ∈ (A n)}.
 
 Definition full_set_in_set (Λ : setOfSets) 
   : Prop :=
@@ -94,18 +95,18 @@ Definition full_set_in_set (Λ : setOfSets)
 
 Definition complement_in_set (Λ : setOfSets) 
   : Prop := 
-    ∀A  : set, A ∈ Λ 
+    ∀ A  : set, A ∈ Λ 
       ⇒ (Ω \ A) ∈ Λ. 
 
 Definition closed_under_disjoint_countable_union (Λ : setOfSets) 
   : Prop :=
-    ∀C : (ℕ → (set)), 
+    ∀ C : (ℕ → (set)), 
       (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
         ⇒ (∀ n : ℕ, (C n) ∈ Λ) ⇒ (Countable_union C) ∈ Λ.
 
 Definition closed_under_countable_union (Λ : setOfSets) 
   : Prop :=  
-    ∀C : (ℕ → (set)), (∀ n : ℕ, (C n) ∈ Λ) 
+    ∀ C : (ℕ → (set)), (∀ n : ℕ, (C n) ∈ Λ) 
       ⇒ (Countable_union C) ∈ Λ.
 
 Definition is_λ_system (Λ : setOfSets) 
@@ -143,22 +144,22 @@ Notation "σ( A )" :=
 
 Definition restriction (F : setOfSets) (A : (set)) 
   : (setOfSets) := 
-    {C : set | ∃B : set, B ∈ F ⇒ C = A ∩ B}. 
+    {C : set | ∃ B : set, B ∈ F ⇒ C = A ∩ B}. 
 
 (* ≤ only works for Reals *)
 Definition finite_union (C : (ℕ ⇨ set)) (n : ℕ) 
   : set := 
-    {x:U | (∃i : ℕ,  (i <= n ∧ x ∈ (C i)))}.
+    {x : U | (∃ i : ℕ,  (i <= n ∧ x ∈ (C i)))}.
 
 Definition finite_union_up_to (C : (ℕ ⇨ set)) (n : ℕ) 
   : (set) := 
-    {x : U | (∃i : ℕ,  (i < n ∧ x ∈ (C i)))}.
+    {x : U | (∃ i : ℕ,  (i < n ∧ x ∈ (C i)))}.
 
 Definition disjoint_seq (C : (ℕ ⇨ set)) 
   : (ℕ ⇨ set) := 
-    fun (n:ℕ) ↦ (C n \ (finite_union_up_to C n)). 
+    fun (n : ℕ) ↦ (C n \ (finite_union_up_to C n)). 
 
-
+(*all new notations together here*)
 Lemma complement_full_is_empty : 
   ∅ = (Ω \ Ω). 
 
@@ -188,8 +189,8 @@ It holds that (x ∈ (A \ ∅)).
 Qed. 
 
 
-Lemma intersection_full : ∀A : set, 
-  (Ω ∩ A) = A. 
+Lemma intersection_full : 
+  ∀ A : set, (Ω ∩ A) = A. 
 
 Proof. 
 Take A : (set). 
@@ -204,8 +205,8 @@ It follows that (x ∈ (Ω ∩ A)).
 Qed. 
 
 
-Lemma intersection_empty : ∀A : set, 
-  (A ∩ ∅) = ∅. 
+Lemma intersection_empty : 
+  ∀ A : set, (A ∩ ∅) = ∅. 
 
 Proof. 
 Take A : (set). 
@@ -218,8 +219,8 @@ Take x : U; Assume x_in_empty.
 Contradiction. 
 Qed. 
 
-Lemma empty_disjoint : ∀A : set, 
-  Disjoint _ A ∅. 
+Lemma empty_disjoint : 
+  ∀ A : set, Disjoint _ A ∅. 
 
 Proof. 
 Take A : (set).
@@ -293,7 +294,7 @@ By neq_equiv it holds that
   (m ≠ n ⇒ (m < n) ∨ (m > n)) (m_l_g_n).
 It holds that ((m < n) ∨ (m > n)) (m_lg_n). 
 We argue by contradiction. 
-It holds that (∃ x: U, 
+It holds that (∃ x : U, 
   x ∈ ((disjoint_seq C m) ∩ (disjoint_seq C n))) (int_not_empty).
 Choose x such that x_in_int according to int_not_empty.
 By x_in_int it holds that 
@@ -471,7 +472,7 @@ Qed.
 
 
 Lemma FU_S_as_union : 
-  ∀C : (ℕ → (set)), ∀n : ℕ,
+  ∀ C : (ℕ → (set)), ∀ n : ℕ,
     finite_union_up_to C (S n) 
       = (finite_union_up_to C n) ∪ (C n). 
 
@@ -504,8 +505,8 @@ Qed.
 Lemma FU_in_π_and_λ : 
   ∀ F : setOfSets, 
     F is_a_π-system ⇒ F is_a_λ-system
-    ⇒ ∀C : (ℕ → (set)), (∀ n : ℕ, (C n) ∈ F) 
-      ⇒ ∀n : ℕ, (finite_union_up_to C n) ∈ F.
+    ⇒ ∀ C : (ℕ → (set)), (∀ n : ℕ, (C n) ∈ F) 
+      ⇒ ∀ n : ℕ, (finite_union_up_to C n) ∈ F.
 
 Proof. 
 Take F : (setOfSets). 
@@ -814,7 +815,7 @@ Lemma intersection_and_complement_disjoint :
 
 Proof. 
 Take A B : (set). 
-It suffices to show that (∀ x:U, x ∉ ((A ∩ B) ∩ (Ω \ B))).
+It suffices to show that (∀ x : U, x ∉ ((A ∩ B) ∩ (Ω \ B))). 
 Take x : U. 
 We argue by contradiction. 
 We claim that (x ∈ ((A ∩ B) ∩ (Ω \ B))) (x_in_AB_and_comp).
@@ -883,12 +884,12 @@ Definition H (B : set) (λΠ : setOfSets)
 
 Definition seq_intersection (C : (ℕ ⇨ set)) (B : set)
   : ℕ ⇨ set := 
-    fun (n:nat) ↦ ((C n) ∩ B).
+    fun (n : ℕ) ↦ ((C n) ∩ B).
 
 Lemma C_int_B_disjoint : 
   ∀ C : (ℕ ⇨ set), ∀ B : set, 
-    (∀m n : ℕ, m ≠ n ⇨ Disjoint U (C m) (C n))
-      ⇒ ∀m n : ℕ, m ≠ n 
+    (∀ m n : ℕ, m ≠ n ⇨ Disjoint U (C m) (C n))
+      ⇒ ∀ m n : ℕ, m ≠ n 
         ⇒ Disjoint U (seq_intersection C B m) (seq_intersection C B n). 
 
 Proof. 
@@ -977,7 +978,7 @@ Take A : (set); Assume A_in_H.
 We claim that (((A ∩ B) ∪ (Ω \ B)) ∈ λ(Π)) (union_in_λΠ). 
 Apply disj_union_in_λ_system. 
 By generated_system_is_λ it holds that 
-  ((λ( Π)) is_a_λ-system) (xx). 
+  ((λ(Π)) is_a_λ-system) (xx). 
 Apply xx. 
 It holds that (A ∩ B ∈ λ(Π)).
 It holds that (Ω \ B ∈ λ(Π)). 
@@ -1003,7 +1004,7 @@ Assume all_Cn_disjoint; Assume all_Cn_in_H.
 By all_Cn_in_H it holds that 
   (∀ n : ℕ, ((C n) ∩ B) ∈ λ(Π)) (all_CnB_in_λΠ).
 By C_int_B_disjoint it holds that 
-  (∀m n : ℕ, m ≠ n ⇒ Disjoint _ 
+  (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ 
     (seq_intersection C B m) 
       (seq_intersection C B n)) (all_CnB_disjoint). 
 We claim that (Countable_union (seq_intersection C B) ∈ λ(Π)) (CU_in_λΠ).
@@ -1089,11 +1090,11 @@ By H_is_λ_system it holds that
   ((H B (λ(Π))) is_a_λ-system) (H_is_λ_system).
 It holds that (λ(Π) ⊂ H B (λ(Π))) (λΠ_subs_H).
 It holds that (A ∈ H B (λ(Π))) (A_in_H). 
-It follows that ((A ∩ B) ∈ (λ( Π))). 
+It follows that ((A ∩ B) ∈ (λ(Π))). 
 By generated_system_is_λ it holds that 
   (λ(Π) is_a_λ-system) (λΠ_is_λ). 
 By π_and_λ_is_σ it holds that 
-  ((λ( Π)) is_a_σ-algebra) (xx).
+  ((λ(Π)) is_a_σ-algebra) (xx).
 Apply xx. 
 Qed. 
 
