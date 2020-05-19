@@ -1,9 +1,10 @@
-(*Version 1.5.3 - 15-05-2020
+(*Version 1.5.4 - 19-05-2020
   all proofs finished
   new tactic to introduce two variables at once
   all 'Expand the definition of...' replaced
   proof of CU_sets_disjointsets_equal slightly shortened
   consistent spacing after ∀ and ∃
+  document order slightly changed (notations and set-related lemmas grouped together)
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -81,10 +82,6 @@ Definition is_π_system (Π : setOfSets)
       ⇒ ∀ B : set, B ∈ Π 
         ⇒ (A ∩ B) ∈ Π. 
 
-Notation "A is_a_π-system" := 
-  (is_π_system A) (at level 50). 
-
-
 Definition Countable_union (A : (ℕ → set)) 
   : set := 
     { x:U | ∃ n : ℕ, x ∈ (A n)}.
@@ -115,16 +112,10 @@ Definition is_λ_system (Λ : setOfSets)
     complement_in_set Λ ∧
     closed_under_disjoint_countable_union Λ. 
 
-Notation "A is_a_λ-system" := 
-  (is_λ_system A) (at level 50). 
-
 Definition λ_system_generated_by (A : setOfSets) 
   : (setOfSets) := 
     {B : set | (∀ Λ : setOfSets, Λ is_a_λ-system 
        ⇒ (A ⊂ Λ ⇒ B ∈ Λ))}. 
-
-Notation "λ( A )" := 
- (λ_system_generated_by A) (at level 50). 
 
 Definition is_σ_algebra (F : setOfSets) 
   : Prop := 
@@ -132,15 +123,9 @@ Definition is_σ_algebra (F : setOfSets)
     complement_in_set F ∧
     closed_under_countable_union F.
 
-Notation "A is_a_σ-algebra" := 
-  (is_σ_algebra A) (at level 50). 
-
 Definition  σ_algebra_generated_by (A : setOfSets) 
   : (setOfSets) := 
     {B : set | ∀ F : setOfSets, F is_a_σ-algebra ⇒ (A ⊂ F ⇒ B ∈ F)} . 
-
-Notation "σ( A )" := 
- (σ_algebra_generated_by A) (at level 50). 
 
 Definition restriction (F : setOfSets) (A : (set)) 
   : (setOfSets) := 
@@ -159,7 +144,24 @@ Definition disjoint_seq (C : (ℕ ⇨ set))
   : (ℕ ⇨ set) := 
     fun (n : ℕ) ↦ (C n \ (finite_union_up_to C n)). 
 
-(*all new notations together here*)
+(*measure theory-related notations: *)
+Notation "A is_a_π-system" := 
+  (is_π_system A) (at level 50).
+  
+Notation "A is_a_λ-system" := 
+  (is_λ_system A) (at level 50). 
+
+Notation "A is_a_σ-algebra" := 
+  (is_σ_algebra A) (at level 50).
+(*TODO: general tactic for the form above? *)
+
+Notation "λ( A )" := 
+ (λ_system_generated_by A) (at level 50).
+ 
+Notation "σ( A )" := 
+ (σ_algebra_generated_by A) (at level 50).
+
+
 Lemma complement_full_is_empty : 
   ∅ = (Ω \ Ω). 
 
@@ -175,7 +177,7 @@ Contradiction.
 Qed.
 
 
-Lemma complement_empty : 
+Lemma setminus_empty : 
   ∀ A : set, A \ ∅ = A. 
 
 Proof. 
@@ -233,6 +235,71 @@ It holds that (x ∉ ∅).
 Qed. 
 
 
+Lemma complement_as_intersection : 
+  ∀ A B : set, 
+    A \ B = (Ω \ B) ∩ A. 
+
+Proof. 
+Take A B : (set). 
+We prove equality by proving two inclusions. 
+
+Take x : U. 
+Assume x_in_A_without_B. 
+It holds that (x ∈ ((Ω \ B) ∩ A)). 
+
+Take x : U. 
+Assume x_in_rhs. 
+By x_in_rhs it holds that 
+  (x ∈ (Ω \ B) ∧ (x ∈ A)) (x_in_A_and_comp_B). 
+It holds that (x ∈ (A \ B)). 
+Qed. 
+
+
+Lemma intersection_symmetric : 
+  ∀ A B : set, A ∩ B = B ∩ A. 
+
+Proof. 
+Take A B : (set). 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_AB. 
+destruct x_in_AB. 
+It holds that (x ∈ (B ∩ A)). 
+
+Take x : U; Assume x_in_BA. 
+destruct x_in_BA. 
+It holds that (x ∈ (A ∩ B)). 
+Qed. 
+
+
+Lemma disjoint_symmetric : 
+  ∀ A B : set, (Disjoint _ A B) ⇒ (Disjoint _ B A). 
+
+Proof. 
+Take A B : (set). 
+Assume A_B_disjoint. 
+destruct A_B_disjoint.
+By intersection_symmetric it holds that 
+  ((A ∩ B) = (B ∩ A)) (AB_is_BA).
+Write H using ((A ∩ B) = (B ∩ A)) 
+  as (∀ x : U, x ∉ (B ∩ A)). 
+It follows that (Disjoint U B A). 
+Qed. 
+(*include last two in library? Should be trivial. *)
+
+
+Lemma not_in_comp : 
+  ∀ A : set, ∀ x : U, 
+    x ∉ (Ω \ A) ⇒ x ∈ A.
+
+Proof. 
+Take A : (set); Take x : U. 
+Assume x_not_in_complement. 
+We argue by contradiction. 
+It holds that (x ∈ (Ω \ A)) (x_in_complement).
+Contradiction. 
+Qed.  
+
+
 Lemma neq_equiv : ∀ x y : ℕ,
   (x ≠ y) ⇒ (x < y ∨ y < x).
 
@@ -243,6 +310,14 @@ Qed.
 
 Lemma leq_equiv : ∀ x y : ℕ,
   (x <= y) ⇒ (x < y ∨ x = y).
+
+Proof. 
+intros x y. omega. 
+Qed. 
+
+
+Lemma geq_equiv : ∀ x y : ℕ,
+  (x >= y) ⇒ (x = y ∨ x > y).
 
 Proof. 
 intros x y. omega. 
@@ -348,26 +423,6 @@ By dec_inh_nat_subset_has_unique_least_element it holds that
 Choose n1 such that x_in_C_minimal_n according to exists_least_n. 
 
 It holds that (x ∈ Countable_union D). 
-Qed. 
-
-
-Lemma complement_as_intersection : 
-  ∀ A B : set, 
-    A \ B = (Ω \ B) ∩ A. 
-
-Proof. 
-Take A B : (set). 
-We prove equality by proving two inclusions. 
-
-Take x : U. 
-Assume x_in_A_without_B. 
-It holds that (x ∈ ((Ω \ B) ∩ A)). 
-
-Take x : U. 
-Assume x_in_rhs. 
-By x_in_rhs it holds that 
-  (x ∈ (Ω \ B) ∧ (x ∈ A)) (x_in_A_and_comp_B). 
-It holds that (x ∈ (A \ B)). 
 Qed. 
 
 Lemma complements_in_π_and_λ : 
@@ -645,12 +700,6 @@ Fixpoint aux_seq (A B : set) (n : ℕ) {struct n}
     | n => ∅ 
     end. 
 
-Lemma geq_equiv : ∀ x y : ℕ,
-  (x >= y) ⇒ (x = y ∨ x > y).
-
-Proof. 
-intros x y. omega. 
-Qed. 
 
 Lemma CU_aux_is_union : 
   ∀ A B : set, Countable_union (aux_seq A B) = A ∪ B. 
@@ -684,38 +733,6 @@ It follows that (x ∈ Countable_union (aux_seq A B)).
 Qed. 
 
 
-Lemma intersection_symmetric : 
-  ∀ A B : set, A ∩ B = B ∩ A. 
-
-Proof. 
-Take A B : (set). 
-We prove equality by proving two inclusions. 
-Take x : U; Assume x_in_AB. 
-destruct x_in_AB. 
-It holds that (x ∈ (B ∩ A)). 
-
-Take x : U; Assume x_in_BA. 
-destruct x_in_BA. 
-It holds that (x ∈ (A ∩ B)). 
-Qed. 
-
-
-Lemma disjoint_symmetric : 
-  ∀ A B : set, (Disjoint _ A B) ⇒ (Disjoint _ B A). 
-
-Proof. 
-Take A B : (set). 
-Assume A_B_disjoint. 
-destruct A_B_disjoint.
-By intersection_symmetric it holds that 
-  ((A ∩ B) = (B ∩ A)) (AB_is_BA).
-Write H using ((A ∩ B) = (B ∩ A)) 
-  as (∀ x : U, x ∉ (B ∩ A)). 
-It follows that (Disjoint U B A). 
-Qed. 
-(*write "By ... it holds that ..." as "... implies ..."?*)
-
-
 Lemma disjoint_aux : 
   ∀ A B : set, (Disjoint _ A B) 
     ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (aux_seq A B m) (aux_seq A B n)). 
@@ -725,10 +742,8 @@ Take A B : (set).
 Assume A_B_disjoint. 
 Take m n : ℕ. 
 Assume m_neq_n. 
-(*non-constructive and inefficient. What would be a better way? *)
-(*Better/other case distinction tactic?*)
 We prove by induction on m. 
-We prove by induction on n. (*double induction?*)
+We prove by induction on n.
 (*Case m = n = 0:*)
 Contradiction. 
 (*Case m=0, n=1:*)
@@ -826,17 +841,6 @@ By H1 it holds that (x ∉ B) (x_not_in_B).
 Contradiction.  
 Qed.
 
-Lemma not_in_comp : 
-  ∀ A : set, ∀ x : U, 
-    x ∉ (Ω \ A) ⇒ x ∈ A.
-
-Proof. 
-Take A : (set); Take x : U. 
-Assume x_not_in_complement. 
-We argue by contradiction. 
-It holds that (x ∈ (Ω \ A)) (x_in_complement).
-Contradiction. 
-Qed.  
 
 Lemma complement_as_union_intersection : 
   ∀ A B : set, (Ω \ ((A ∩ B) ∪ (Ω \ B))) = (Ω \ A) ∩ B.
