@@ -1,6 +1,7 @@
-(*Version 1.2 - 20-05-2020
+(*Version 1.2.1 - 20-05-2020
   WP library added manually to continue for now
   σ_implies_π_and_λ and supporting lemmas proven
+  major progress on incr_cont_meas
 *)
 
 Require Import Sets.Ensembles.
@@ -994,6 +995,7 @@ Definition σ_additive_on (F : setOfSubsets U) (μ : (subset U ⇨ ℝ)) : Prop 
     ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
       ⇒ infinite_sum (fun (n:ℕ) ↦ (μ (C n))) (μ (Countable_union C)).
 (*infinite_sum fn l is the proposition 'the sum of all terms of fn converges to l'*)
+
 Notation "μ is_σ-additive_on F" := 
   (σ_additive_on F μ) (at level 50). 
 
@@ -1137,13 +1139,52 @@ Apply xx.
 It holds that (F is_a_λ-system). 
 Qed. 
 
-(*
-Lemma FU_in_π_and_λ : 
-  ∀ F : setOfSubsets U, 
-    F is_a_π-system ⇒ F is_a_λ-system
-    ⇒ ∀ C : (ℕ → (subset U)), (∀ n : ℕ, (C n) ∈ F) 
-      ⇒ ∀ n : ℕ, (finite_union_up_to C n) ∈ F.
-*)
+
+Lemma additivity_meas : 
+  ∀μ : (subset U → ℝ), is_measure_on F μ 
+    ⇒ ∀ A B : subset U, A ∈ F ⇒ B ∈ F
+      ⇒ Disjoint _ A B  
+         ⇒ μ (A ∪ B) = μ A + μ B. 
+
+Proof. 
+Take μ : (subset U ⇨ ℝ). 
+Assume μ_is_measure_on_F. 
+Take A B : (subset U). 
+Assume A_in_F; Assume B_in_F.
+Assume A_B_disjoint.
+Define C := (aux_seq A B).
+By CU_aux_is_union it holds that 
+  (A ∪ B = Countable_union C) (union_is_CU).
+Write goal using (A ∪ B = Countable_union C)
+  as (μ (Countable_union C) = μ A + μ B).
+
+We claim that (infinite_sum (fun (n:ℕ) ↦ (μ (C n))) 
+  (μ (Countable_union C))) (sum_meas_is_meas_CU).
+By μ_is_measure_on_F it holds that 
+  (μ is_σ-additive_on F) (add_on_F).
+Apply add_on_F.
+Take n : ℕ. 
+We prove by induction on n.
+It holds that (C 0%nat ∈ F).
+We prove by induction on n.
+It holds that (C 1%nat ∈ F).
+
+It holds that (C (S (S n)) = ∅) (CSS_empty). 
+By empty_in_σ it holds that 
+  (C (S (S n)) ∈ F) (xx). 
+Apply xx.
+
+By disjoint_aux it holds that 
+  (for all m n : ℕ,
+    m ≠ n ⇨ Disjoint U (C m) (C n)) (xx). 
+Apply xx.
+
+
+
+
+Admitted.
+
+
 
 Lemma finite_additivity_meas : 
   ∀μ : (subset U → ℝ), is_measure_on F μ 
@@ -1158,6 +1199,7 @@ Assume μ_is_measure_on_F.
 Take C : (ℕ ⇨ subset U) . 
 Assume C_n_disjoint. 
 Take N : ℕ.
+We prove by induction on N. 
 
 
 
@@ -1168,44 +1210,92 @@ Lemma monotonicity_meas :
   ∀μ : (subset U → ℝ), is_measure_on F μ 
     ⇒ ∀ A B : subset U, A ⊂ B 
       ⇒ μ A ≤ μ B. 
+
+Proof. 
+
+Admitted. 
+
+
+Lemma FUn_aux_is_Cn : 
+  ∀C : (ℕ → (subset U)), is_increasing_seq_sets C
+    ⇒ ∀ n : ℕ, .
+
+Proof. 
+
 Admitted. 
 
 (*Proof using alternative sequence from pi-lambda proof*)
 Lemma incr_cont_meas : 
   ∀μ : (subset U → ℝ), is_measure_on F μ 
     ⇒ ∀C : (ℕ → (subset U)), is_increasing_seq_sets C
-      ⇒ Un_cv (fun (n : ℕ) ↦ (μ (C n))) (μ (Countable_union C)). 
+      ⇒ (∀ n : ℕ, C n ∈ F)
+        ⇒ Un_cv (fun (n : ℕ) ↦ (μ (C n))) (μ (Countable_union C)). 
 (*Un_cv Cn l is the proposition 'sequence Cn converges to limit l'*)
 Proof. 
 Take μ : (subset U ⇨ ℝ). 
 Assume μ_is_measure_on_F. 
 Take C : (ℕ ⇨ subset U) . 
 Assume C_is_incr_seq.
-(*We need to show that (
-  ∀ ε : ℝ, ε > 0
-    ⇒ ∃ N : ℕ , ∀ n : ℕ,  (n ≥ N)%nat 
-      ⇒ R_dist (μ (C n)) (μ (Countable_union C)) < ε). 
-(*notation |.| for R_dist?*)
-Take ε : ℝ; Assume ε_g0. *)
+Assume all_Cn_in_F.
 Define D := (disjoint_seq C). 
 By CU_sets_disjointsets_equal it holds that 
   ((Countable_union C) = (Countable_union D)) (CUC_is_CUD).
 Write goal using 
   ((Countable_union C) = (Countable_union D)) 
-    (*as (∃ N : ℕ , ∀ n : ℕ,  (n ≥ N)%nat 
-      ⇒ R_dist (μ (C n)) (μ (Countable_union D)) < ε).*) 
     as (Un_cv (fun (n : ℕ) ↦ (μ (C n))) (μ (Countable_union D))). 
 By μ_is_measure_on_F it holds that 
   (μ is_σ-additive_on F) (μ_is_σ_additive). 
 By disj_seq_disjoint it holds that 
   (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (D m) (D n)) (D_disj). 
 
-(*To show: all D n in F*)
+We claim that (∀n : ℕ, D n ∈ F) (all_Dn_in_F).
+Take n : ℕ. 
+By μ_is_measure_on_F it holds that 
+  (F is_a_σ-algebra) (F_is_σ).
+By σ_implies_π_and_λ it holds that 
+  (F is_a_π-system ∧ F is_a_λ-system) (F_is_π_and_λ).
+destruct F_is_π_and_λ. 
+We need to show that (C n \ (finite_union_up_to C n) ∈ F).
+We claim that ((finite_union_up_to C n) ∈ F) (FU_in_F). 
+Apply FU_in_π_and_λ.
+It holds that (F is_a_π-system).
+It holds that (F is_a_λ-system). 
+Apply all_Cn_in_F. 
+It holds that (C n ∈ F) (Cn_in_F).
+By complements_in_π_and_λ it holds that 
+  (C n \ finite_union_up_to C n ∈ F) (xx).
+Apply xx. 
+ 
 By μ_is_σ_additive it holds that 
   (infinite_sum (fun (n:ℕ) ↦ (μ (D n))) 
     (μ (Countable_union D))) (μDn_is_μCUD).
+Expand the definition of infinite_sum 
+  in μDn_is_μCUD. 
 
+We need to show that (
+  ∀ ε : ℝ, ε > 0
+    ⇒ ∃ N : ℕ , ∀ n : ℕ,  (n ≥ N)%nat 
+      ⇒ R_dist (μ (C n)) (μ (Countable_union D)) < ε).
 
+Take ε : ℝ; Assume ε_g0. 
+By μDn_is_μCUD it holds that (
+  ∃ N : ℕ , ∀ n : ℕ,  (n ≥ N)%nat 
+    ⇒ R_dist (sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n)
+     (μ (Countable_union D)) < ε) (exists_N_μSumD_μCUD_l_ε).
+Choose N such that μSumN_μCU_l_ε 
+  according to exists_N_μSumD_μCUD_l_ε.
+
+We claim that (∀ n : ℕ,
+  (n ≥ N)%nat ⇨ R_dist (μ (C n)) 
+    (μ (Countable_union D)) < ε) (holds_forall_n_geq_N). 
+Take n : ℕ; Assume n_geq_N.
+We claim that (μ(C n) = 
+  (sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) ) (μCn_is_sum_μDn). 
+By finite_additivity_meas it holds that 
+  (μ (finite_union_up_to C N) 
+          = sum_f_R0 (fun (n1 : ℕ) ↦ (μ (C n1))) (N-1)) (xx). 
+
+(*now show that mu(C n) = sum to n of mu(D n) *)
 
 Admitted. 
 
