@@ -1,4 +1,4 @@
-(*Version 1.5.4 - 19-05-2020
+(*Version 1.5.5 - 20-05-2020
   all proofs finished
   new tactic to introduce two variables at once
   all 'Expand the definition of...' replaced
@@ -6,6 +6,7 @@
   consistent spacing after ∀ and ∃
   document order slightly changed (notations and set-related lemmas grouped together)
   notations 'set' and 'setOfSets' fixed to depend on U
+  last fixes to subset U
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -77,72 +78,72 @@ Ltac intros_strict x y t :=
 Tactic Notation "Take" ident(x) ident(y) ":" constr(t):=
   intros_strict x y t. 
 
-Definition is_π_system (Π : setOfSets) 
+Definition is_π_system (Π : setOfSubsets U) 
   : Prop := 
-    ∀ A : set, A ∈ Π 
-      ⇒ ∀ B : set, B ∈ Π 
+    ∀ A : subset U, A ∈ Π 
+      ⇒ ∀ B : subset U, B ∈ Π 
         ⇒ (A ∩ B) ∈ Π. 
 
-Definition Countable_union (A : (ℕ → set)) 
+Definition Countable_union (A : (ℕ → subset U)) 
   : set := 
     { x:U | ∃ n : ℕ, x ∈ (A n)}.
 
-Definition full_set_in_set (Λ : setOfSets) 
+Definition full_set_in_set (Λ : setOfSubsets U) 
   : Prop :=
     Ω ∈ Λ. 
 
-Definition complement_in_set (Λ : setOfSets) 
+Definition complement_in_set (Λ : setOfSubsets U) 
   : Prop := 
-    ∀ A  : set, A ∈ Λ 
+    ∀ A  : subset U, A ∈ Λ 
       ⇒ (Ω \ A) ∈ Λ. 
 
-Definition closed_under_disjoint_countable_union (Λ : setOfSets) 
+Definition closed_under_disjoint_countable_union (Λ : setOfSubsets U) 
   : Prop :=
-    ∀ C : (ℕ → (set)), 
+    ∀ C : (ℕ → (subset U)), 
       (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
         ⇒ (∀ n : ℕ, (C n) ∈ Λ) ⇒ (Countable_union C) ∈ Λ.
 
-Definition closed_under_countable_union (Λ : setOfSets) 
+Definition closed_under_countable_union (Λ : setOfSubsets U) 
   : Prop :=  
-    ∀ C : (ℕ → (set)), (∀ n : ℕ, (C n) ∈ Λ) 
+    ∀ C : (ℕ → (subset U)), (∀ n : ℕ, (C n) ∈ Λ) 
       ⇒ (Countable_union C) ∈ Λ.
 
-Definition is_λ_system (Λ : setOfSets) 
+Definition is_λ_system (Λ : setOfSubsets U) 
   : Prop :=
     full_set_in_set Λ ∧ 
     complement_in_set Λ ∧
     closed_under_disjoint_countable_union Λ. 
 
-Definition λ_system_generated_by (A : setOfSets) 
-  : (setOfSets) := 
-    {B : set | (∀ Λ : setOfSets, Λ is_a_λ-system 
+Definition λ_system_generated_by (A : setOfSubsets U) 
+  : (setOfSubsets U) := 
+    {B : set | (∀ Λ : setOfSubsets U, Λ is_a_λ-system 
        ⇒ (A ⊂ Λ ⇒ B ∈ Λ))}. 
 
-Definition is_σ_algebra (F : setOfSets) 
+Definition is_σ_algebra (F : setOfSubsets U) 
   : Prop := 
     full_set_in_set F ∧ 
     complement_in_set F ∧
     closed_under_countable_union F.
 
-Definition  σ_algebra_generated_by (A : setOfSets) 
-  : (setOfSets) := 
-    {B : set | ∀ F : setOfSets, F is_a_σ-algebra ⇒ (A ⊂ F ⇒ B ∈ F)} . 
+Definition  σ_algebra_generated_by (A : setOfSubsets U) 
+  : (setOfSubsets U) := 
+    {B : set | ∀ F : setOfSubsets U, F is_a_σ-algebra ⇒ (A ⊂ F ⇒ B ∈ F)} . 
 
-Definition restriction (F : setOfSets) (A : (set)) 
-  : (setOfSets) := 
-    {C : set | ∃ B : set, B ∈ F ⇒ C = A ∩ B}. 
+Definition restriction (F : setOfSubsets U) (A : (subset U)) 
+  : (setOfSubsets U) := 
+    {C : set | ∃ B : subset U, B ∈ F ⇒ C = A ∩ B}. 
 
 (* ≤ only works for Reals *)
-Definition finite_union (C : (ℕ ⇨ set)) (n : ℕ) 
+Definition finite_union (C : (ℕ ⇨ subset U)) (n : ℕ) 
   : set := 
     {x : U | (∃ i : ℕ,  (i <= n ∧ x ∈ (C i)))}.
 
-Definition finite_union_up_to (C : (ℕ ⇨ set)) (n : ℕ) 
-  : (set) := 
+Definition finite_union_up_to (C : (ℕ ⇨ subset U)) (n : ℕ) 
+  : (subset U) := 
     {x : U | (∃ i : ℕ,  (i < n ∧ x ∈ (C i)))}.
 
-Definition disjoint_seq (C : (ℕ ⇨ set)) 
-  : (ℕ ⇨ set) := 
+Definition disjoint_seq (C : (ℕ ⇨ subset U)) 
+  : (ℕ ⇨ subset U) := 
     fun (n : ℕ) ↦ (C n \ (finite_union_up_to C n)). 
 
 (*measure theory-related notations: *)
@@ -179,10 +180,10 @@ Qed.
 
 
 Lemma setminus_empty : 
-  ∀ A : set, A \ ∅ = A. 
+  ∀ A : subset U, A \ ∅ = A. 
 
 Proof. 
-Take A : (set). 
+Take A : (subset U). 
 We prove equality by proving two inclusions.
 Take x : U; Assume x_in_A_wo_empty. 
 It holds that (x ∈ A). 
@@ -193,10 +194,10 @@ Qed.
 
 
 Lemma intersection_full : 
-  ∀ A : set, (Ω ∩ A) = A. 
+  ∀ A : subset U, (Ω ∩ A) = A. 
 
 Proof. 
-Take A : (set). 
+Take A : (subset U). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_intersection. 
 destruct x_in_intersection. 
@@ -209,10 +210,10 @@ Qed.
 
 
 Lemma intersection_empty : 
-  ∀ A : set, (A ∩ ∅) = ∅. 
+  ∀ A : subset U, (A ∩ ∅) = ∅. 
 
 Proof. 
-Take A : (set). 
+Take A : (subset U). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_intersection. 
 destruct x_in_intersection. 
@@ -223,10 +224,10 @@ Contradiction.
 Qed. 
 
 Lemma empty_disjoint : 
-  ∀ A : set, Disjoint _ A ∅. 
+  ∀ A : subset U, Disjoint _ A ∅. 
 
 Proof. 
-Take A : (set).
+Take A : (subset U).
 It suffices to show that (∀ x:U, x ∉ (A ∩ ∅)).
 Take x : U. 
 By intersection_empty it holds that 
@@ -237,11 +238,11 @@ Qed.
 
 
 Lemma complement_as_intersection : 
-  ∀ A B : set, 
+  ∀ A B : subset U, 
     A \ B = (Ω \ B) ∩ A. 
 
 Proof. 
-Take A B : (set). 
+Take A B : (subset U). 
 We prove equality by proving two inclusions. 
 
 Take x : U. 
@@ -257,10 +258,10 @@ Qed.
 
 
 Lemma intersection_symmetric : 
-  ∀ A B : set, A ∩ B = B ∩ A. 
+  ∀ A B : subset U, A ∩ B = B ∩ A. 
 
 Proof. 
-Take A B : (set). 
+Take A B : (subset U). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_AB. 
 destruct x_in_AB. 
@@ -273,10 +274,10 @@ Qed.
 
 
 Lemma disjoint_symmetric : 
-  ∀ A B : set, (Disjoint _ A B) ⇒ (Disjoint _ B A). 
+  ∀ A B : subset U, (Disjoint _ A B) ⇒ (Disjoint _ B A). 
 
 Proof. 
-Take A B : (set). 
+Take A B : (subset U). 
 Assume A_B_disjoint. 
 destruct A_B_disjoint.
 By intersection_symmetric it holds that 
@@ -289,11 +290,11 @@ Qed.
 
 
 Lemma not_in_comp : 
-  ∀ A : set, ∀ x : U, 
+  ∀ A : subset U, ∀ x : U, 
     x ∉ (Ω \ A) ⇒ x ∈ A.
 
 Proof. 
-Take A : (set); Take x : U. 
+Take A : (subset U); Take x : U. 
 Assume x_not_in_complement. 
 We argue by contradiction. 
 It holds that (x ∈ (Ω \ A)) (x_in_complement).
@@ -326,11 +327,11 @@ Qed.
 
 
 Lemma union_to_or : 
-  ∀ A B : (set), ∀ x : U, 
+  ∀ A B : (subset U), ∀ x : U, 
     x ∈ (A ∪ B) ⇒ (x ∈ A ∨ x ∈ B).
 
 Proof. 
-Take A B : (set). 
+Take A B : (subset U). 
 Take x : U; Assume x_in_union. 
 destruct x_in_union. 
 (* x ∈ A: *)
@@ -341,10 +342,10 @@ Qed.
 
 
 Lemma FU_up_to_0_empty : 
-  ∀ C : (ℕ ⇨ set), finite_union_up_to C 0 = ∅. 
+  ∀ C : (ℕ ⇨ subset U), finite_union_up_to C 0 = ∅. 
 
 Proof. 
-Take C : (ℕ ⇨ set). 
+Take C : (ℕ ⇨ subset U). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_FU_0. 
 Write x_in_FU_0 as 
@@ -358,12 +359,12 @@ Qed.
 
 
 Lemma disj_seq_disjoint : 
-  ∀ C : (ℕ ⇨ set), 
+  ∀ C : (ℕ ⇨ subset U), 
     (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ 
       (disjoint_seq C m) (disjoint_seq C n)). 
 
 Proof. 
-Take C : (ℕ ⇨ set). 
+Take C : (ℕ ⇨ subset U). 
 Take m n : ℕ. 
 Assume m_neq_n.
 By neq_equiv it holds that 
@@ -400,11 +401,11 @@ Qed.
 
 
 Lemma CU_sets_disjointsets_equal : 
-  ∀ C : (ℕ ⇨ set), 
+  ∀ C : (ℕ ⇨ subset U), 
     Countable_union (disjoint_seq C) = Countable_union C.
 
 Proof. 
-Take C : (ℕ ⇨ set).
+Take C : (ℕ ⇨ subset U).
 Define D := (disjoint_seq C). 
 We prove equality by proving two inclusions. 
 
@@ -427,19 +428,19 @@ It holds that (x ∈ Countable_union D).
 Qed. 
 
 Lemma complements_in_π_and_λ : 
-  ∀ F : setOfSets, 
+  ∀ F : setOfSubsets U, 
     F is_a_π-system ∧ F is_a_λ-system
-    ⇒ ∀ A B : set, A ∈ F ∧ B ∈ F
+    ⇒ ∀ A B : subset U, A ∈ F ∧ B ∈ F
       ⇒ A \ B ∈ F. 
 
 Proof. 
-Take F : (setOfSets). 
+Take F : (setOfSubsets U). 
 Assume F_is_π_and_λ_system.
 By F_is_π_and_λ_system 
   it holds that (F is_a_π-system) (F_is_π_system). 
 By F_is_π_and_λ_system 
   it holds that (F is_a_λ-system) (F_is_λ_system). 
-Take A B : (set). 
+Take A B : (subset U). 
 Assume A_and_B_in_F. 
 By F_is_λ_system it holds that 
   (Ω \ B ∈ F) (comp_B_in_F). 
@@ -454,11 +455,11 @@ Qed.
 
 
 Lemma union_as_complements : 
-  ∀ A B : set, 
+  ∀ A B : subset U, 
     (A ∪ B) = (Ω \ ((Ω \ A) ∩ (Ω \ B))). 
 
 Proof. 
-Take A B : (set). 
+Take A B : (subset U). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_union. 
 By union_to_or it holds that 
@@ -488,15 +489,15 @@ Qed.
 
 
 Lemma unions_in_π_and_λ : 
-  ∀ F : setOfSets, 
+  ∀ F : setOfSubsets U, 
     F is_a_π-system ⇒ F is_a_λ-system
-    ⇒ ∀ A B : set, A ∈ F ⇒ B ∈ F
+    ⇒ ∀ A B : subset U, A ∈ F ⇒ B ∈ F
       ⇒ A ∪ B ∈ F.
 
 Proof. 
-Take F : (setOfSets). 
+Take F : (setOfSubsets U). 
 Assume F_is_π_system; Assume F_is_λ_system. 
-Take A B : (set). 
+Take A B : (subset U). 
 Assume A_in_F; Assume B_in_F.
 
 By union_as_complements it holds that 
@@ -515,11 +516,11 @@ Qed.
  
 
 Lemma empty_in_λ : 
-  ∀ F : setOfSets, 
+  ∀ F : setOfSubsets U, 
     F is_a_λ-system ⇒ ∅ ∈ F. 
 
 Proof.  
-Take F : (setOfSets); Assume F_is_λ_system. 
+Take F : (setOfSubsets U); Assume F_is_λ_system. 
 By complement_full_is_empty it holds that 
   (∅ = (Ω \ Ω)) (comp_full_empty).
 Write goal using (∅ = (Ω \ Ω)) as ((Ω \ Ω) ∈ F). 
@@ -528,12 +529,12 @@ Qed.
 
 
 Lemma FU_S_as_union : 
-  ∀ C : (ℕ → (set)), ∀ n : ℕ,
+  ∀ C : (ℕ → (subset U)), ∀ n : ℕ,
     finite_union_up_to C (S n) 
       = (finite_union_up_to C n) ∪ (C n). 
 
 Proof. 
-Take C : (ℕ → (set)). 
+Take C : (ℕ → (subset U)). 
 Take n : ℕ. 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_FU_S. 
@@ -559,16 +560,16 @@ Qed.
 
 
 Lemma FU_in_π_and_λ : 
-  ∀ F : setOfSets, 
+  ∀ F : setOfSubsets U, 
     F is_a_π-system ⇒ F is_a_λ-system
-    ⇒ ∀ C : (ℕ → (set)), (∀ n : ℕ, (C n) ∈ F) 
+    ⇒ ∀ C : (ℕ → (subset U)), (∀ n : ℕ, (C n) ∈ F) 
       ⇒ ∀ n : ℕ, (finite_union_up_to C n) ∈ F.
 
 Proof. 
-Take F : (setOfSets). 
+Take F : (setOfSubsets U). 
 Assume F_is_π_system.
 Assume F_is_λ_system.  
-Take C : (ℕ ⇨ set). 
+Take C : (ℕ ⇨ subset U). 
 Assume all_Cn_in_F.
 Take n : ℕ. 
 We prove by induction on n.
@@ -594,12 +595,12 @@ Qed.
 
 
 Lemma π_and_λ_is_σ : 
-  ∀ F : setOfSets, 
+  ∀ F : setOfSubsets U, 
     F is_a_π-system ⇒ F is_a_λ-system 
       ⇒ F is_a_σ-algebra. 
 
 Proof. 
-Take F : (setOfSets).
+Take F : (setOfSubsets U).
 Assume F_is_π_system. 
 Assume F_is_λ_system. 
 It holds that 
@@ -615,7 +616,7 @@ It holds that (complement_in_set F).
 We need to show that (∀ C : ℕ ⇨ set,
   (∀ n : ℕ, C n ∈ F) 
     ⇒ Countable_union C ∈ F). 
-Take C : (ℕ ⇨ set); Assume all_C_n_in_F. 
+Take C : (ℕ ⇨ subset U); Assume all_C_n_in_F. 
 By classic it holds that 
   ((∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) ∨ 
   ¬(∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n))) (all_or_not_all_disjoint). 
@@ -650,15 +651,15 @@ Qed.
 
 
 Lemma generated_system_is_λ : 
-  ∀ A : setOfSets, 
+  ∀ A : setOfSubsets U, 
     λ(A) is_a_λ-system.
 
 Proof. 
-Take A : (setOfSets). 
+Take A : (setOfSubsets U). 
 We need to show that (full_set_in_set (λ(A))
   ∧ complement_in_set (λ(A)) 
     ∧ closed_under_disjoint_countable_union (λ(A))). 
-It holds that (∀ Λ : setOfSets, 
+It holds that (∀ Λ : setOfSubsets U, 
   Λ is_a_λ-system ⇒ (full_set_in_set Λ)
     ∧ complement_in_set Λ
       ∧ closed_under_disjoint_countable_union Λ) 
@@ -672,14 +673,14 @@ We need to show that (∀ C : ℕ ⇨ set,
   (∀ m n : ℕ, m ≠ n ⇒ Disjoint U (C m) (C n))
     ⇒ (∀ n : ℕ, C n ∈ λ(A)) 
       ⇒ Countable_union C ∈ λ(A)). 
-Take C : (ℕ ⇨ set). 
+Take C : (ℕ ⇨ subset U). 
 Assume all_Cn_disjoint. 
 Assume all_Cn_in_λA.
 
-We claim that (∀ Λ : setOfSets, 
+We claim that (∀ Λ : setOfSubsets U, 
   Λ is_a_λ-system ⇒ A ⊂ Λ 
     ⇒ (Countable_union C) ∈ Λ) (CU_in_all).
-Take Λ : (setOfSets). 
+Take Λ : (setOfSubsets U). 
 Assume Λ_is_λ_system. 
 Assume A_subs_Λ. 
 It holds that 
@@ -693,8 +694,8 @@ It follows that (Countable_union C ∈ λ(A)).
 Qed.
 
 
-Fixpoint aux_seq (A B : set) (n : ℕ) {struct n}
-  : (set) :=
+Fixpoint aux_seq (A B : subset U) (n : ℕ) {struct n}
+  : (subset U) :=
     match n with 
       0 => A 
     | 1 => B
@@ -703,10 +704,10 @@ Fixpoint aux_seq (A B : set) (n : ℕ) {struct n}
 
 
 Lemma CU_aux_is_union : 
-  ∀ A B : set, Countable_union (aux_seq A B) = A ∪ B. 
+  ∀ A B : subset U, Countable_union (aux_seq A B) = A ∪ B. 
 
 Proof. 
-Take A B : (set). 
+Take A B : (subset U). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_CU. 
 Choose n such that x_in_C_n according to x_in_CU. 
@@ -735,11 +736,11 @@ Qed.
 
 
 Lemma disjoint_aux : 
-  ∀ A B : set, (Disjoint _ A B) 
+  ∀ A B : subset U, (Disjoint _ A B) 
     ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (aux_seq A B m) (aux_seq A B n)). 
 
 Proof. 
-Take A B : (set). 
+Take A B : (subset U). 
 Assume A_B_disjoint. 
 Take m n : ℕ. 
 Assume m_neq_n. 
@@ -789,13 +790,13 @@ Qed.
 
 
 Lemma disj_union_in_λ_system : 
-  ∀ Λ : setOfSets, Λ is_a_λ-system
-    ⇒ ∀ A B : set, A ∈ Λ ⇒ B ∈ Λ 
+  ∀ Λ : setOfSubsets U, Λ is_a_λ-system
+    ⇒ ∀ A B : subset U, A ∈ Λ ⇒ B ∈ Λ 
       ⇒ Disjoint _ A B ⇒ A ∪ B ∈ Λ. 
 
 Proof. 
-Take Λ : (setOfSets); Assume Λ_is_a_λ_system. 
-Take A B : (set). 
+Take Λ : (setOfSubsets U); Assume Λ_is_a_λ_system. 
+Take A B : (subset U). 
 Assume A_in_Λ; Assume B_in_Λ. 
 Assume A_B_disjoint. 
 
@@ -827,10 +828,10 @@ Apply xx.
 Qed. 
 
 Lemma intersection_and_complement_disjoint : 
-  ∀ A B : set, Disjoint _ (A ∩ B) (Ω \ B). 
+  ∀ A B : subset U, Disjoint _ (A ∩ B) (Ω \ B). 
 
 Proof. 
-Take A B : (set). 
+Take A B : (subset U). 
 It suffices to show that (∀ x : U, x ∉ ((A ∩ B) ∩ (Ω \ B))). 
 Take x : U. 
 We argue by contradiction. 
@@ -844,10 +845,10 @@ Qed.
 
 
 Lemma complement_as_union_intersection : 
-  ∀ A B : set, (Ω \ ((A ∩ B) ∪ (Ω \ B))) = (Ω \ A) ∩ B.
+  ∀ A B : subset U, (Ω \ ((A ∩ B) ∪ (Ω \ B))) = (Ω \ A) ∩ B.
 
 Proof. 
-Take A B : (set). 
+Take A B : (subset U). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_lhs. 
 destruct x_in_lhs.
@@ -883,22 +884,22 @@ Contradiction. (*tactic 'contradiction in both cases'? *)
 It follows that (x ∈ (Ω \ ((A ∩ B) ∪ (Ω \ B)))). 
 Qed.  
 
-Definition H (B : set) (λΠ : setOfSets)
-  : setOfSets := 
-    {A : (set) | (A ∩ B ∈ λΠ) }. 
+Definition H (B : subset U) (λΠ : setOfSubsets U)
+  : setOfSubsets U := 
+    {A : (subset U) | (A ∩ B ∈ λΠ) }. 
 
-Definition seq_intersection (C : (ℕ ⇨ set)) (B : set)
+Definition seq_intersection (C : (ℕ ⇨ subset U)) (B : subset U)
   : ℕ ⇨ set := 
     fun (n : ℕ) ↦ ((C n) ∩ B).
 
 Lemma C_int_B_disjoint : 
-  ∀ C : (ℕ ⇨ set), ∀ B : set, 
+  ∀ C : (ℕ ⇨ subset U), ∀ B : subset U, 
     (∀ m n : ℕ, m ≠ n ⇨ Disjoint U (C m) (C n))
       ⇒ ∀ m n : ℕ, m ≠ n 
         ⇒ Disjoint U (seq_intersection C B m) (seq_intersection C B n). 
 
 Proof. 
-Take C : (ℕ ⇨ set); Take B : (set). 
+Take C : (ℕ ⇨ subset U); Take B : (subset U). 
 Assume all_Cn_disjoint. 
 Take m n : ℕ. 
 Assume m_neq_n. 
@@ -929,11 +930,11 @@ Contradiction.
 Qed. 
 
 Lemma CU_seq_int_is_CU_int : 
-  ∀ C : (ℕ ⇨ set), ∀ B : set, 
+  ∀ C : (ℕ ⇨ subset U), ∀ B : subset U, 
     Countable_union (seq_intersection C B) = (Countable_union C) ∩ B. 
 
 Proof. 
-Take C : (ℕ ⇨ set); Take B : (set). 
+Take C : (ℕ ⇨ subset U); Take B : (subset U). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_lhs. 
 Choose n such that x_in_seq_Cn according to x_in_lhs.
@@ -956,13 +957,13 @@ Qed.
 
 
 Lemma H_is_λ_system : 
-  ∀ Π : setOfSets, Π is_a_π-system
-    ⇒ ∀ B : set, B ∈ (λ(Π)) 
+  ∀ Π : setOfSubsets U, Π is_a_π-system
+    ⇒ ∀ B : subset U, B ∈ (λ(Π)) 
       ⇒ (H B (λ(Π))) is_a_λ-system.
 
 Proof. 
-Take Π : (setOfSets); Assume Π_is_a_π_system.
-Take B : (set); Assume B_in_λΠ. 
+Take Π : (setOfSubsets U); Assume Π_is_a_π_system.
+Take B : (subset U); Assume B_in_λΠ. 
 Define H := (H B (λ(Π))). 
 We need to show that (full_set_in_set H 
   ∧ complement_in_set H 
@@ -977,9 +978,9 @@ It holds that (B ∈ (λ(Π))).
 It follows that (full_set_in_set H). 
 
 split. 
-We need to show that (∀ A : set,
+We need to show that (∀ A : subset U,
   A ∈ H ⇒ (Ω \ A) ∈ H). 
-Take A : (set); Assume A_in_H.
+Take A : (subset U); Assume A_in_H.
 We claim that (((A ∩ B) ∪ (Ω \ B)) ∈ λ(Π)) (union_in_λΠ). 
 Apply disj_union_in_λ_system. 
 By generated_system_is_λ it holds that 
@@ -1004,7 +1005,7 @@ We need to show that (∀ C : ℕ ⇨ set,
   (∀ m n : ℕ, m ≠ n ⇒ Disjoint U (C m) (C n)) 
     ⇒ (∀ n : ℕ, C n ∈ H) 
       ⇒ Countable_union C ∈ H). 
-Take C : (ℕ ⇨ set). 
+Take C : (ℕ ⇨ subset U). 
 Assume all_Cn_disjoint; Assume all_Cn_in_H. 
 By all_Cn_in_H it holds that 
   (∀ n : ℕ, ((C n) ∩ B) ∈ λ(Π)) (all_CnB_in_λΠ).
@@ -1028,16 +1029,16 @@ Qed.
 
 
 Lemma Π_subset_H : 
-  ∀ Π : setOfSets, Π is_a_π-system
-    ⇒ ∀ B : set, B ∈ Π
+  ∀ Π : setOfSubsets U, Π is_a_π-system
+    ⇒ ∀ B : subset U, B ∈ Π
         ⇒ Π ⊂ H B (λ(Π)).
 
 Proof. 
-Take Π : (setOfSets); Assume Π_is_π_system.
-Take B : (set); Assume B_in_Π. 
-We need to show that (∀ C : set,
+Take Π : (setOfSubsets U); Assume Π_is_π_system.
+Take B : (subset U); Assume B_in_Π. 
+We need to show that (∀ C : subset U,
   C ∈ Π ⇒ C ∈ H B (λ( Π))).
-Take C : (set); Assume C_in_Π.
+Take C : (subset U); Assume C_in_Π.
 By Π_is_π_system it holds that 
   (C ∩ B ∈ Π) (CB_in_Π).
 It follows that (C ∈ H B (λ(Π))). 
@@ -1045,15 +1046,15 @@ Qed.
 
 
 Lemma int_in_λΠ : 
-  ∀ Π : setOfSets, Π is_a_π-system
-    ⇒ ∀ A : set, A ∈(λ(Π))
-      ⇒ ∀ B : set, B ∈ Π
+  ∀ Π : setOfSubsets U, Π is_a_π-system
+    ⇒ ∀ A : subset U, A ∈(λ(Π))
+      ⇒ ∀ B : subset U, B ∈ Π
         ⇒ (A ∩ B) ∈ (λ(Π)).
 
 Proof. 
-Take Π : (setOfSets); Assume Π_is_π_system.
-Take A : (set); Assume A_in_λΠ. 
-Take B : (set); Assume B_in_Π. 
+Take Π : (setOfSubsets U); Assume Π_is_π_system.
+Take A : (subset U); Assume A_in_λΠ. 
+Take B : (subset U); Assume B_in_Π. 
 It holds that (B ∈ λ(Π)) (B_in_λΠ). 
 By H_is_λ_system it holds that 
   ((H B (λ(Π))) is_a_λ-system) (H_is_λ_system).
@@ -1066,23 +1067,23 @@ Qed.
 
 
 Lemma λΠ_is_σ_algebra : 
-  ∀ Π : setOfSets, Π is_a_π-system
+  ∀ Π : setOfSubsets U, Π is_a_π-system
     ⇒ λ(Π) is_a_σ-algebra.
 
 Proof. 
-Take Π : (setOfSets).
+Take Π : (setOfSubsets U).
 Assume Π_is_π_system.
 We claim that (λ(Π) is_a_π-system) (λΠ_is_π). 
 We need to show that (
-  ∀ A : set, A ∈ (λ(Π)) 
-    ⇒ ∀ B : set, B ∈ (λ(Π))
+  ∀ A : subset U, A ∈ (λ(Π)) 
+    ⇒ ∀ B : subset U, B ∈ (λ(Π))
       ⇒ (A ∩ B) ∈ (λ(Π))).
-Take A : (set); Assume A_in_λΠ. 
-Take B : (set); Assume B_in_λΠ. 
+Take A : (subset U); Assume A_in_λΠ. 
+Take B : (subset U); Assume B_in_λΠ. 
 We claim that (Π ⊂ H B (λ(Π))) (Π_subs_H).
 We need to show that 
-  (∀ C : set, C ∈ Π ⇒ C ∈ H B (λ(Π))). 
-Take C : (set); Assume C_in_Π. 
+  (∀ C : subset U, C ∈ Π ⇒ C ∈ H B (λ(Π))). 
+Take C : (subset U); Assume C_in_Π. 
 By int_in_λΠ it holds that 
   ((B ∩ C) ∈ λ(Π)) (BC_in_λΠ). 
 By intersection_symmetric it holds that 
@@ -1105,23 +1106,23 @@ Qed.
 
 
 Theorem π_λ_theorem : 
-  ∀ Π Λ : setOfSets, 
+  ∀ Π Λ : setOfSubsets U, 
     Π is_a_π-system ∧ Λ is_a_λ-system ∧ Π ⊂ Λ
     ⇒ (σ(Π)) ⊂ Λ. 
 
 Proof. 
-Take Π : (setOfSets); Take Λ : (setOfSets). 
+Take Π : (setOfSubsets U); Take Λ : (setOfSubsets U). 
 Assume Π_Λ_included_systems. 
 
-We need to show that (∀ x : set,
+We need to show that (∀ x : subset U,
   x ∈ (σ(Π)) ⇒ x ∈ Λ). 
-Take A : (set); Assume A_in_σΠ.
+Take A : (subset U); Assume A_in_σΠ.
 By Π_Λ_included_systems it holds that 
   (Π is_a_π-system) (Π_is_π). 
 By λΠ_is_σ_algebra it holds that 
   (λ(Π) is_a_σ-algebra) (λΠ_is_σ_algebra).
 By A_in_σΠ it holds that 
-  (∀ F : setOfSets, 
+  (∀ F : setOfSubsets U, 
     F is_a_σ-algebra ⇒ Π ⊂ F 
       ⇒ A ∈ F) (A_in_all_σ).
 It holds that 
