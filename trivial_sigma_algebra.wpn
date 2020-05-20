@@ -7,7 +7,7 @@
     },
     {
       "type": "code",
-      "text": "(*Import MTdefs here?*)\n\nLemma complement_empty_is_full : \n  Ω = (Ω \\ ∅). \n\nProof. \nWe prove equality by proving two inclusions. \nTake x : U; Assume x_in_full. \nIt holds that (x ∈ (Ω \\ ∅)).\n\nTake x : U; Assume x_in_complement_empty.\nIt holds that (x ∈ Ω). \nQed. "
+      "text": "Require Import wplib.Lib.measure_theory.wpn.\n\nLemma complement_empty_is_full : \n  Ω = (Ω \\ ∅). \n\nProof. \nWe prove equality by proving two inclusions. \nTake x : U; Assume x_in_full. \nIt holds that (x ∈ (Ω \\ ∅)).\n\nTake x : U; Assume x_in_complement_empty.\nIt holds that (x ∈ Ω). \nQed. "
     },
     {
       "type": "text",
