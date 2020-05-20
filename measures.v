@@ -1,10 +1,6 @@
-(*Version 1.1.4 - 15-05-2020
-  new brackets as not to conflict coq notation {x : A | P}
-  imported lemmas on CU, disjointness and disjoint sets
-  proof of incr_cont_meas continued
-  notations for set and setOfSets adapted to subsets of U
-  adapted notation improved, dependent on U
+(*Version 1.2 - 20-05-2020
   WP library added manually to continue for now
+  σ_implies_π_and_λ and supporting lemmas proven
 *)
 
 Require Import Sets.Ensembles.
@@ -568,6 +564,38 @@ It follows that (x ∈ A ∨ x ∈ B).
 Qed. 
 
 
+Lemma intersection_symmetric : 
+  ∀ A B : subset U, A ∩ B = B ∩ A. 
+
+Proof. 
+Take A B : (subset U). 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_AB. 
+destruct x_in_AB. 
+It holds that (x ∈ (B ∩ A)). 
+
+Take x : U; Assume x_in_BA. 
+destruct x_in_BA. 
+It holds that (x ∈ (A ∩ B)). 
+Qed. 
+
+
+Lemma disjoint_symmetric : 
+  ∀ A B : subset U, (Disjoint _ A B) ⇒ (Disjoint _ B A). 
+
+Proof. 
+Take A B : (subset U). 
+Assume A_B_disjoint. 
+destruct A_B_disjoint.
+By intersection_symmetric it holds that 
+  ((A ∩ B) = (B ∩ A)) (AB_is_BA).
+Write H using ((A ∩ B) = (B ∩ A)) 
+  as (∀ x : U, x ∉ (B ∩ A)). 
+It follows that (Disjoint U B A). 
+Qed. 
+(*include last two in library? Should be trivial. *)
+
+
 Lemma FU_up_to_0_empty : 
   ∀ C : (ℕ ⇨ subset U) , finite_union_up_to C 0 = ∅. 
 
@@ -654,6 +682,301 @@ Choose n1 such that x_in_C_minimal_n according to exists_least_n.
 It holds that (x ∈ Countable_union D). 
 Qed. 
 
+
+Lemma complement_as_intersection : 
+  ∀ A B : subset U, 
+    A \ B = (Ω \ B) ∩ A. 
+
+Proof. 
+Take A B : (subset U). 
+We prove equality by proving two inclusions. 
+
+Take x : U. 
+Assume x_in_A_without_B. 
+It holds that (x ∈ ((Ω \ B) ∩ A)). 
+
+Take x : U. 
+Assume x_in_rhs. 
+By x_in_rhs it holds that 
+  (x ∈ (Ω \ B) ∧ (x ∈ A)) (x_in_A_and_comp_B). 
+It holds that (x ∈ (A \ B)). 
+Qed. 
+
+
+Lemma complements_in_π_and_λ : 
+  ∀ F : setOfSubsets U, 
+    F is_a_π-system ∧ F is_a_λ-system
+    ⇒ ∀ A B : subset U, A ∈ F ∧ B ∈ F
+      ⇒ A \ B ∈ F. 
+
+Proof. 
+Take F : (setOfSubsets U). 
+Assume F_is_π_and_λ_system.
+By F_is_π_and_λ_system 
+  it holds that (F is_a_π-system) (F_is_π_system). 
+By F_is_π_and_λ_system 
+  it holds that (F is_a_λ-system) (F_is_λ_system). 
+Take A B : (subset U). 
+Assume A_and_B_in_F. 
+By F_is_λ_system it holds that 
+  (Ω \ B ∈ F) (comp_B_in_F). 
+By F_is_π_system it holds that 
+  (A ∩ (Ω \ B) ∈ F) (set_in_F). 
+By complement_as_intersection it holds that 
+  (A \ B = (Ω \ B) ∩ A) (set_is_complement). 
+Write goal using (A \ B = ((Ω \ B) ∩ A)) 
+  as (((Ω \ B) ∩ A) ∈ F). 
+It holds that (((Ω \ B) ∩ A) ∈ F). 
+Qed. 
+
+
+Lemma union_as_complements : 
+  ∀ A B : subset U, 
+    (A ∪ B) = (Ω \ ((Ω \ A) ∩ (Ω \ B))). 
+
+Proof. 
+Take A B : (subset U). 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_union. 
+By union_to_or it holds that 
+  (x ∈ A ∨ x ∈ B) (x_in_A_or_B). 
+By classic it holds that 
+  (¬((x ∉ A) ∧ (x ∉ B))) (not_not_A_and_not_B). 
+By not_not_A_and_not_B it holds that 
+  (¬(x ∈ (Ω \ A) ∧ x ∈ (Ω \ B))) (not_compA_and_compB). 
+By not_compA_and_compB it holds that 
+  (x ∉ ((Ω \ A) ∩ (Ω \ B))) (not_compA_int_compB). 
+It holds that (x ∈ (Ω \ ((Ω \ A) ∩ (Ω \ B)))). 
+
+Take x : U; Assume x_in_comp. 
+We argue by contradiction. 
+By union_to_or it holds that (¬ (x ∈ A ∨ x ∈ B)) (not_A_or_B).
+
+It holds that 
+  (x ∉ ((Ω \ A) ∩ (Ω \ B))) (not_compA_int_compB). 
+By not_compA_int_compB it holds that 
+  (¬(x ∈ (Ω \ A) ∧ x ∈ (Ω \ B))) (not_compA_and_compB). 
+By not_compA_and_compB it holds that 
+  (¬((x ∉ A) ∧ (x ∉ B))) (not_not_A_and_not_B). 
+By not_not_A_and_not_B it holds that 
+  ((x ∈ A ∨ x ∈ B)) (A_or_B). 
+Contradiction. 
+Qed. 
+
+Lemma unions_in_π_and_λ : 
+  ∀ F : setOfSubsets U, 
+    F is_a_π-system ⇒ F is_a_λ-system
+    ⇒ ∀ A B : subset U, A ∈ F ⇒ B ∈ F
+      ⇒ A ∪ B ∈ F.
+
+Proof. 
+Take F : (setOfSubsets U). 
+Assume F_is_π_system; Assume F_is_λ_system. 
+Take A B : (subset U). 
+Assume A_in_F; Assume B_in_F.
+
+By union_as_complements it holds that 
+  ((A ∪ B) = (Ω \ ((Ω \ A) ∩ (Ω \ B)))) (union_is_comp). 
+Write goal using 
+  ((A ∪ B) = (Ω \ ((Ω \ A) ∩ (Ω \ B)))) 
+    as ((Ω \ ((Ω \ A) ∩ (Ω \ B))) ∈ F). 
+By F_is_λ_system it holds that 
+  ((Ω \ A) ∈ F) (comp_A_in_F). 
+By F_is_λ_system it holds that 
+  ((Ω \ B) ∈ F) (comp_B_in_F). 
+By F_is_π_system it holds that 
+  ((Ω \ A) ∩ (Ω \ B) ∈ F) (int_in_F). 
+It holds that ((Ω \ ((Ω \ A) ∩ (Ω \ B))) ∈ F). 
+Qed. 
+ 
+
+Lemma complement_full_is_empty : 
+  ∅ = (Ω \ Ω). 
+
+Proof. 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_empty.
+Contradiction. 
+
+Take x : U; Assume x_in_complement_full.
+Because x_in_complement_full 
+  both x_in_full and not_x_in_full. 
+Contradiction. 
+Qed.
+
+
+Lemma empty_in_λ : 
+  ∀ F : setOfSubsets U, 
+    F is_a_λ-system ⇒ ∅ ∈ F. 
+
+Proof.  
+Take F : (setOfSubsets U); Assume F_is_λ_system. 
+By complement_full_is_empty it holds that 
+  (∅ = (Ω \ Ω)) (comp_full_empty).
+Write goal using (∅ = (Ω \ Ω)) as ((Ω \ Ω) ∈ F). 
+It holds that ((Ω \ Ω) ∈ F). 
+Qed.  
+
+
+Lemma FU_S_as_union : 
+  ∀ C : (ℕ → (subset U)), ∀ n : ℕ,
+    finite_union_up_to C (S n) 
+      = (finite_union_up_to C n) ∪ (C n). 
+
+Proof. 
+Take C : (ℕ → (subset U)). 
+Take n : ℕ. 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_FU_S. 
+Choose n0 such that x_in_C_n0 according to x_in_FU_S.
+It holds that ((n0 <= n)%nat) (n0_le_n). (*avoid %nat? *) 
+By leq_equiv it holds that 
+  ((n0 < n)%nat ∨ n0 = n) (n0_l_e_n).
+Because  n0_l_e_n either n0_l_n or n0_is_n. 
+(*n0 < n*)
+It holds that (x ∈ (finite_union_up_to C n)) (x_in_FU). 
+It holds that (x ∈ (finite_union_up_to C n ∪ C n)). 
+(*n0 = n*)
+Write goal using (n = n0) as 
+  (x ∈ (finite_union_up_to C n0 ∪ C n0)). 
+It holds that (x ∈ C n0) (x_in_Cn0).
+It holds that ( x ∈ (finite_union_up_to C n0 ∪ C n0)). 
+
+Take x : U; Assume x_in_FU_with_Cn. 
+By union_to_or it holds that 
+  ((x ∈ (finite_union_up_to C n)) ∨ (x ∈ C n)) (x_in_FU_or_Cn).
+It holds that (x ∈ finite_union_up_to C (S n)). 
+Qed. 
+
+
+Lemma FU_in_π_and_λ : 
+  ∀ F : setOfSubsets U, 
+    F is_a_π-system ⇒ F is_a_λ-system
+    ⇒ ∀ C : (ℕ → (subset U)), (∀ n : ℕ, (C n) ∈ F) 
+      ⇒ ∀ n : ℕ, (finite_union_up_to C n) ∈ F.
+
+Proof. 
+Take F : (setOfSubsets U). 
+Assume F_is_π_system.
+Assume F_is_λ_system.  
+Take C : (ℕ ⇨ subset U). 
+Assume all_Cn_in_F.
+Take n : ℕ. 
+We prove by induction on n.
+(* Base case: *)
+By FU_up_to_0_empty it holds that 
+  (finite_union_up_to C 0 = ∅) (FU0_is_empty). 
+Write goal using (finite_union_up_to C 0 = ∅) 
+  as (∅ ∈ F). 
+Apply empty_in_λ; Apply F_is_λ_system. 
+(* Induction step: *)
+By FU_S_as_union it holds that 
+  (finite_union_up_to C (S n) 
+    = (finite_union_up_to C n) ∪ (C n)) (FU_union).  
+Write goal using 
+  (finite_union_up_to C (S n) 
+    = (finite_union_up_to C n) ∪ (C n)) 
+      as ((finite_union_up_to C n) ∪ (C n) ∈ F).
+By all_Cn_in_F it holds that (C n ∈ F) (Cn_in_F). 
+By unions_in_π_and_λ it holds that 
+  ((finite_union_up_to C n ∪ C n) ∈ F) (xx). 
+Apply xx. 
+Qed. 
+
+Fixpoint aux_seq (A B : subset U) (n : ℕ) {struct n}
+  : (subset U) :=
+    match n with 
+      0 => A 
+    | 1 => B
+    | n => ∅ 
+    end. 
+
+
+Lemma CU_aux_is_union : 
+  ∀ A B : subset U, Countable_union (aux_seq A B) = A ∪ B. 
+
+Proof. 
+Take A B : (subset U). 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_CU. 
+Choose n such that x_in_C_n according to x_in_CU. 
+We prove by induction on n. 
+It holds that (x ∈ (A ∪ B)). 
+We prove by induction on n. 
+It holds that (x ∈ (A ∪ B)). 
+
+(* Write x_in_C_n as (x ∈ ∅).  *)
+Contradiction. 
+
+Take x : U; Assume x_in_intersection. 
+destruct x_in_intersection. 
+It holds that (x ∈ aux_seq A B 0) (x_in_aux0). 
+We need to show that 
+  (x ∈ ｛x0 : U | ∃ n : ℕ, x0 ∈ aux_seq A B n｝). 
+It holds that (∃ n : ℕ, x ∈ aux_seq A B n) (exists_n_A). 
+It follows that (x ∈ Countable_union (aux_seq A B)).
+
+It holds that (x ∈ aux_seq A B 1) (x_in_aux0). 
+We need to show that 
+  (x ∈ ｛x0 : U | ∃ n : ℕ, x0 ∈ aux_seq A B n｝). 
+It holds that (∃ n : ℕ, x ∈ aux_seq A B n) (exists_n_B). 
+It follows that (x ∈ Countable_union (aux_seq A B)).
+Qed. 
+
+
+Lemma disjoint_aux : 
+  ∀ A B : subset U, (Disjoint _ A B) 
+    ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (aux_seq A B m) (aux_seq A B n)). 
+
+Proof. 
+Take A B : (subset U). 
+Assume A_B_disjoint. 
+Take m n : ℕ. 
+Assume m_neq_n. 
+We prove by induction on m. 
+We prove by induction on n.
+(*Case m = n = 0:*)
+Contradiction. 
+(*Case m=0, n=1:*)
+We prove by induction on n.
+Write goal using (aux_seq A B 1 = B) as (Disjoint U (aux_seq A B 0) B).
+Write goal using (aux_seq A B 0 = A) as (Disjoint U A B).
+It holds that (Disjoint U A B).
+(*Case m=0, n>1*)
+Write goal using (aux_seq A B (S (S n)) = ∅) 
+  as (Disjoint U (aux_seq A B 0) ∅). 
+By empty_disjoint it holds that 
+  (Disjoint U (aux_seq A B 0) ∅) (xx). 
+Apply xx. 
+(*Case m =1, n=0: *)
+We prove by induction on m. 
+We prove by induction on n. 
+Write goal using (aux_seq A B 1 = B) 
+  as (Disjoint U B (aux_seq A B 0)).
+Write goal using (aux_seq A B 0 = A) 
+  as (Disjoint U B A).
+By disjoint_symmetric it holds that 
+  ((Disjoint _ B A)) (xx).
+Apply xx. 
+(*Case m=n=1: *)
+We prove by induction on n. 
+Contradiction. 
+(*Case m=1, n>1: *)
+Write goal using (aux_seq A B (S (S n)) = ∅) 
+  as (Disjoint U (aux_seq A B 1) ∅). 
+By empty_disjoint it holds that 
+  (Disjoint U (aux_seq A B 1) ∅) (xx). 
+Apply xx.
+(*Case m>n: *)
+Write goal using (aux_seq A B (S (S m)) = ∅) 
+  as (Disjoint U ∅ (aux_seq A B n)). 
+By disjoint_symmetric it holds that 
+  (Disjoint U (aux_seq A B n) ∅ 
+    ⇒ Disjoint U ∅ (aux_seq A B n)) (disj_symm). 
+It suffices to show that (Disjoint U (aux_seq A B n) ∅). 
+Apply empty_disjoint. 
+Qed. 
+
 (***********************************************************)
 Require Import Reals. 
 Variable F : setOfSubsets U. 
@@ -693,6 +1016,135 @@ Fixpoint finite_seq (C : (ℕ → (subset U))) (p : Prop) (n : ℕ) {struct p}
     | S p => (fun  ↦ ∅)
     end.  
 *)
+
+Lemma intersection_to_complement : 
+  for all A B : subset U, 
+    A ∩ B = Ω \ ((Ω \ A) ∪ (Ω \ B)). 
+
+Proof. (*analogous to complement_as_union_intersection *)
+Take A B : (subset U). 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_lhs. 
+destruct x_in_lhs. (*"Because x_in_rhs both x_in_comp_A and x_in_B" doesn't work*)
+By H it holds that (x ∉ Ω \ A) (x_not_in_A). 
+By H0 it holds that (x ∉ Ω \ B) (x_not_in_comp). 
+
+We claim that (x ∉ (Ω \ A) ∪ (Ω \ B)) (x_not_in_AB).
+We argue by contradiction. 
+We claim that (x ∈ (Ω \ A) ∪ (Ω \ B)) (x_in_AB).
+Apply NNPP; Apply H1.   
+destruct x_in_AB. 
+Contradiction.
+Contradiction. 
+It follows that (x ∈ Ω \ ((Ω \ A) ∪ (Ω \ B))). 
+
+Take x : U; Assume x_in_rhs. 
+destruct x_in_rhs.
+By H0 it holds that 
+  ((x ∉ Ω \ A) ∧ (x ∉ Ω \ B)) (x_not_in_int_comp). 
+Because x_not_in_int_comp 
+  both x_not_in_compA and x_not_in_compB.
+We claim that (x ∈ A) (x_in_A).
+We argue by contradiction. 
+By H1 it holds that (x ∈ Ω \ A) (x_in_compA).
+Contradiction.  
+
+We claim that (x ∈ B) (x_in_B).
+We argue by contradiction. 
+By H1 it holds that (x ∈ Ω \ B) (x_in_compB).
+Contradiction. 
+It follows that (x ∈ A ∩ B). 
+Qed.  
+
+Lemma empty_in_σ : 
+  F is_a_σ-algebra ⇒ ∅ ∈ F. 
+
+Proof.  
+Assume F_is_σ_algebra. 
+By complement_full_is_empty it holds that 
+  (∅ = (Ω \ Ω)) (comp_full_empty).
+Write goal using (∅ = (Ω \ Ω)) as ((Ω \ Ω) ∈ F). 
+It holds that ((Ω \ Ω) ∈ F). 
+Qed.  
+
+
+Lemma unions_in_σ : 
+  F is_a_σ-algebra
+    ⇒ for all A B : subset U, A ∈ F ∧ B ∈ F
+      ⇒ A ∪ B ∈ F.
+
+Proof. 
+Assume F_is_σ_algebra. 
+Take A B : (subset U). 
+Assume A_and_B_in_F. 
+
+We claim that (∀ n : ℕ, aux_seq A B n ∈ F) (all_aux_in_F). 
+Take n : ℕ. 
+We prove by induction on n. 
+It holds that (aux_seq A B 0 ∈ F). 
+We prove by induction on n. (*0 and 1 defined, rest inductively. Other way? *)
+It holds that (aux_seq A B 1 ∈ F). 
+Write goal using (aux_seq A B (S (S n)) = ∅) 
+  as (∅ ∈ F). 
+By empty_in_σ it holds that 
+  (∅ ∈ F) (empty_in_F).
+Apply empty_in_F.  
+
+By CU_aux_is_union it holds that 
+  (A ∪ B = Countable_union (aux_seq A B)) (union_to_CU). 
+Write goal using (A ∪ B = Countable_union (aux_seq A B))
+  as (Countable_union (aux_seq A B) ∈ F).
+It holds that (Countable_union (aux_seq A B) ∈ F). 
+Qed.
+
+
+Lemma intersections_in_σ : 
+  F is_a_σ-algebra 
+    ⇒ for all A B : subset U, A ∈ F ∧ B ∈ F
+      ⇒ A ∩ B ∈ F.
+
+Proof. 
+Assume F_is_σ_algebra. 
+Take A B : (subset U). 
+Assume A_and_B_in_F. 
+By intersection_to_complement it holds that 
+  (A ∩ B = Ω \ ((Ω \ A) ∪ (Ω \ B))) (int_is_comp). 
+Write goal using (A ∩ B = Ω \ ((Ω \ A) ∪ (Ω \ B)))
+  as (Ω \ ((Ω \ A) ∪ (Ω \ B)) ∈ F). 
+By unions_in_σ it holds that 
+ ((Ω \ A) ∪ (Ω \ B) ∈ F) (compA_compB_in_F). 
+It follows that (Ω \ ((Ω \ A) ∪ (Ω \ B)) ∈ F).
+Qed.
+
+
+Lemma σ_implies_π_and_λ : 
+  F is_a_σ-algebra
+     ⇒ F is_a_π-system ∧ F is_a_λ-system. 
+
+Proof. 
+Assume F_is_σ. 
+split. 
+We need to show that (
+  for all A : subset U,
+  A ∈ F ⇨ for all B : subset U,
+            B ∈ F ⇨ A ∩ B ∈ F). 
+Take A : (subset U); Assume A_in_F. 
+Take B : (subset U); Assume B_in_F.
+By intersections_in_σ it holds that 
+  (A ∩ B ∈ F) (xx). 
+Apply xx.
+
+It holds that (F is_a_λ-system). 
+Qed. 
+
+(*
+Lemma FU_in_π_and_λ : 
+  ∀ F : setOfSubsets U, 
+    F is_a_π-system ⇒ F is_a_λ-system
+    ⇒ ∀ C : (ℕ → (subset U)), (∀ n : ℕ, (C n) ∈ F) 
+      ⇒ ∀ n : ℕ, (finite_union_up_to C n) ∈ F.
+*)
+
 Lemma finite_additivity_meas : 
   ∀μ : (subset U → ℝ), is_measure_on F μ 
     ⇒ ∀C : (ℕ → (subset U)), 
@@ -706,6 +1158,7 @@ Assume μ_is_measure_on_F.
 Take C : (ℕ ⇨ subset U) . 
 Assume C_n_disjoint. 
 Take N : ℕ.
+
 
 
 Admitted.
@@ -746,6 +1199,7 @@ By μ_is_measure_on_F it holds that
   (μ is_σ-additive_on F) (μ_is_σ_additive). 
 By disj_seq_disjoint it holds that 
   (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (D m) (D n)) (D_disj). 
+
 (*To show: all D n in F*)
 By μ_is_σ_additive it holds that 
   (infinite_sum (fun (n:ℕ) ↦ (μ (D n))) 
