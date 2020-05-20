@@ -5,6 +5,7 @@
   proof of CU_sets_disjointsets_equal slightly shortened
   consistent spacing after ∀ and ∃
   document order slightly changed (notations and set-related lemmas grouped together)
+  notations 'set' and 'setOfSets' fixed to depend on U
 *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
@@ -21,13 +22,13 @@ Hint Resolve Intersection_intro : measure_theory.
 Hint Resolve Union_introl Union_intror : measure_theory. 
 Hint Resolve Disjoint_intro : measure_theory. 
 
-Variable U : Type.
-(*other global variables? As not to re-define Π and others each time. *)
-Notation "'set'" := 
+Notation "'subset' U" := 
   (Ensemble U) (at level 50). 
 
-Notation "'setOfSets'" := 
-  (Ensemble (set)) (at level 50). 
+Notation "'setOfSubsets' U" := 
+  (Ensemble (subset U)) (at level 50). 
+
+Variable U : Type.
 
 Notation "∅" := 
   (Empty_set U). 
@@ -45,10 +46,10 @@ Notation "A \ B" :=
   (Setminus _ A B) (at level 50). 
 
 Notation "x ∈ A" := 
-  (In _ A x) (at level 50). 
+  (In _ A x) (at level 55). 
 
 Notation "x ∉ A" :=  
-  (~ In _ A x) (at level 50). 
+  (~ In _ A x) (at level 55). 
 
 Notation "A ⊂ B" := 
   (Included _ A B) (at level 50). 
