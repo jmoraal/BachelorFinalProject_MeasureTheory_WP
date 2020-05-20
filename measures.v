@@ -1,7 +1,8 @@
-(*Version 1.2.1 - 20-05-2020
+(*Version 1.2.2 - 20-05-2020
   WP library added manually to continue for now
   σ_implies_π_and_λ and supporting lemmas proven
   major progress on incr_cont_meas
+  further progress, but finite additivity acting up
 *)
 
 Require Import Sets.Ensembles.
@@ -549,6 +550,26 @@ Proof.
 intros x y. omega. 
 Qed. 
 
+Lemma leq_minus_equiv : ∀ x y : ℕ,
+  (x ≤ (y-1))%nat ⇒ (x < y)%nat.
+
+Proof. 
+intros x y.
+Assume x_leq_y1. 
+It holds that ((y-1 < y-1+1)%nat) (xx).
+By xx it holds that 
+  ((x < y-1+1)%nat) (xxx).
+(*It holds that (((y-1)+1 = y)%nat) (xxxx).  
+Qed. *)
+Admitted.
+
+Lemma l_equiv : ∀ x y : ℕ,
+  (x < y)%nat ⇒ (x = (y - 1)%nat ∨ (x < y - 1)%nat).
+
+Proof. 
+intros x y. omega. 
+Qed. 
+
 
 Lemma union_to_or : 
   ∀ A B : (subset U), ∀ x : U, 
@@ -1010,6 +1031,17 @@ Definition is_probability_measure_on (F : setOfSubsets U) (μ : (subset U → �
 Definition is_increasing_seq_sets (C : (ℕ → (subset U)))
   : Prop := 
     ∀n : ℕ, (C n) ⊂ C (S n).
+
+Lemma increasing_seq_mn : 
+    for all C : (ℕ → (subset U)), 
+      is_increasing_seq_sets C 
+        ⇒ (∀m n : ℕ, (m <= n)%nat 
+          ⇒ C m ⊂ C n).
+
+Proof. 
+
+
+Admitted.  
 (*
 Fixpoint finite_seq (C : (ℕ → (subset U))) (p : Prop) (n : ℕ) {struct p}
   : (subset U) :=
@@ -1188,15 +1220,16 @@ Admitted.
 
 Lemma finite_additivity_meas : 
   ∀μ : (subset U → ℝ), is_measure_on F μ 
-    ⇒ ∀C : (ℕ → (subset U)), 
-      (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n))  
+    ⇒ ∀C : (ℕ → (subset U)), (∀n : ℕ, C n ∈ F) 
+      ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n))  
          ⇒ ∀ N : ℕ, μ (finite_union_up_to C N) 
           = sum_f_R0 (fun (n : ℕ) ↦ (μ (C n))) (N-1).
 
 Proof. 
 Take μ : (subset U ⇨ ℝ). 
 Assume μ_is_measure_on_F. 
-Take C : (ℕ ⇨ subset U) . 
+Take C : (ℕ ⇨ subset U) .
+Assume all_Cn_in_F.  
 Assume C_n_disjoint. 
 Take N : ℕ.
 We prove by induction on N. 
@@ -1218,19 +1251,85 @@ Admitted.
 
 Lemma FUn_aux_is_Cn : 
   ∀C : (ℕ → (subset U)), is_increasing_seq_sets C
-    ⇒ ∀ n : ℕ, .
+    ⇒ ∀ n : ℕ, finite_union_up_to (disjoint_seq C) n = C (n-1)%nat.
 
 Proof. 
+Take C : (ℕ ⇨ subset U) . 
+Assume C_is_incr_seq.
+Define D := (disjoint_seq C). 
+Take n : ℕ. 
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_FU. 
+Choose n0 such that x_in_Dn0 according to x_in_FU. 
+By x_in_Dn0 it holds that 
+  (x ∈ C n0) (x_in_Cn0).
+(*It holds that ((n0 < n)%nat) (n0_l_n). 
+By l_equiv it holds that 
+  (n0 = (n - 1)%nat ∨ (n < n - 1)%nat) (n0_eq_l_n1).*) 
+By increasing_seq_mn it holds that 
+  (C n0 ⊂ C (n-1)%nat) (Cn0_subs_Cn). 
+It follows that (x ∈ C (n - 1)%nat). 
 
-Admitted. 
+Take x : U; Assume x_in_C. 
+Define aux_prop := (fun (n : ℕ) ↦ (x ∈ C n)). (*n-1?*)
+By classic it holds that 
+  (∀ n, aux_prop n ∨ ¬aux_prop n) (aux_prop_decidable). 
+By dec_inh_nat_subset_has_unique_least_element it holds that
+  (has_unique_least_element le aux_prop) (exists_least_n). 
+Choose n1 such that x_in_C_minimal_n according to exists_least_n. 
+It holds that (
+  aux_prop n1 ∧ (for all n2 : ℕ, 
+    aux_prop n2 ⇨ (n1 ≤ n2)%nat)) (aux_n1_and_n1_le_n2). 
+destruct aux_n1_and_n1_le_n2. 
+It holds that (x ∈ D n1) (x_in_Dn1). 
+We claim that ( (n1 < n)%nat ) (n1_l_n).
+By x_in_C it holds that (aux_prop (n-1)%nat) (aux_n_min_1). 
+By H0 it holds that 
+  ((n1 ≤ (n-1))%nat) (n1_leq_n_min_1). 
+By leq_minus_equiv it holds that 
+  ((n1 < n)%nat) (xx). 
+Apply xx. 
+It follows that (x ∈ finite_union_up_to D n).
+Qed.
+ 
 
-(*Proof using alternative sequence from pi-lambda proof*)
+Lemma disj_seq_in_F : 
+  F is_a_σ-algebra 
+    ⇒ ∀C : (ℕ → (subset U)), is_increasing_seq_sets C
+      ⇒ (∀ n : ℕ, C n ∈ F)
+        ⇒ (∀n : ℕ, (disjoint_seq C) n ∈ F). 
+
+Proof. 
+Assume F_is_σ. 
+Take C : (ℕ ⇨ subset U) . 
+Assume C_is_incr_seq.
+Assume all_Cn_in_F.
+Define D := (disjoint_seq C). 
+
+Take n : ℕ. 
+By σ_implies_π_and_λ it holds that 
+  (F is_a_π-system ∧ F is_a_λ-system) (F_is_π_and_λ).
+destruct F_is_π_and_λ. 
+We need to show that (C n \ (finite_union_up_to C n) ∈ F).
+We claim that ((finite_union_up_to C n) ∈ F) (FU_in_F). 
+Apply FU_in_π_and_λ.
+It holds that (F is_a_π-system).
+It holds that (F is_a_λ-system). 
+Apply all_Cn_in_F. 
+It holds that (C n ∈ F) (Cn_in_F).
+By complements_in_π_and_λ it holds that 
+  (C n \ finite_union_up_to C n ∈ F) (xx).
+Apply xx. 
+Qed. 
+
+
 Lemma incr_cont_meas : 
   ∀μ : (subset U → ℝ), is_measure_on F μ 
     ⇒ ∀C : (ℕ → (subset U)), is_increasing_seq_sets C
       ⇒ (∀ n : ℕ, C n ∈ F)
         ⇒ Un_cv (fun (n : ℕ) ↦ (μ (C n))) (μ (Countable_union C)). 
 (*Un_cv Cn l is the proposition 'sequence Cn converges to limit l'*)
+(*Proof using alternative sequence from pi-lambda proof; not the one in lecture notes*)
 Proof. 
 Take μ : (subset U ⇨ ℝ). 
 Assume μ_is_measure_on_F. 
@@ -1248,24 +1347,8 @@ By μ_is_measure_on_F it holds that
 By disj_seq_disjoint it holds that 
   (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (D m) (D n)) (D_disj). 
 
-We claim that (∀n : ℕ, D n ∈ F) (all_Dn_in_F).
-Take n : ℕ. 
-By μ_is_measure_on_F it holds that 
-  (F is_a_σ-algebra) (F_is_σ).
-By σ_implies_π_and_λ it holds that 
-  (F is_a_π-system ∧ F is_a_λ-system) (F_is_π_and_λ).
-destruct F_is_π_and_λ. 
-We need to show that (C n \ (finite_union_up_to C n) ∈ F).
-We claim that ((finite_union_up_to C n) ∈ F) (FU_in_F). 
-Apply FU_in_π_and_λ.
-It holds that (F is_a_π-system).
-It holds that (F is_a_λ-system). 
-Apply all_Cn_in_F. 
-It holds that (C n ∈ F) (Cn_in_F).
-By complements_in_π_and_λ it holds that 
-  (C n \ finite_union_up_to C n ∈ F) (xx).
-Apply xx. 
- 
+By disj_seq_in_F it holds that 
+  (∀n : ℕ, D n ∈ F) (all_Dn_in_F).
 By μ_is_σ_additive it holds that 
   (infinite_sum (fun (n:ℕ) ↦ (μ (D n))) 
     (μ (Countable_union D))) (μDn_is_μCUD).
@@ -1291,10 +1374,14 @@ We claim that (∀ n : ℕ,
 Take n : ℕ; Assume n_geq_N.
 We claim that (μ(C n) = 
   (sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) ) (μCn_is_sum_μDn). 
+By FUn_aux_is_Cn it holds that 
+  (finite_union_up_to D n = C (n-1)%nat) (FUD_is_C).
+
+
 By finite_additivity_meas it holds that 
   (μ (finite_union_up_to C N) 
-          = sum_f_R0 (fun (n1 : ℕ) ↦ (μ (C n1))) (N-1)) (xx). 
-
+          = sum_f_R0 (fun (n : ℕ) ↦ (μ (C n))) (N-1)) (xx). 
+ 
 (*now show that mu(C n) = sum to n of mu(D n) *)
 
 Admitted. 
@@ -1311,61 +1398,8 @@ Theorem uniqueness_of_prob_meas :
       ⇒ ∀Π, Π is_a_π-system (* ⇒ Π ⊂ F *)
         ⇒ ∀ A : subset U, A ∈ Π ⇒ μ1 A = μ2 A
           ⇒ ∀ B : subset U, B ∈ (σ(Π)) ⇒ μ1 A = μ2 A. 
-Admitted. 
-
-(************)
-(*   Old:   *)
-(************)
-Definition aux_seq (C : (ℕ → (subset U))) 
-  : ℕ → (subset U) := 
-    fun (n : nat) ↦ (C (S n) \ C n).
-
-Lemma aux_set_disjoint : 
-  ∀ C : (ℕ → (subset U)), 
-    is_increasing_seq_sets C 
-      ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (aux_seq C m) (aux_seq C n)). 
-
 Proof. 
-Take C : (ℕ ⇨ subset U) . 
-Assume C_is_incr_seq.
-Take m n : ℕ; Assume m_neq_n. 
-Define E := (aux_seq C). 
-It suffices to show that 
-  (∀ x:U, x ∉ (E m ∩ E n)).
-Take x : U. 
-We argue by contradiction.
-We claim that (x ∈(E m ∩ E n)) (x_in_EmEn). 
-Apply NNPP; Apply H. 
 Admitted. 
-
-Lemma CU_aux_is_CU : 
-  ∀ C : (ℕ → (subset U)), 
-    is_increasing_seq_sets C 
-      ⇒ Countable_union (aux_seq C) = Countable_union C.
-
-Proof. 
-Take C  : (ℕ ⇨ subset U) . 
-Assume C_is_incr_seq.
-Define E := (aux_seq C). 
-We prove equality by proving two inclusions. 
-Take x : U; Assume x_in_CU_E. 
-Choose n such that x_in_En according to x_in_CU_E.
-It holds that (x ∈ C (S n)) (x_in_Cn). 
-It follows that (x ∈ Countable_union C). 
-
-Take x : U; Assume x_in_CU_C. 
-Choose n such that x_in_Cn according to x_in_CU_C.
-Define aux_prop := (fun (n : ℕ) ↦ (x ∈ C n)).
-By classic it holds that 
-  (∀ n, aux_prop n ∨ ¬aux_prop n) (aux_prop_decidable). 
-By dec_inh_nat_subset_has_unique_least_element it holds that
-  (has_unique_least_element le aux_prop) (exists_least_n). 
-Choose n1 such that x_in_C_minimal_n according to exists_least_n. 
-We prove by induction on n1. 
-
-
-It holds that (x ∈ Countable_union E). 
-
 
 
 
