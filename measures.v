@@ -1,5 +1,7 @@
-(*Version 1.3 - 21-05-2020
-  incr_cont_meas finished! (some lemmas still admitted)
+(*Version 1.3.1 - 21-05-2020
+  incr_cont_meas finished! 
+  some progress on admitted lemmas; questions for meeting
+  corrected notations in newer proof steps
 *)
 
 Require Import Sets.Ensembles.
@@ -1030,7 +1032,7 @@ Definition is_increasing_seq_sets (C : (ℕ → (subset U)))
     ∀n : ℕ, (C n) ⊂ C (S n).
 
 Lemma increasing_seq_mn : 
-    for all C : (ℕ → (subset U)), 
+     ∀ C : (ℕ → (subset U)), 
       is_increasing_seq_sets C 
         ⇒ (∀m n : ℕ, (m <= n)%nat 
           ⇒ C m ⊂ C n).
@@ -1039,23 +1041,15 @@ Proof.
 Take C : (ℕ ⇨ subset U). 
 Assume C_is_increasing.
 Take m n : ℕ; Assume m_le_n. 
-We prove by induction on m.
-We prove by induction on n.  
-It holds that 
+
+
 
 
 Admitted.  
-(*
-Fixpoint finite_seq (C : (ℕ → (subset U))) (p : Prop) (n : ℕ) {struct p}
-  : (subset U) :=
-    match p with 
-      0 => C 0
-    | S p => (fun  ↦ ∅)
-    end.  
-*)
+
 
 Lemma intersection_to_complement : 
-  for all A B : subset U, 
+   ∀ A B : subset U, 
     A ∩ B = Ω \ ((Ω \ A) ∪ (Ω \ B)). 
 
 Proof. (*analogous to complement_as_union_intersection *)
@@ -1107,7 +1101,7 @@ Qed.
 
 Lemma unions_in_σ : 
   F is_a_σ-algebra
-    ⇒ for all A B : subset U, A ∈ F ∧ B ∈ F
+    ⇒  ∀ A B : subset U, A ∈ F ∧ B ∈ F
       ⇒ A ∪ B ∈ F.
 
 Proof. 
@@ -1137,7 +1131,7 @@ Qed.
 
 Lemma intersections_in_σ : 
   F is_a_σ-algebra 
-    ⇒ for all A B : subset U, A ∈ F ∧ B ∈ F
+    ⇒  ∀ A B : subset U, A ∈ F ∧ B ∈ F
       ⇒ A ∩ B ∈ F.
 
 Proof. 
@@ -1162,8 +1156,8 @@ Proof.
 Assume F_is_σ. 
 split. 
 We need to show that (
-  for all A : subset U,
-  A ∈ F ⇨ for all B : subset U,
+   ∀ A : subset U,
+  A ∈ F ⇨  ∀ B : subset U,
             B ∈ F ⇨ A ∩ B ∈ F). 
 Take A : (subset U); Assume A_in_F. 
 Take B : (subset U); Assume B_in_F.
@@ -1210,9 +1204,33 @@ By empty_in_σ it holds that
 Apply xx.
 
 By disjoint_aux it holds that 
-  (for all m n : ℕ,
+  ( ∀ m n : ℕ,
     m ≠ n ⇨ Disjoint U (C m) (C n)) (xx). 
-Apply xx.
+Apply xx. 
+
+We claim that (infinite_sum (fun (n:ℕ) ↦ (μ (C n))) 
+  (μ A + μ B)) (series_is_sumAB). 
+We need to show that (
+   ∀ ε : ℝ, ε > 0
+    ⇒ ∃ N : ℕ ,
+       ∀ n : ℕ, (n ≥ N)%nat 
+        ⇒ R_dist (sum_f_R0 ｛ n0 : ℕ | μ (C n0) ｝ n) (μ A + μ B) < ε). 
+Take ε : R; Assume ε_g0. 
+We claim that ( ∀ n : ℕ, (n ≥ 1)%nat 
+  ⇒ R_dist (sum_f_R0 ｛ n0 : ℕ | μ (C n0) ｝ n) 
+    (μ A + μ B) < ε) (holds_for_ge_1).
+Take n : ℕ.
+We prove by induction on n.  (*How to let induction start at 1 (if desired)?*)
+Assume zero_geq_1. (*why does this not give a contradiction? *) 
+It holds that (~(0 ≥ 1)%nat) (xx). 
+Contradiction.
+
+We prove by induction on n. 
+Assume one_geq_1.
+Write goal using (sum_f_R0 ｛ n0 : ℕ | μ (C n0) ｝ 1 = μ A + μ B)
+  as (R_dist (μ A + μ B) (μ A + μ B) < ε). 
+It holds that ((μ A + μ B) - (μ A + μ B) = 0) (diff_0). 
+(*By diff_0 it holds that (Rabs ((μ A + μ B) - (μ A + μ B)) = 0) (dist_is_0). Why does this not work? *)
 
 
 
@@ -1222,8 +1240,8 @@ Admitted.
 
 
 Lemma finite_additivity_meas : 
-  ∀μ : (subset U → ℝ), is_measure_on F μ 
-    ⇒ ∀C : (ℕ → (subset U)), (∀n : ℕ, C n ∈ F) 
+  ∀ μ : (subset U → ℝ), is_measure_on F μ 
+    ⇒ ∀ C : (ℕ → (subset U)), (∀n : ℕ, C n ∈ F) 
       ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n))  
          ⇒ ∀ N : ℕ, μ (finite_union_up_to C N) 
           = sum_f_R0 (fun (n : ℕ) ↦ (μ (C n))) (N-1).
@@ -1236,21 +1254,16 @@ Assume all_Cn_in_F.
 Assume C_n_disjoint. 
 Take N : ℕ.
 We prove by induction on N. 
-
-
+By FU_up_to_0_empty it holds that 
+  (finite_union_up_to C 0 = ∅) (FU0_empty). 
+Write goal using (finite_union_up_to C 0 = ∅) 
+  as (μ ∅ = sum_f_R0 ｛ n : ℕ | μ (C n) ｝ (0 - 1)). 
+Write goal using (μ ∅ = 0) as 
+  (0 = sum_f_R0 ｛ n : ℕ | μ (C n) ｝ (0 - 1)).
+unfold sum_f_R0. (* how to show this series is 0, while -1 is not a nat? *)
 
 Admitted.
  
-
-Lemma monotonicity_meas :
-  ∀μ : (subset U → ℝ), is_measure_on F μ 
-    ⇒ ∀ A B : subset U, A ⊂ B 
-      ⇒ μ A ≤ μ B. 
-
-Proof. 
-
-Admitted. 
-
 
 Lemma FUn_aux_is_Cn : 
   ∀C : (ℕ → (subset U)), is_increasing_seq_sets C
@@ -1281,7 +1294,7 @@ By dec_inh_nat_subset_has_unique_least_element it holds that
   (has_unique_least_element le aux_prop) (exists_least_n). 
 Choose n1 such that x_in_C_minimal_n according to exists_least_n. 
 It holds that (
-  aux_prop n1 ∧ (for all n2 : ℕ, 
+  aux_prop n1 ∧ ( ∀ n2 : ℕ, 
     aux_prop n2 ⇨ (n1 ≤ n2)%nat)) (aux_n1_and_n1_le_n2). 
 destruct aux_n1_and_n1_le_n2. 
 It holds that (x ∈ D n1) (x_in_Dn1). 
@@ -1398,20 +1411,29 @@ Write goal using (μ (C n) = sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n)
     (μ (Countable_union D)) < ε).
 It holds that (R_dist (sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) 
   (μ (Countable_union D)) < ε). 
-It follows that (there exists N0 : ℕ ,
-  for all n : ℕ, (n ≥ N0)%nat 
+It follows that (∃ N0 : ℕ ,
+   ∀ n : ℕ, (n ≥ N0)%nat 
     ⇒ R_dist (μ (C n)) (μ (Countable_union D)) < ε). 
 Qed. 
 
 
 
 
+Lemma monotonicity_meas :
+  ∀μ : (subset U → ℝ), is_measure_on F μ 
+    ⇒ ∀ A B : subset U, A ⊂ B 
+      ⇒ μ A ≤ μ B. 
+
+Proof. 
+
+Admitted. 
+
 
 
 
 Theorem uniqueness_of_prob_meas : 
-  ∀μ1 : (subset U → ℝ), is_measure μ1 
-    ⇒ ∀μ2 : (subset U → ℝ), is_measure μ2 
+  ∀μ1 : (subset U → ℝ), is_measure_on F μ1 
+    ⇒ ∀μ2 : (subset U → ℝ), is_measure_on F μ2 
       ⇒ ∀Π, Π is_a_π-system (* ⇒ Π ⊂ F *)
         ⇒ ∀ A : subset U, A ∈ Π ⇒ μ1 A = μ2 A
           ⇒ ∀ B : subset U, B ∈ (σ(Π)) ⇒ μ1 A = μ2 A. 
