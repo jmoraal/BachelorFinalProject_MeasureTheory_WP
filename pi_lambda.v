@@ -1,4 +1,4 @@
-(*Version 1.5.5 - 20-05-2020
+(*Version 1.5.6 - 21-05-2020
   all proofs finished
   new tactic to introduce two variables at once
   all 'Expand the definition of...' replaced
@@ -7,7 +7,9 @@
   document order slightly changed (notations and set-related lemmas grouped together)
   notations 'set' and 'setOfSets' fixed to depend on U
   last fixes to subset U
+  brackets for set notation fixed as not to conflict sig notation
 *)
+
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
 Require Import wplib.Tactics.Tactics.
@@ -55,9 +57,8 @@ Notation "x ∉ A" :=
 Notation "A ⊂ B" := 
   (Included _ A B) (at level 50). 
 
-Notation "{ x : T | P }" := 
+Notation "｛ x : T | P ｝" := 
   (fun (x : T) ↦ P) (x at level 99).
-(*To do: find non-conflicting notation *)
 
 
 Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
@@ -86,7 +87,7 @@ Definition is_π_system (Π : setOfSubsets U)
 
 Definition Countable_union (A : (ℕ → subset U)) 
   : set := 
-    { x:U | ∃ n : ℕ, x ∈ (A n)}.
+    ｛ x:U | ∃ n : ℕ, x ∈ (A n)｝.
 
 Definition full_set_in_set (Λ : setOfSubsets U) 
   : Prop :=
@@ -116,8 +117,8 @@ Definition is_λ_system (Λ : setOfSubsets U)
 
 Definition λ_system_generated_by (A : setOfSubsets U) 
   : (setOfSubsets U) := 
-    {B : set | (∀ Λ : setOfSubsets U, Λ is_a_λ-system 
-       ⇒ (A ⊂ Λ ⇒ B ∈ Λ))}. 
+    ｛B : set | (∀ Λ : setOfSubsets U, Λ is_a_λ-system 
+       ⇒ (A ⊂ Λ ⇒ B ∈ Λ))｝. 
 
 Definition is_σ_algebra (F : setOfSubsets U) 
   : Prop := 
@@ -127,20 +128,20 @@ Definition is_σ_algebra (F : setOfSubsets U)
 
 Definition  σ_algebra_generated_by (A : setOfSubsets U) 
   : (setOfSubsets U) := 
-    {B : set | ∀ F : setOfSubsets U, F is_a_σ-algebra ⇒ (A ⊂ F ⇒ B ∈ F)} . 
+    ｛B : set | ∀ F : setOfSubsets U, F is_a_σ-algebra ⇒ (A ⊂ F ⇒ B ∈ F)｝ . 
 
 Definition restriction (F : setOfSubsets U) (A : (subset U)) 
   : (setOfSubsets U) := 
-    {C : set | ∃ B : subset U, B ∈ F ⇒ C = A ∩ B}. 
+    ｛C : set | ∃ B : subset U, B ∈ F ⇒ C = A ∩ B｝. 
 
 (* ≤ only works for Reals *)
 Definition finite_union (C : (ℕ ⇨ subset U)) (n : ℕ) 
   : set := 
-    {x : U | (∃ i : ℕ,  (i <= n ∧ x ∈ (C i)))}.
+    ｛x : U | (∃ i : ℕ,  (i <= n ∧ x ∈ (C i)))｝.
 
 Definition finite_union_up_to (C : (ℕ ⇨ subset U)) (n : ℕ) 
   : (subset U) := 
-    {x : U | (∃ i : ℕ,  (i < n ∧ x ∈ (C i)))}.
+    ｛x : U | (∃ i : ℕ,  (i < n ∧ x ∈ (C i)))｝.
 
 Definition disjoint_seq (C : (ℕ ⇨ subset U)) 
   : (ℕ ⇨ subset U) := 
@@ -349,7 +350,7 @@ Take C : (ℕ ⇨ subset U).
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_FU_0. 
 Write x_in_FU_0 as 
-  (x ∈ {x : U | ∃ i : ℕ , i < 0 ∧ x ∈ C i}). 
+  (x ∈ ｛x : U | ∃ i : ℕ , i < 0 ∧ x ∈ C i｝). 
 It holds that (¬(∃i : ℕ, i<0 ∧ x ∈ C i)) (no_N_l_0). 
 Contradiction.
 
@@ -723,13 +724,13 @@ Take x : U; Assume x_in_intersection.
 destruct x_in_intersection. 
 It holds that (x ∈ aux_seq A B 0) (x_in_aux0). 
 We need to show that 
-  (x ∈ {x0 : U | ∃ n : ℕ, x0 ∈ aux_seq A B n}). 
+  (x ∈ ｛x0 : U | ∃ n : ℕ, x0 ∈ aux_seq A B n｝). 
 It holds that (∃ n : ℕ, x ∈ aux_seq A B n) (exists_n_A). 
 It follows that (x ∈ Countable_union (aux_seq A B)).
 
 It holds that (x ∈ aux_seq A B 1) (x_in_aux0). 
 We need to show that 
-  (x ∈ {x0 : U | ∃ n : ℕ, x0 ∈ aux_seq A B n}). 
+  (x ∈ ｛x0 : U | ∃ n : ℕ, x0 ∈ aux_seq A B n｝). 
 It holds that (∃ n : ℕ, x ∈ aux_seq A B n) (exists_n_B). 
 It follows that (x ∈ Countable_union (aux_seq A B)).
 Qed. 
@@ -886,7 +887,7 @@ Qed.
 
 Definition H (B : subset U) (λΠ : setOfSubsets U)
   : setOfSubsets U := 
-    {A : (subset U) | (A ∩ B ∈ λΠ) }. 
+    ｛A : (subset U) | (A ∩ B ∈ λΠ) ｝. 
 
 Definition seq_intersection (C : (ℕ ⇨ subset U)) (B : subset U)
   : ℕ ⇨ set := 
