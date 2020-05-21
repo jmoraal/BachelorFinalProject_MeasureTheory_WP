@@ -1,8 +1,5 @@
-(*Version 1.2.2 - 20-05-2020
-  WP library added manually to continue for now
-  σ_implies_π_and_λ and supporting lemmas proven
-  major progress on incr_cont_meas
-  further progress, but finite additivity acting up
+(*Version 1.3 - 21-05-2020
+  incr_cont_meas finished! (some lemmas still admitted)
 *)
 
 Require Import Sets.Ensembles.
@@ -1039,6 +1036,12 @@ Lemma increasing_seq_mn :
           ⇒ C m ⊂ C n).
 
 Proof. 
+Take C : (ℕ ⇨ subset U). 
+Assume C_is_increasing.
+Take m n : ℕ; Assume m_le_n. 
+We prove by induction on m.
+We prove by induction on n.  
+It holds that 
 
 
 Admitted.  
@@ -1291,7 +1294,7 @@ By leq_minus_equiv it holds that
 Apply xx. 
 It follows that (x ∈ finite_union_up_to D n).
 Qed.
- 
+
 
 Lemma disj_seq_in_F : 
   F is_a_σ-algebra 
@@ -1375,16 +1378,30 @@ Take n : ℕ; Assume n_geq_N.
 We claim that (μ(C n) = 
   (sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) ) (μCn_is_sum_μDn). 
 By FUn_aux_is_Cn it holds that 
-  (finite_union_up_to D n = C (n-1)%nat) (FUD_is_C).
-
-
+  (finite_union_up_to D (n+1)%nat = C ((n+1)-1)%nat) (FUD_is_C).
+It holds that (((n+1)-1)%nat=n) (n1_to_n). 
+Write FUD_is_C using (((n+1)-1)%nat=n) as 
+  (C n = finite_union_up_to D (n + 1)%nat).
+Write goal using (C n = finite_union_up_to D (n + 1)%nat)
+  as (μ (finite_union_up_to D (n + 1)%nat) 
+    = sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n). 
 By finite_additivity_meas it holds that 
-  (μ (finite_union_up_to C N) 
-          = sum_f_R0 (fun (n : ℕ) ↦ (μ (C n))) (N-1)) (xx). 
- 
-(*now show that mu(C n) = sum to n of mu(D n) *)
+  (μ (finite_union_up_to D (n + 1)) 
+    = sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ (n+1-1)%nat) (xx). 
+Write xx using (((n+1)-1)%nat=n) as 
+  (μ (finite_union_up_to D (n + 1)) 
+    = sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n).
+Apply xx.  
 
-Admitted. 
+Write goal using (μ (C n) = sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) 
+  as (R_dist (sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) 
+    (μ (Countable_union D)) < ε).
+It holds that (R_dist (sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) 
+  (μ (Countable_union D)) < ε). 
+It follows that (there exists N0 : ℕ ,
+  for all n : ℕ, (n ≥ N0)%nat 
+    ⇒ R_dist (μ (C n)) (μ (Countable_union D)) < ε). 
+Qed. 
 
 
 
