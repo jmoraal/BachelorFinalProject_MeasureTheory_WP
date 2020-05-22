@@ -1,7 +1,10 @@
-(*Version 1.3.1 - 21-05-2020
+(*Version 1.3.2 - 22-05-2020
   incr_cont_meas finished! 
   some progress on admitted lemmas; questions for meeting
   corrected notations in newer proof steps
+  increasing_seq_mn now finished
+  comments Jim; lemma leq_minus_equiv incorrect
+  other '(0-1)%nat' problem
 *)
 
 Require Import Sets.Ensembles.
@@ -1041,11 +1044,24 @@ Proof.
 Take C : (ℕ ⇨ subset U). 
 Assume C_is_increasing.
 Take m n : ℕ; Assume m_le_n. 
+induction n.
+It holds that ((m = 0)%nat) (m0).
+Write goal using ((m = 0)%nat) 
+  as (C 0%nat ⊂ C 0%nat).
+It holds that (C 0%nat ⊂ C 0%nat).
+By leq_equiv it holds that 
+  (((m < (S n))%nat ∨ m = (S n))) (m_l_eq_Sn).
+Because m_l_eq_Sn either m_l_Sn or m_eq_Sn.
+By IHn it holds that 
+  (C m ⊂ C n) (Cm_subs_Cn). 
+By C_is_increasing it holds that
+  (C n ⊂ C (S n)) (Cn_subs_CSn).
+It follows that (C m ⊂ C (S n)). 
 
-
-
-
-Admitted.  
+Write goal using (m = S n) 
+  as (C (S n) ⊂ C (S n)). 
+It holds that (C (S n) ⊂ C (S n)). 
+Qed.   
 
 
 Lemma intersection_to_complement : 
@@ -1230,7 +1246,8 @@ Assume one_geq_1.
 Write goal using (sum_f_R0 ｛ n0 : ℕ | μ (C n0) ｝ 1 = μ A + μ B)
   as (R_dist (μ A + μ B) (μ A + μ B) < ε). 
 It holds that ((μ A + μ B) - (μ A + μ B) = 0) (diff_0). 
-(*By diff_0 it holds that (Rabs ((μ A + μ B) - (μ A + μ B)) = 0) (dist_is_0). Why does this not work? *)
+
+By R_dist_eq it holds that (R_dist (μ A + μ B)  (μ A + μ B) = 0) (dist_is_0).
 
 
 
@@ -1243,7 +1260,7 @@ Lemma finite_additivity_meas :
   ∀ μ : (subset U → ℝ), is_measure_on F μ 
     ⇒ ∀ C : (ℕ → (subset U)), (∀n : ℕ, C n ∈ F) 
       ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n))  
-         ⇒ ∀ N : ℕ, μ (finite_union_up_to C N) 
+         ⇒ ∀ N : ℕ,  μ (finite_union_up_to C N) (*include N > 0, of gewoon finite union*)
           = sum_f_R0 (fun (n : ℕ) ↦ (μ (C n))) (N-1).
 
 Proof. 
@@ -1258,6 +1275,7 @@ By FU_up_to_0_empty it holds that
   (finite_union_up_to C 0 = ∅) (FU0_empty). 
 Write goal using (finite_union_up_to C 0 = ∅) 
   as (μ ∅ = sum_f_R0 ｛ n : ℕ | μ (C n) ｝ (0 - 1)). 
+
 Write goal using (μ ∅ = 0) as 
   (0 = sum_f_R0 ｛ n : ℕ | μ (C n) ｝ (0 - 1)).
 unfold sum_f_R0. (* how to show this series is 0, while -1 is not a nat? *)
