@@ -1,10 +1,6 @@
-(*Version 1.3.2 - 22-05-2020
-  incr_cont_meas finished! 
-  some progress on admitted lemmas; questions for meeting
-  corrected notations in newer proof steps
-  increasing_seq_mn now finished
-  comments Jim; lemma leq_minus_equiv incorrect
-  other '(0-1)%nat' problem
+(*Version 1.4 - 22-05-2020
+  finite_additivity_meas now finished
+  only additivty_meas remains to be proven
 *)
 
 Require Import Sets.Ensembles.
@@ -552,18 +548,14 @@ Proof.
 intros x y. omega. 
 Qed. 
 
-Lemma leq_minus_equiv : ∀ x y : ℕ,
-  (x ≤ (y-1))%nat ⇒ (x < y)%nat.
+
+Lemma geq_equiv : ∀ x y : ℕ,
+  (x ≥ y)%nat ⇒ (x = y ∨ (x > y)%nat).
 
 Proof. 
-intros x y.
-Assume x_leq_y1. 
-It holds that ((y-1 < y-1+1)%nat) (xx).
-By xx it holds that 
-  ((x < y-1+1)%nat) (xxx).
-(*It holds that (((y-1)+1 = y)%nat) (xxxx).  
-Qed. *)
-Admitted.
+intros x y. omega. 
+Qed. 
+
 
 Lemma l_equiv : ∀ x y : ℕ,
   (x < y)%nat ⇒ (x = (y - 1)%nat ∨ (x < y - 1)%nat).
@@ -1185,11 +1177,12 @@ It holds that (F is_a_λ-system).
 Qed. 
 
 
-Lemma additivity_meas : 
+Lemma aux_additive : 
   ∀μ : (subset U → ℝ), is_measure_on F μ 
     ⇒ ∀ A B : subset U, A ∈ F ⇒ B ∈ F
       ⇒ Disjoint _ A B  
-         ⇒ μ (A ∪ B) = μ A + μ B. 
+         ⇒ (infinite_sum (fun (n:ℕ) ↦ (μ ((aux_seq A B) n))) 
+  (μ (Countable_union (aux_seq A B)))).
 
 Proof. 
 Take μ : (subset U ⇨ ℝ). 
@@ -1198,13 +1191,6 @@ Take A B : (subset U).
 Assume A_in_F; Assume B_in_F.
 Assume A_B_disjoint.
 Define C := (aux_seq A B).
-By CU_aux_is_union it holds that 
-  (A ∪ B = Countable_union C) (union_is_CU).
-Write goal using (A ∪ B = Countable_union C)
-  as (μ (Countable_union C) = μ A + μ B).
-
-We claim that (infinite_sum (fun (n:ℕ) ↦ (μ (C n))) 
-  (μ (Countable_union C))) (sum_meas_is_meas_CU).
 By μ_is_measure_on_F it holds that 
   (μ is_σ-additive_on F) (add_on_F).
 Apply add_on_F.
@@ -1223,6 +1209,29 @@ By disjoint_aux it holds that
   ( ∀ m n : ℕ,
     m ≠ n ⇨ Disjoint U (C m) (C n)) (xx). 
 Apply xx. 
+Qed.
+
+Lemma additivity_meas : 
+  ∀μ : (subset U → ℝ), is_measure_on F μ 
+    ⇒ ∀ A B : subset U, A ∈ F ⇒ B ∈ F
+      ⇒ Disjoint _ A B  
+         ⇒ μ (A ∪ B) = μ A + μ B. 
+
+Proof. 
+Take μ : (subset U ⇨ ℝ). 
+Assume μ_is_measure_on_F. 
+Take A B : (subset U). 
+Assume A_in_F; Assume B_in_F.
+Assume A_B_disjoint.
+Define C := (aux_seq A B).
+Define seq_μC := (fun (n:ℕ) ↦ (μ (C n))).
+By CU_aux_is_union it holds that 
+  (A ∪ B = Countable_union C) (union_is_CU).
+Write goal using (A ∪ B = Countable_union C)
+  as (μ (Countable_union C) = μ A + μ B).
+By aux_additive it holds that 
+  (infinite_sum seq_μC 
+    (μ (Countable_union C))) (sum_meas_is_meas_CU).
 
 We claim that (infinite_sum (fun (n:ℕ) ↦ (μ (C n))) 
   (μ A + μ B)) (series_is_sumAB). 
@@ -1232,60 +1241,142 @@ We need to show that (
        ∀ n : ℕ, (n ≥ N)%nat 
         ⇒ R_dist (sum_f_R0 ｛ n0 : ℕ | μ (C n0) ｝ n) (μ A + μ B) < ε). 
 Take ε : R; Assume ε_g0. 
+We argue by contradiction. 
+By not_ex_not_all it holds that 
+  (for all N : ℕ , ¬(for all n : ℕ,
+    (n ≥ N)%nat ⇒ R_dist (sum_f_R0 ｛ n0 : ℕ | μ (C n0) ｝ n) (μ A + μ B) < ε)) (xx). 
+
 We claim that ( ∀ n : ℕ, (n ≥ 1)%nat 
   ⇒ R_dist (sum_f_R0 ｛ n0 : ℕ | μ (C n0) ｝ n) 
     (μ A + μ B) < ε) (holds_for_ge_1).
-Take n : ℕ.
-We prove by induction on n.  (*How to let induction start at 1 (if desired)?*)
-Assume zero_geq_1. (*why does this not give a contradiction? *) 
-It holds that (~(0 ≥ 1)%nat) (xx). 
-Contradiction.
-
+Take n : ℕ; Assume n_geq_1 : ((n ≥ 1)%nat).
+(*
+By geq_equiv it holds that 
+  (n = 1%nat ∨ (n > 1)%nat) (n_1_or_n_g1). 
+Because n_1_or_n_g1 either n_1 or n_g1.
+*)
 We prove by induction on n. 
-Assume one_geq_1.
+(* n=0: *)
+It holds that (~(0 ≥ 1)%nat) (not_0_geq_1). 
+Contradiction.
+(* n=1: *) 
+We prove by induction on n.  (*How to let induction start at 1 (if desired)?*)
 Write goal using (sum_f_R0 ｛ n0 : ℕ | μ (C n0) ｝ 1 = μ A + μ B)
   as (R_dist (μ A + μ B) (μ A + μ B) < ε). 
 It holds that ((μ A + μ B) - (μ A + μ B) = 0) (diff_0). 
+By R_dist_eq it holds that 
+  (R_dist (μ A + μ B)  (μ A + μ B) = 0) (dist_is_0).
+It follows that (R_dist (μ A + μ B) (μ A + μ B) < ε).
+(* n>1: *)
 
-By R_dist_eq it holds that (R_dist (μ A + μ B)  (μ A + μ B) = 0) (dist_is_0).
 
 
 
 
 Admitted.
 
+
+Lemma FU_up_to_1_is_0 : 
+  ∀ C : (ℕ → (subset U)), 
+      finite_union_up_to C 1 = C 0%nat.
+
+Proof. 
+Take C : (ℕ ⇨ subset U).
+We prove equality by proving two inclusions. 
+Take x : U; Assume x_in_FU.
+destruct x_in_FU. 
+It holds that (x0 = 0%nat) (x0_is_0).
+Write goal using (0%nat = x0) 
+  as (x ∈ C x0). 
+It holds that (x ∈ C x0).
+
+Take x : U; Assume x_in_C0. 
+It holds that (x ∈ finite_union_up_to C 1). 
+Qed. 
 
 
 Lemma finite_additivity_meas : 
   ∀ μ : (subset U → ℝ), is_measure_on F μ 
     ⇒ ∀ C : (ℕ → (subset U)), (∀n : ℕ, C n ∈ F) 
       ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n))  
-         ⇒ ∀ N : ℕ,  μ (finite_union_up_to C N) (*include N > 0, of gewoon finite union*)
-          = sum_f_R0 (fun (n : ℕ) ↦ (μ (C n))) (N-1).
+         ⇒ ∀ N : ℕ,  μ (finite_union_up_to C (S N))
+          = sum_f_R0 (fun (n : ℕ) ↦ (μ (C n))) N.
 
 Proof. 
 Take μ : (subset U ⇨ ℝ). 
 Assume μ_is_measure_on_F. 
-Take C : (ℕ ⇨ subset U) .
+Take C : (ℕ ⇨ subset U).
 Assume all_Cn_in_F.  
 Assume C_n_disjoint. 
+Define seq_μC := (fun (n : ℕ) ↦ μ (C n)). 
+Define FU_C := (finite_union_up_to C). 
 Take N : ℕ.
 We prove by induction on N. 
-By FU_up_to_0_empty it holds that 
-  (finite_union_up_to C 0 = ∅) (FU0_empty). 
-Write goal using (finite_union_up_to C 0 = ∅) 
-  as (μ ∅ = sum_f_R0 ｛ n : ℕ | μ (C n) ｝ (0 - 1)). 
+(* Base case: *)
+By FU_up_to_1_is_0 it holds that 
+  (finite_union_up_to C 1 = C 0%nat) (FU1_is_C0).
+Write goal using (FU_C 1%nat = C 0%nat)
+  as (μ (C 0%nat) = sum_f_R0 seq_μC 0%nat).
+It holds that (μ (C 0%nat) = sum_f_R0 seq_μC 0). 
+(*Induction step: *)
+It holds that (sum_f_R0 seq_μC (S N) 
+  = sum_f_R0 seq_μC N + seq_μC (S N)) (sum_to_sum).
+Write goal using (sum_f_R0 seq_μC (S N) 
+  = sum_f_R0 seq_μC N + seq_μC (S N)) 
+    as (μ (FU_C (S (S N)))
+      = sum_f_R0 seq_μC N + seq_μC (S N)). 
 
-Write goal using (μ ∅ = 0) as 
-  (0 = sum_f_R0 ｛ n : ℕ | μ (C n) ｝ (0 - 1)).
-unfold sum_f_R0. (* how to show this series is 0, while -1 is not a nat? *)
+By FU_S_as_union it holds that 
+  (FU_C (S (S N)) 
+    = (FU_C (S N)) ∪ (C (S N))) (FU_to_union). 
+We claim that (Disjoint _ 
+  (FU_C (S N)) (C (S N))) (FUSn_CSn_disj). 
+We argue by contradiction. 
+By H it holds that (∃ x : U, 
+  x ∈ ((FU_C (S N)) ∩ (C (S N)))) (int_not_empty).
+Choose x such that x_in_int 
+  according to int_not_empty. 
+destruct x_in_int. (*how to destruct with certain names?*)
+Choose n0 such that x_in_Cn 
+  according to H0.
+It holds that (x ∈ C n0 /\ x ∈ C (S N)) (x_in_Cn0_and_CSN). 
+By C_n_disjoint it holds that 
+  (Disjoint _ (C n0) (C (S N))) (Cn0_CSN_disj). 
+destruct Cn0_CSN_disj. 
+It holds that (x ∉ C n0 ∩ C (S N)) (not_x_in_int_Cn0_CSN).
+By not_x_in_int_Cn0_CSN it holds that 
+  (¬ (x ∈ C n0 ∧ x ∈ C (S N))) (not_x_in_Cn0_and_CSN).
+Contradiction. 
+(*now show: both sets in F *)
+It holds that (C (S N) ∈ F) (CSN_in_F). 
+We claim that (FU_C (S N) ∈ F) (FU_C_in_F). 
+By μ_is_measure_on_F it holds that 
+  (F is_a_σ-algebra) (F_is_σ). 
+By σ_implies_π_and_λ it holds that 
+  (F is_a_π-system ∧ F is_a_λ-system) (F_is_π_and_λ).
+By FU_in_π_and_λ it holds that 
+  (FU_C (S N) ∈ F) (xx). 
+Apply xx. 
+By additivity_meas it holds that
+  (μ ((FU_C (S N)) ∪ (C (S N))) 
+    = μ (FU_C (S N)) + μ (C (S N))) (muFUS_is_muFU_muS).
 
-Admitted.
- 
+Write goal using (FU_C (S (S N)) 
+  = (FU_C (S N)) ∪ (C (S N)))
+    as (μ ((FU_C (S N)) ∪ (C (S N))) 
+      = sum_f_R0 seq_μC N + seq_μC (S N)).
+Write goal using (μ ((FU_C (S N)) ∪ (C (S N))) 
+  = μ (FU_C (S N)) + μ (C (S N)))
+    as (μ (FU_C (S N)) + μ (C (S N)) 
+      = sum_f_R0 seq_μC N + seq_μC (S N)). 
+It holds that (μ (FU_C (S N)) + μ (C (S N)) 
+  = sum_f_R0 seq_μC N + seq_μC (S N)). 
+Qed.
+
 
 Lemma FUn_aux_is_Cn : 
   ∀C : (ℕ → (subset U)), is_increasing_seq_sets C
-    ⇒ ∀ n : ℕ, finite_union_up_to (disjoint_seq C) n = C (n-1)%nat.
+    ⇒ ∀ n : ℕ, finite_union_up_to (disjoint_seq C) (S n) = C n.
 
 Proof. 
 Take C : (ℕ ⇨ subset U) . 
@@ -1301,29 +1392,31 @@ By x_in_Dn0 it holds that
 By l_equiv it holds that 
   (n0 = (n - 1)%nat ∨ (n < n - 1)%nat) (n0_eq_l_n1).*) 
 By increasing_seq_mn it holds that 
-  (C n0 ⊂ C (n-1)%nat) (Cn0_subs_Cn). 
-It follows that (x ∈ C (n - 1)%nat). 
+  (C n0 ⊂ C n) (Cn0_subs_Cn). 
+It follows that (x ∈ C n). 
 
-Take x : U; Assume x_in_C. 
+Take x : U; Assume x_in_C.
 Define aux_prop := (fun (n : ℕ) ↦ (x ∈ C n)). (*n-1?*)
 By classic it holds that 
   (∀ n, aux_prop n ∨ ¬aux_prop n) (aux_prop_decidable). 
 By dec_inh_nat_subset_has_unique_least_element it holds that
   (has_unique_least_element le aux_prop) (exists_least_n). 
 Choose n1 such that x_in_C_minimal_n according to exists_least_n. 
-It holds that (
-  aux_prop n1 ∧ ( ∀ n2 : ℕ, 
-    aux_prop n2 ⇨ (n1 ≤ n2)%nat)) (aux_n1_and_n1_le_n2). 
-destruct aux_n1_and_n1_le_n2. 
+It holds that ( aux_prop n1 
+  ∧ ( ∀ n2 : ℕ, aux_prop n2 
+    ⇒ (n1 ≤ n2)%nat)) (aux_n1_and_n1_le_n2).
+Because aux_n1_and_n1_le_n2 both aux_n1 and n1_le_n2. 
 It holds that (x ∈ D n1) (x_in_Dn1). 
-We claim that ( (n1 < n)%nat ) (n1_l_n).
-By x_in_C it holds that (aux_prop (n-1)%nat) (aux_n_min_1). 
-By H0 it holds that 
-  ((n1 ≤ (n-1))%nat) (n1_leq_n_min_1). 
-By leq_minus_equiv it holds that 
-  ((n1 < n)%nat) (xx). 
+We claim that ( (n1 < S n)%nat ) (n1_l_n).
+By x_in_C it holds that (aux_prop n) (aux_n_min_1). 
+By n1_le_n2 it holds that 
+  ((n1 ≤ n)%nat) (n1_leq_n_min_1). 
+It holds that 
+  ((n1 < S n)%nat) (xx). 
 Apply xx. 
-It follows that (x ∈ finite_union_up_to D n).
+It holds that (∃i : ℕ,  
+  ((i < (S n))%nat ∧ x ∈ (D i))) (exists_i). 
+It follows that (x ∈ finite_union_up_to D (S n)).
 Qed.
 
 
@@ -1409,20 +1502,15 @@ Take n : ℕ; Assume n_geq_N.
 We claim that (μ(C n) = 
   (sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) ) (μCn_is_sum_μDn). 
 By FUn_aux_is_Cn it holds that 
-  (finite_union_up_to D (n+1)%nat = C ((n+1)-1)%nat) (FUD_is_C).
-It holds that (((n+1)-1)%nat=n) (n1_to_n). 
-Write FUD_is_C using (((n+1)-1)%nat=n) as 
-  (C n = finite_union_up_to D (n + 1)%nat).
-Write goal using (C n = finite_union_up_to D (n + 1)%nat)
-  as (μ (finite_union_up_to D (n + 1)%nat) 
+  (finite_union_up_to D (S n) = C n) (FUD_is_C).
+Write goal using (C n = finite_union_up_to D (S n))
+  as (μ (finite_union_up_to D (S n)) 
     = sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n). 
 By finite_additivity_meas it holds that 
-  (μ (finite_union_up_to D (n + 1)) 
-    = sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ (n+1-1)%nat) (xx). 
-Write xx using (((n+1)-1)%nat=n) as 
-  (μ (finite_union_up_to D (n + 1)) 
-    = sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n).
-Apply xx.  
+  (μ (finite_union_up_to D (S n)) 
+    = sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) (xx). 
+Apply xx.
+ 
 
 Write goal using (μ (C n) = sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) 
   as (R_dist (sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) 
