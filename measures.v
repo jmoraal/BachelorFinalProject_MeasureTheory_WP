@@ -316,9 +316,9 @@ Tactic Notation "Write" ident(s) "as" constr(t) :=
 
 Ltac trans_ineq eq_or_ineq := 
   match goal with 
-  | [|-?x <= ?z] => 
+  | [|-?x ≤ ?z] => 
     match (type of eq_or_ineq) with 
-    | (x <= ?y) => apply (Rle_trans x y z eq_or_ineq)
+    | (x ≤ ?y) => apply (Rle_trans x y z eq_or_ineq)
     | _ => idtac "not a less-than-or-equal-to inequality"
     end
   | _ => idtac "Goal is not a less-than-or-equal-to inequality."
@@ -386,10 +386,13 @@ Notation "x ∈ A" :=
   (In _ A x) (at level 55). 
 
 Notation "x ∉ A" :=  
-  (~ In _ A x) (at level 55). 
+  (¬ In _ A x) (at level 55). 
 
 Notation "A ⊂ B" := 
   (Included _ A B) (at level 50). 
+
+Notation "A B 'are disjoint'" := 
+  (Disjoint _ A B) (at level 50). 
 
 Notation "｛ x : T | P ｝" := 
   (fun (x : T) ↦ P) (x at level 99).
@@ -403,6 +406,16 @@ Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
 Tactic Notation "We" "prove" "by" "induction" "on" ident(x) := 
   induction x. 
 (*Not nicest formulation, but 'Proof' is already taken*)
+
+(* horrible notation, just to test and probably to be 
+   replaced. Problem is that 
+  writing 'By ... it holds that ... (name)' does not 
+  conclude the proof. 
+*)
+Tactic Notation "By" constr(u) "it" "holds" "that" constr(t) "which" "concludes" ident(the) "proof":= 
+  By u it holds that t (the); 
+  Apply the. 
+
 
 Ltac intros_strict x y t :=
   match goal with
@@ -846,7 +859,7 @@ Take n : ℕ.
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_FU_S. 
 Choose n0 such that x_in_C_n0 according to x_in_FU_S.
-It holds that ((n0 <= n)%nat) (n0_le_n). (*avoid %nat? *) 
+It holds that ((n0 ≤ n)%nat) (n0_le_n). (*avoid %nat? *) 
 By leq_equiv it holds that 
   ((n0 < n)%nat ∨ n0 = n) (n0_l_e_n).
 Because  n0_l_e_n either n0_l_n or n0_is_n. 
@@ -896,8 +909,8 @@ Write goal using
       as ((finite_union_up_to C n) ∪ (C n) ∈ F).
 By all_Cn_in_F it holds that (C n ∈ F) (Cn_in_F). 
 By unions_in_π_and_λ it holds that 
-  ((finite_union_up_to C n ∪ C n) ∈ F) (xx). 
-Apply xx. 
+  ((finite_union_up_to C n ∪ C n) ∈ F) which concludes the proof. 
+  
 Qed. 
 
 Fixpoint aux_seq (A B : subset U) (n : ℕ) {struct n}
@@ -963,8 +976,8 @@ It holds that (Disjoint U A B).
 Write goal using (aux_seq A B (S (S n)) = ∅) 
   as (Disjoint U (aux_seq A B 0) ∅). 
 By empty_disjoint it holds that 
-  (Disjoint U (aux_seq A B 0) ∅) (xx). 
-Apply xx. 
+  (Disjoint U (aux_seq A B 0) ∅) which concludes the proof. 
+  
 (*Case m =1, n=0: *)
 We prove by induction on m. 
 We prove by induction on n. 
@@ -973,8 +986,8 @@ Write goal using (aux_seq A B 1 = B)
 Write goal using (aux_seq A B 0 = A) 
   as (Disjoint U B A).
 By disjoint_symmetric it holds that 
-  ((Disjoint _ B A)) (xx).
-Apply xx. 
+  ((Disjoint _ B A)) which concludes the proof.
+  
 (*Case m=n=1: *)
 We prove by induction on n. 
 Contradiction. 
@@ -982,8 +995,8 @@ Contradiction.
 Write goal using (aux_seq A B (S (S n)) = ∅) 
   as (Disjoint U (aux_seq A B 1) ∅). 
 By empty_disjoint it holds that 
-  (Disjoint U (aux_seq A B 1) ∅) (xx). 
-Apply xx.
+  (Disjoint U (aux_seq A B 1) ∅) which concludes the proof. 
+ 
 (*Case m>n: *)
 Write goal using (aux_seq A B (S (S m)) = ∅) 
   as (Disjoint U ∅ (aux_seq A B n)). 
@@ -998,6 +1011,7 @@ Qed.
 Require Import Reals. 
 Variable F : setOfSubsets U. 
 (*Definition σ_algebras := (sig (is_σ_algebra)). *)
+
 
 (*
 Definition σ_algebra1 := sig is_σ_algebra. 
@@ -1015,13 +1029,15 @@ Definition σ_additive_on (F : setOfSubsets U) (μ : (subset U ⇨ ℝ)) : Prop 
 Notation "μ is_σ-additive_on F" := 
   (σ_additive_on F μ) (at level 50). 
 
+Notation "｜ x - y ｜" := (R_dist x y) (at level 20).
+
 
 Definition is_measure_on (F : setOfSubsets U) (μ : (subset U → ℝ)) : Prop := 
   is_σ_algebra F ∧ μ ∅ = 0 ∧ μ is_σ-additive_on F.
 
 Definition is_probability_measure_on (F : setOfSubsets U) (μ : (subset U → ℝ)) 
   : Prop := 
-    (is_measure_on F μ) ∧ (μ Ω = 1).
+    is_measure_on F μ ∧ μ Ω = 1.
 
 Definition is_increasing_seq_sets (C : (ℕ → (subset U)))
   : Prop := 
@@ -1030,7 +1046,7 @@ Definition is_increasing_seq_sets (C : (ℕ → (subset U)))
 Lemma increasing_seq_mn : 
      ∀ C : (ℕ → (subset U)), 
       is_increasing_seq_sets C 
-        ⇒ (∀m n : ℕ, (m <= n)%nat 
+        ⇒ (∀m n : ℕ, (m ≤ n)%nat 
           ⇒ C m ⊂ C n).
 
 Proof. 
@@ -1061,7 +1077,7 @@ Lemma intersection_to_complement :
    ∀ A B : subset U, 
     A ∩ B = Ω \ ((Ω \ A) ∪ (Ω \ B)). 
 
-Proof. (*analogous to complement_as_union_intersection *)
+Proof. (*analogous to complement_as_union_intersection, could be combined? *)
 Take A B : (subset U). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_lhs. 
@@ -1164,6 +1180,7 @@ Lemma σ_implies_π_and_λ :
 Proof. 
 Assume F_is_σ. 
 split. 
+(* π-system: *)
 We need to show that (
    ∀ A : subset U,
   A ∈ F ⇨  ∀ B : subset U,
@@ -1171,9 +1188,9 @@ We need to show that (
 Take A : (subset U); Assume A_in_F. 
 Take B : (subset U); Assume B_in_F.
 By intersections_in_σ it holds that 
-  (A ∩ B ∈ F) (xx). 
-Apply xx.
+  (A ∩ B ∈ F) which concludes the proof. 
 
+(* λ-system: *)
 It holds that (F is_a_λ-system). 
 Qed. 
 
@@ -1203,13 +1220,13 @@ It holds that (C 1%nat ∈ F).
 
 It holds that (C (S (S n)) = ∅) (CSS_empty). 
 By empty_in_σ it holds that 
-  (C (S (S n)) ∈ F) (xx). 
-Apply xx.
+  (C (S (S n)) ∈ F) which concludes the proof. 
+ 
 
 By disjoint_aux it holds that 
   ( ∀ m n : ℕ,
-    m ≠ n ⇨ Disjoint U (C m) (C n)) (xx). 
-Apply xx. 
+    m ≠ n ⇨ Disjoint U (C m) (C n)) which concludes the proof. 
+  
 Qed.
 
 
@@ -1225,10 +1242,10 @@ Expand the definition of aux_seq.
 (*More case distinction than induction, but 
   this works far better for 'Fixpoint' definitions*)
 We prove by induction on n. 
-It holds that (~(0 > 1)%nat) (not_0_g_1). 
+It holds that (¬(0 > 1)%nat) (not_0_g_1). 
 Contradiction.
 We prove by induction on n. 
-It holds that (~(1 > 1)%nat) (not_1_g_1). 
+It holds that (¬(1 > 1)%nat) (not_1_g_1). 
 Contradiction. 
 It holds that (∅ = ∅). 
 Qed. 
@@ -1261,7 +1278,8 @@ We need to show that (
    ∀ ε : ℝ, ε > 0
     ⇒ ∃ N : ℕ ,
        ∀ n : ℕ, (n ≥ N)%nat 
-        ⇒ R_dist (sum_f_R0 seq_μC n) (μ A + μ B) < ε). 
+        ⇒ R_dist (sum_f_R0 seq_μC n) (μ A + μ B) < ε).
+        (*⇒ ｜ (sum_f_R0 seq_μC n) - (μ A + μ B) ｜ < ε). *)
 Take ε : R; Assume ε_g0. 
 
 We claim that ( ∀ n : ℕ, (n ≥ 1)%nat 
@@ -1269,10 +1287,10 @@ We claim that ( ∀ n : ℕ, (n ≥ 1)%nat
     (μ A + μ B) < ε) (holds_for_ge_1).
 We prove by induction on n. 
 (* n=0: *)
-It holds that (~(0 ≥ 1)%nat) (not_0_geq_1). 
+It holds that (¬(0 ≥ 1)%nat) (not_0_geq_1). 
 Contradiction.
 (* induction step *)
-It holds that ((n >= 0)%nat) (n_geq_0). 
+It holds that ((n ≥ 0)%nat) (n_geq_0). 
 By geq_equiv it holds that 
   (n = 0%nat ∨ (n > 0)%nat) (n_0_or_n_g0).
 Because n_0_or_n_g0 either n_0 or n_g0. 
@@ -1311,13 +1329,13 @@ Write goal using (sum_f_R0 seq_μC n + 0 = sum_f_R0 seq_μC n)
   as (R_dist (sum_f_R0 seq_μC n ) (μ A + μ B) < ε).
 Apply dist_l_eps.
 
-It follows that (there exists N : ℕ ,
+It follows that (∃ N : ℕ ,
   ∀ n : ℕ, (n ≥ N)%nat 
     ⇒ R_dist (sum_f_R0 seq_μC n) 
       (μ A + μ B) < ε). 
 By uniqueness_sum it holds that 
-  (μ (Countable_union C) = μ A + μ B) (xx).
-Apply xx. 
+  (μ (Countable_union C) = μ A + μ B) which concludes the proof.
+  
 Qed.
 
 
@@ -1384,7 +1402,7 @@ Choose x such that x_in_int
 destruct x_in_int. (*how to destruct with certain names?*)
 Choose n0 such that x_in_Cn 
   according to H0.
-It holds that (x ∈ C n0 /\ x ∈ C (S N)) (x_in_Cn0_and_CSN). 
+It holds that (x ∈ C n0 ∧ x ∈ C (S N)) (x_in_Cn0_and_CSN). 
 By C_n_disjoint it holds that 
   (Disjoint _ (C n0) (C (S N))) (Cn0_CSN_disj). 
 destruct Cn0_CSN_disj. 
@@ -1400,8 +1418,8 @@ By μ_is_measure_on_F it holds that
 By σ_implies_π_and_λ it holds that 
   (F is_a_π-system ∧ F is_a_λ-system) (F_is_π_and_λ).
 By FU_in_π_and_λ it holds that 
-  (FU_C (S N) ∈ F) (xx). 
-Apply xx. 
+  (FU_C (S N) ∈ F) which concludes the proof. 
+  
 By additivity_meas it holds that
   (μ ((FU_C (S N)) ∪ (C (S N))) 
     = μ (FU_C (S N)) + μ (C (S N))) (muFUS_is_muFU_muS).
@@ -1457,8 +1475,8 @@ By x_in_C it holds that (aux_prop n) (aux_n_min_1).
 By n1_le_n2 it holds that 
   ((n1 ≤ n)%nat) (n1_leq_n_min_1). 
 It holds that 
-  ((n1 < S n)%nat) (xx). 
-Apply xx. 
+  ((n1 < S n)%nat). 
+  
 It holds that (∃i : ℕ,  
   ((i < (S n))%nat ∧ x ∈ (D i))) (exists_i). 
 It follows that (x ∈ finite_union_up_to D (S n)).
@@ -1490,8 +1508,8 @@ It holds that (F is_a_λ-system).
 Apply all_Cn_in_F. 
 It holds that (C n ∈ F) (Cn_in_F).
 By complements_in_π_and_λ it holds that 
-  (C n \ finite_union_up_to C n ∈ F) (xx).
-Apply xx. 
+  (C n \ finite_union_up_to C n ∈ F) which concludes the proof.
+  
 Qed. 
 
 
@@ -1553,9 +1571,7 @@ Write goal using (C n = finite_union_up_to D (S n))
     = sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n). 
 By finite_additivity_meas it holds that 
   (μ (finite_union_up_to D (S n)) 
-    = sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) (xx). 
-Apply xx.
- 
+    = sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) which concludes the proof. 
 
 Write goal using (μ (C n) = sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) 
   as (R_dist (sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) 
