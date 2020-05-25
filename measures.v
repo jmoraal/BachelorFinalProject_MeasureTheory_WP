@@ -1,6 +1,7 @@
-(*Version 1.4 - 22-05-2020
+(*Version 1.4.1 - 22-05-2020
   finite_additivity_meas now finished
-  only additivty_meas remains to be proven
+  additivty_meas also proven
+  only aux_ge2_empty left to prove
 *)
 
 Require Import Sets.Ensembles.
@@ -1211,6 +1212,20 @@ By disjoint_aux it holds that
 Apply xx. 
 Qed.
 
+
+Lemma aux_ge2_empty : 
+  ∀ A B : subset U, ∀ n : ℕ, 
+    (n > 1)%nat ⇒ aux_seq A B n = ∅. 
+
+Proof.
+Take A B : (subset U). 
+
+Take n : ℕ; Assume n_g_1. 
+Expand the definition of aux_seq.
+
+
+Admitted. 
+
 Lemma additivity_meas : 
   ∀μ : (subset U → ℝ), is_measure_on F μ 
     ⇒ ∀ A B : subset U, A ∈ F ⇒ B ∈ F
@@ -1233,47 +1248,70 @@ By aux_additive it holds that
   (infinite_sum seq_μC 
     (μ (Countable_union C))) (sum_meas_is_meas_CU).
 
-We claim that (infinite_sum (fun (n:ℕ) ↦ (μ (C n))) 
+We claim that (infinite_sum seq_μC 
   (μ A + μ B)) (series_is_sumAB). 
 We need to show that (
    ∀ ε : ℝ, ε > 0
     ⇒ ∃ N : ℕ ,
        ∀ n : ℕ, (n ≥ N)%nat 
-        ⇒ R_dist (sum_f_R0 ｛ n0 : ℕ | μ (C n0) ｝ n) (μ A + μ B) < ε). 
+        ⇒ R_dist (sum_f_R0 seq_μC n) (μ A + μ B) < ε). 
 Take ε : R; Assume ε_g0. 
-We argue by contradiction. 
-By not_ex_not_all it holds that 
-  (for all N : ℕ , ¬(for all n : ℕ,
-    (n ≥ N)%nat ⇒ R_dist (sum_f_R0 ｛ n0 : ℕ | μ (C n0) ｝ n) (μ A + μ B) < ε)) (xx). 
 
 We claim that ( ∀ n : ℕ, (n ≥ 1)%nat 
-  ⇒ R_dist (sum_f_R0 ｛ n0 : ℕ | μ (C n0) ｝ n) 
+  ⇒ R_dist (sum_f_R0 seq_μC n) 
     (μ A + μ B) < ε) (holds_for_ge_1).
-Take n : ℕ; Assume n_geq_1 : ((n ≥ 1)%nat).
-(*
-By geq_equiv it holds that 
-  (n = 1%nat ∨ (n > 1)%nat) (n_1_or_n_g1). 
-Because n_1_or_n_g1 either n_1 or n_g1.
-*)
 We prove by induction on n. 
 (* n=0: *)
 It holds that (~(0 ≥ 1)%nat) (not_0_geq_1). 
 Contradiction.
-(* n=1: *) 
-We prove by induction on n.  (*How to let induction start at 1 (if desired)?*)
-Write goal using (sum_f_R0 ｛ n0 : ℕ | μ (C n0) ｝ 1 = μ A + μ B)
+(* induction step *)
+It holds that ((n >= 0)%nat) (n_geq_0). 
+By geq_equiv it holds that 
+  (n = 0%nat ∨ (n > 0)%nat) (n_0_or_n_g0).
+Because n_0_or_n_g0 either n_0 or n_g0. 
+(* n=0: *)
+It holds that (S n = 1%nat) (Sn_is_1).
+Write goal using (S n = 1%nat)
+  as ((1 ≥ 1)%nat 
+  ⇒ R_dist (sum_f_R0 seq_μC 1) 
+    (μ A + μ B) < ε).
+Write goal using (sum_f_R0 seq_μC 1 = μ A + μ B)
   as (R_dist (μ A + μ B) (μ A + μ B) < ε). 
-It holds that ((μ A + μ B) - (μ A + μ B) = 0) (diff_0). 
 By R_dist_eq it holds that 
   (R_dist (μ A + μ B)  (μ A + μ B) = 0) (dist_is_0).
 It follows that (R_dist (μ A + μ B) (μ A + μ B) < ε).
-(* n>1: *)
+(* n>0: *)
+It holds that ((n ≥ 1)%nat) (n_geq_1).
+By IHn it holds that 
+  (R_dist (sum_f_R0 seq_μC n) (μ A + μ B) < ε) (dist_l_eps). 
+We claim that (seq_μC (S n) = 0) (µSn_0).
+By aux_ge2_empty it holds that 
+  (C (S n) = ∅) (CSn_empty).
+By μ_is_measure_on_F it holds that 
+  (μ ∅ = 0) (µ_empty_0). 
+We need to show that (μ (C (S n)) = 0).
+Write goal using (C (S n) = ∅)
+  as (μ ∅ = 0).
+Apply µ_empty_0. 
 
+Write goal using (sum_f_R0 seq_μC (S n)
+  = sum_f_R0 seq_μC n + seq_μC (S n))
+    as (R_dist (sum_f_R0 seq_μC n + seq_μC (S n)) 
+      (μ A + μ B) < ε). 
+Write goal using (seq_μC (S n) = 0) 
+  as (R_dist (sum_f_R0 seq_μC n + 0) (μ A + μ B) < ε).
+Write goal using (sum_f_R0 seq_μC n + 0 = sum_f_R0 seq_μC n)
+  as (R_dist (sum_f_R0 seq_μC n ) (μ A + μ B) < ε).
+Apply dist_l_eps.
 
-
-
-
-Admitted.
+It follows that (there exists N : ℕ ,
+  ∀ n : ℕ, (n ≥ N)%nat 
+    ⇒ R_dist (sum_f_R0 seq_μC n) 
+      (μ A + μ B) < ε). 
+By uniqueness_sum it holds that 
+  (μ (Countable_union C) = μ A + μ B) (xx).
+Apply xx. 
+Qed.
 
 
 Lemma FU_up_to_1_is_0 : 
