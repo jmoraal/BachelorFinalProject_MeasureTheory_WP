@@ -1,7 +1,7 @@
-(*Version 1.4.1 - 22-05-2020
+(*Version 1.4.2 - 25-05-2020
   finite_additivity_meas now finished
-  additivty_meas also proven
-  only aux_ge2_empty left to prove
+  additivty_meas also proven, incl. all lemmas
+  proof complete!
 *)
 
 Require Import Sets.Ensembles.
@@ -1222,9 +1222,16 @@ Take A B : (subset U).
 
 Take n : ℕ; Assume n_g_1. 
 Expand the definition of aux_seq.
-
-
-Admitted. 
+(*More case distinction than induction, but 
+  this works far better for 'Fixpoint' definitions*)
+We prove by induction on n. 
+It holds that (~(0 > 1)%nat) (not_0_g_1). 
+Contradiction.
+We prove by induction on n. 
+It holds that (~(1 > 1)%nat) (not_1_g_1). 
+Contradiction. 
+It holds that (∅ = ∅). 
+Qed. 
 
 Lemma additivity_meas : 
   ∀μ : (subset U → ℝ), is_measure_on F μ 
