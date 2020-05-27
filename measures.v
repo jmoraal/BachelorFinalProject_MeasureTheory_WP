@@ -1584,6 +1584,35 @@ It follows that (∃ N0 : ℕ ,
 Qed. 
 
 
+Lemma FU_in_sigma : 
+  F is_a_σ-algebra
+    ⇒ ∀ C : (ℕ → (subset U)), (∀ n : ℕ, (C n) ∈ F) 
+      ⇒ ∀ n : ℕ, (finite_union_up_to C n) ∈ F.
+
+Proof. 
+Assume F_is_σ.  
+Take C : (ℕ ⇨ subset U). 
+Assume all_Cn_in_F.
+Take n : ℕ. 
+We prove by induction on n.
+(* Base case: *)
+By FU_up_to_0_empty it holds that 
+  (finite_union_up_to C 0 = ∅) (FU0_is_empty). 
+Write goal using (finite_union_up_to C 0 = ∅) 
+  as (∅ ∈ F). 
+Apply empty_in_σ; Apply F_is_σ. 
+(* Induction step: *)
+By FU_S_as_union it holds that 
+  (finite_union_up_to C (S n) 
+    = (finite_union_up_to C n) ∪ (C n)) (FU_union).  
+Write goal using 
+  (finite_union_up_to C (S n) 
+    = (finite_union_up_to C n) ∪ (C n)) 
+      as ((finite_union_up_to C n) ∪ (C n) ∈ F).
+By all_Cn_in_F it holds that (C n ∈ F) (Cn_in_F). 
+By unions_in_σ it holds that 
+  ((finite_union_up_to C n ∪ C n) ∈ F) (xx); Apply xx. 
+Qed. 
 
 
 Lemma monotonicity_meas :
