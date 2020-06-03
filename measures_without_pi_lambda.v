@@ -414,7 +414,7 @@ Tactic Notation "We" "prove" "by" "induction" "on" ident(x) :=
 *)
 Tactic Notation "By" constr(u) "it" "holds" "that" constr(t) "which" "concludes" ident(the) "proof":= 
   By u it holds that t (the); 
-  Apply the. 
+  apply the. 
 
 
 Ltac intros_strict x y t :=
@@ -1010,6 +1010,7 @@ Qed.
 (***********************************************************)
 Require Import Reals. 
 Variable F : setOfSubsets U. 
+Variable μ : (subset U ⇨ ℝ).
 (*Definition σ_algebras := (sig (is_σ_algebra)). *)
 
 
@@ -1020,7 +1021,7 @@ Definition myclass :=  Ensemble (Ensemble U).
 Definition myprojection : (σ_algebra1 -> myclass) := (@proj1_sig myclass is_σ_algebra). 
 Coercion myprojection : σ_algebra1 >-> myclass.  
 *)
-Definition σ_additive_on (F : setOfSubsets U) (μ : (subset U ⇨ ℝ)) : Prop := 
+Definition σ_additive_on F μ : Prop := 
   ∀C : (ℕ → (subset U)), (∀n : ℕ, C n ∈ F) 
     ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
       ⇒ infinite_sum (fun (n:ℕ) ↦ (μ (C n))) (μ (Countable_union C)).
@@ -1149,16 +1150,14 @@ By unions_in_σ it holds that
 Qed. 
 
 
-
 Lemma aux_additive : 
-  ∀μ : (subset U → ℝ), is_measure_on F μ 
+  is_measure_on F μ 
     ⇒ ∀ A B : subset U, A ∈ F ⇒ B ∈ F
       ⇒ Disjoint _ A B  
          ⇒ (infinite_sum (fun (n:ℕ) ↦ (μ ((aux_seq A B) n))) 
   (μ (Countable_union (aux_seq A B)))).
 
 Proof. 
-Take μ : (subset U ⇨ ℝ). 
 Assume μ_is_measure_on_F. 
 Take A B : (subset U). 
 Assume A_in_F; Assume B_in_F.
@@ -1206,13 +1205,12 @@ It holds that (∅ = ∅).
 Qed. 
 
 Lemma additivity_meas : 
-  ∀μ : (subset U → ℝ), is_measure_on F μ 
+  is_measure_on F μ 
     ⇒ ∀ A B : subset U, A ∈ F ⇒ B ∈ F
       ⇒ Disjoint _ A B  
          ⇒ μ (A ∪ B) = μ A + μ B. 
 
 Proof. 
-Take μ : (subset U ⇨ ℝ). 
 Assume μ_is_measure_on_F. 
 Take A B : (subset U). 
 Assume A_in_F; Assume B_in_F.
@@ -1313,14 +1311,13 @@ Qed.
 
 
 Lemma finite_additivity_meas : 
-  ∀ μ : (subset U → ℝ), is_measure_on F μ 
+  is_measure_on F μ 
     ⇒ ∀ C : (ℕ → (subset U)), (∀n : ℕ, C n ∈ F) 
       ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n))  
          ⇒ ∀ N : ℕ,  μ (finite_union_up_to C (S N))
           = sum_f_R0 (fun (n : ℕ) ↦ (μ (C n))) N.
 
 Proof. 
-Take μ : (subset U ⇨ ℝ). 
 Assume μ_is_measure_on_F. 
 Take C : (ℕ ⇨ subset U).
 Assume all_Cn_in_F.  
@@ -1538,14 +1535,13 @@ Qed.
 
 
 Lemma incr_cont_meas : 
-  ∀μ : (subset U → ℝ), is_measure_on F μ 
+  is_measure_on F μ 
     ⇒ ∀C : (ℕ → (subset U)), is_increasing_seq_sets C
       ⇒ (∀ n : ℕ, C n ∈ F)
         ⇒ Un_cv (fun (n : ℕ) ↦ (μ (C n))) (μ (Countable_union C)). 
 (*Un_cv Cn l is the proposition 'sequence Cn converges to limit l'*)
 (*Proof using alternative sequence from pi-lambda proof; not the one in lecture notes*)
 Proof. 
-Take μ : (subset U ⇨ ℝ). 
 Assume μ_is_measure_on_F. 
 Take C : (ℕ ⇨ subset U) . 
 Assume C_is_incr_seq.
