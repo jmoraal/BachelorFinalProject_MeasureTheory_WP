@@ -68,8 +68,8 @@ Notation "x ⇔ y" := (x <-> y) (at level 95, no associativity): type_scope.
 Notation "¬ x" := (~x) (at level 75, right associativity) : type_scope.
 Notation "x ≠ y" := (x <> y) (at level 70) : type_scope.
 
-Notation "x ≤ y" := (le x y) (at level 70, no associativity) : nat_scope.
-Notation "x ≥ y" := (ge x y) (at level 70, no associativity) : nat_scope.
+Notation "x ≤ y" := (x <= y)%nat (at level 70, no associativity) : nat_scope.
+Notation "x ≥ y" := (x >= y)%nat (at level 70, no associativity) : nat_scope.
 
 Notation "x ≤ y" := (x <= y)%R (at level 70, no associativity) : R_scope.
 Notation "x ≥ y" := (x >= y)%R (at level 70, no associativity) : R_scope.
@@ -368,10 +368,10 @@ Variable U : Type.
 
 
 Notation "∅" := 
-  (Empty_set U). 
+  (Empty_set _). 
 
 Notation "'Ω'" := 
-  (Full_set U) (at level 0). 
+  (Full_set _) (at level 0). 
 
 Notation "A ∩ B" := 
   (Intersection _ A B) (at level 50). 
@@ -448,7 +448,7 @@ Notation "A is_a_π-system" :=
 
 Definition Countable_union (A : (ℕ → subset U) ) 
   : subset U := 
-    ｛ x:U | ∃n : ℕ, x ∈ (A n)｝.
+    ｛ x : U | ∃ n : ℕ, x ∈ (A n)｝.
 
 Definition full_set_in_set (Λ : setOfSubsets U) 
   : Prop :=
@@ -456,18 +456,18 @@ Definition full_set_in_set (Λ : setOfSubsets U)
 
 Definition complement_in_set (Λ : setOfSubsets U) 
   : Prop := 
-    ∀A  : subset U, A ∈ Λ 
+    ∀ A  : subset U, A ∈ Λ 
       ⇒ (Ω \ A) ∈ Λ. 
 
 Definition closed_under_disjoint_countable_union (Λ : setOfSubsets U) 
   : Prop :=
-    ∀C : (ℕ → (subset U)), 
+    ∀ C : (ℕ → (subset U)), 
       (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
         ⇒ (∀ n : ℕ, (C n) ∈ Λ) ⇒  (Countable_union C) ∈ Λ.
 
 Definition closed_under_countable_union (Λ : setOfSubsets U) 
   : Prop :=  
-    ∀C : (ℕ → (subset U)), (∀ n : ℕ, (C n) ∈ Λ) 
+    ∀ C : (ℕ → (subset U)), (∀ n : ℕ, (C n) ∈ Λ) 
       ⇒ (Countable_union C) ∈ Λ.
 
 Definition is_λ_system (Λ : setOfSubsets U) 
@@ -496,7 +496,7 @@ Notation "A is_a_σ-algebra" :=
 
 Definition  σ_algebra_generated_by (A : setOfSubsets U) 
   : (setOfSubsets U) := 
-    ｛B : subset U | ∀ F : setOfSubsets U, F is_a_σ-algebra ⇒ (A ⊂ F ⇒ B ∈ F)｝ . 
+    ｛B : subset U | ∀ F : setOfSubsets U, F is_a_σ-algebra ⇒ (A ⊂ F ⇒ B ∈ F)｝. 
 
 Notation "σ( A )" := 
  (σ_algebra_generated_by A) (at level 50). 
@@ -1009,9 +1009,19 @@ Qed.
 
 (***********************************************************)
 Require Import Reals. 
+
 Variable F : setOfSubsets U. 
 Variable μ : (subset U ⇨ ℝ).
+Check μ.
 (*Definition σ_algebras := (sig (is_σ_algebra)). *)
+Notation "'Σ' Cn 'equals' x" := 
+  (infinite_sum Cn x) (at level 50). 
+
+Notation "'Σ' 'of' Cn 'up' 'to' n" := 
+  (sum_f_R0 Cn n) (at level 50). 
+
+Notation "an 'converges' 'to' a" := 
+  (Un_cv an a) (at level 50). 
 
 
 (*
@@ -1022,9 +1032,9 @@ Definition myprojection : (σ_algebra1 -> myclass) := (@proj1_sig myclass is_σ_
 Coercion myprojection : σ_algebra1 >-> myclass.  
 *)
 Definition σ_additive_on F μ : Prop := 
-  ∀C : (ℕ → (subset U)), (∀n : ℕ, C n ∈ F) 
+  ∀ C : (ℕ → (subset U)), (∀ n : ℕ, C n ∈ F) 
     ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
-      ⇒ infinite_sum (fun (n:ℕ) ↦ (μ (C n))) (μ (Countable_union C)).
+      ⇒ Σ (fun (n:ℕ) ↦ (μ (C n))) equals (μ (Countable_union C)).
 (*infinite_sum fn l is the proposition 'the sum of all terms of fn converges to l'*)
 
 Notation "μ is_σ-additive_on F" := 
@@ -1033,7 +1043,7 @@ Notation "μ is_σ-additive_on F" :=
 Notation "｜ x - y ｜" := (R_dist x y) (at level 20).
 
 
-Definition is_measure_on (F : setOfSubsets U) (μ : (subset U → ℝ)) : Prop := 
+Definition is_measure_on F μ : Prop := 
   is_σ_algebra F ∧ μ ∅ = 0 ∧ μ is_σ-additive_on F.
 
 Definition is_probability_measure_on (F : setOfSubsets U) (μ : (subset U → ℝ)) 
@@ -1231,12 +1241,11 @@ We need to show that (
    ∀ ε : ℝ, ε > 0
     ⇒ ∃ N : ℕ ,
        ∀ n : ℕ, (n ≥ N)%nat 
-        ⇒ R_dist (sum_f_R0 seq_μC n) (μ A + μ B) < ε).
-        (*⇒ ｜ (sum_f_R0 seq_μC n) - (μ A + μ B) ｜ < ε). *)
+        ⇒ R_dist (Σ of seq_μC up to n) (μ A + μ B) < ε).
 Take ε : R; Assume ε_g0. 
 
 We claim that ( ∀ n : ℕ, (n ≥ 1)%nat 
-  ⇒ R_dist (sum_f_R0 seq_μC n) 
+  ⇒ R_dist (Σ of seq_μC up to n) 
     (μ A + μ B) < ε) (holds_for_ge_1).
 We prove by induction on n. 
 (* n=0: *)
@@ -1251,9 +1260,9 @@ Because n_0_or_n_g0 either n_0 or n_g0.
 It holds that (S n = 1%nat) (Sn_is_1).
 Write goal using (S n = 1%nat)
   as ((1 ≥ 1)%nat 
-  ⇒ R_dist (sum_f_R0 seq_μC 1) 
+  ⇒ R_dist (Σ of seq_μC up to 1) 
     (μ A + μ B) < ε).
-Write goal using (sum_f_R0 seq_μC 1 = μ A + μ B)
+Write goal using (Σ of seq_μC up to 1 = μ A + μ B)
   as (R_dist (μ A + μ B) (μ A + μ B) < ε). 
 By R_dist_eq it holds that 
   (R_dist (μ A + μ B)  (μ A + μ B) = 0) (dist_is_0).
@@ -1261,7 +1270,7 @@ It follows that (R_dist (μ A + μ B) (μ A + μ B) < ε).
 (* n>0: *)
 It holds that ((n ≥ 1)%nat) (n_geq_1).
 By IHn it holds that 
-  (R_dist (sum_f_R0 seq_μC n) (μ A + μ B) < ε) (dist_l_eps). 
+  (R_dist (Σ of seq_μC up to n) (μ A + μ B) < ε) (dist_l_eps). 
 We claim that (seq_μC (S n) = 0) (µSn_0).
 By aux_ge2_empty it holds that 
   (C (S n) = ∅) (CSn_empty).
@@ -1272,19 +1281,19 @@ Write goal using (C (S n) = ∅)
   as (μ ∅ = 0).
 Apply µ_empty_0. 
 
-Write goal using (sum_f_R0 seq_μC (S n)
-  = sum_f_R0 seq_μC n + seq_μC (S n))
-    as (R_dist (sum_f_R0 seq_μC n + seq_μC (S n)) 
+Write goal using (Σ of seq_μC up to (S n)
+  = Σ of seq_μC up to n + seq_μC (S n))
+    as (R_dist (Σ of seq_μC up to n + seq_μC (S n)) 
       (μ A + μ B) < ε). 
 Write goal using (seq_μC (S n) = 0) 
-  as (R_dist (sum_f_R0 seq_μC n + 0) (μ A + μ B) < ε).
-Write goal using (sum_f_R0 seq_μC n + 0 = sum_f_R0 seq_μC n)
-  as (R_dist (sum_f_R0 seq_μC n ) (μ A + μ B) < ε).
+  as (R_dist (Σ of seq_μC up to n + 0) (μ A + μ B) < ε).
+Write goal using (Σ of seq_μC up to n + 0 = Σ of seq_μC up to n)
+  as (R_dist (Σ of seq_μC up to n ) (μ A + μ B) < ε).
 Apply dist_l_eps.
 
 It follows that (∃ N : ℕ ,
   ∀ n : ℕ, (n ≥ N)%nat 
-    ⇒ R_dist (sum_f_R0 seq_μC n) 
+    ⇒ R_dist (Σ of seq_μC up to n) 
       (μ A + μ B) < ε). 
 By uniqueness_sum it holds that 
   (μ (Countable_union C) = μ A + μ B) which concludes the proof.
@@ -1315,7 +1324,7 @@ Lemma finite_additivity_meas :
     ⇒ ∀ C : (ℕ → (subset U)), (∀n : ℕ, C n ∈ F) 
       ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n))  
          ⇒ ∀ N : ℕ,  μ (finite_union_up_to C (S N))
-          = sum_f_R0 (fun (n : ℕ) ↦ (μ (C n))) N.
+          = Σ of (fun (n : ℕ) ↦ (μ (C n))) up to N.
 
 Proof. 
 Assume μ_is_measure_on_F. 
@@ -1330,15 +1339,15 @@ We prove by induction on N.
 By FU_up_to_1_is_0 it holds that 
   (finite_union_up_to C 1 = C 0%nat) (FU1_is_C0).
 Write goal using (FU_C 1%nat = C 0%nat)
-  as (μ (C 0%nat) = sum_f_R0 seq_μC 0%nat).
-It holds that (μ (C 0%nat) = sum_f_R0 seq_μC 0). 
+  as (μ (C 0%nat) = Σ of seq_μC up to 0%nat).
+It holds that (μ (C 0%nat) = Σ of seq_μC up to 0). 
 (*Induction step: *)
-It holds that (sum_f_R0 seq_μC (S N) 
-  = sum_f_R0 seq_μC N + seq_μC (S N)) (sum_to_sum).
-Write goal using (sum_f_R0 seq_μC (S N) 
-  = sum_f_R0 seq_μC N + seq_μC (S N)) 
+It holds that (Σ of seq_μC up to (S N) 
+  = Σ of seq_μC up to N + seq_μC (S N)) (sum_to_sum).
+Write goal using (Σ of seq_μC up to (S N) 
+  = Σ of seq_μC up to N + seq_μC (S N)) 
     as (μ (FU_C (S (S N)))
-      = sum_f_R0 seq_μC N + seq_μC (S N)). 
+      = Σ of seq_μC up to N + seq_μC (S N)). 
 
 By FU_S_as_union it holds that 
   (FU_C (S (S N)) 
@@ -1373,13 +1382,13 @@ By additivity_meas it holds that
 Write goal using (FU_C (S (S N)) 
   = (FU_C (S N)) ∪ (C (S N)))
     as (μ ((FU_C (S N)) ∪ (C (S N))) 
-      = sum_f_R0 seq_μC N + seq_μC (S N)).
+      = Σ of seq_μC up to N + seq_μC (S N)).
 Write goal using (μ ((FU_C (S N)) ∪ (C (S N))) 
   = μ (FU_C (S N)) + μ (C (S N)))
     as (μ (FU_C (S N)) + μ (C (S N)) 
-      = sum_f_R0 seq_μC N + seq_μC (S N)). 
+      = Σ of seq_μC up to N + seq_μC (S N)). 
 It holds that (μ (FU_C (S N)) + μ (C (S N)) 
-  = sum_f_R0 seq_μC N + seq_μC (S N)). 
+  = Σ of seq_μC up to N + seq_μC (S N)). 
 Qed.
 
 
@@ -1538,7 +1547,8 @@ Lemma incr_cont_meas :
   is_measure_on F μ 
     ⇒ ∀C : (ℕ → (subset U)), is_increasing_seq_sets C
       ⇒ (∀ n : ℕ, C n ∈ F)
-        ⇒ Un_cv (fun (n : ℕ) ↦ (μ (C n))) (μ (Countable_union C)). 
+        ⇒ (fun (n : ℕ) ↦ (μ (C n))) converges 
+          to (μ (Countable_union C)). 
 (*Un_cv Cn l is the proposition 'sequence Cn converges to limit l'*)
 (*Proof using alternative sequence from pi-lambda proof; not the one in lecture notes*)
 Proof. 
@@ -1553,7 +1563,7 @@ By CU_sets_disjointsets_equal it holds that
   ((Countable_union C) = (Countable_union D)) (CUC_is_CUD).
 Write goal using 
   ((Countable_union C) = (Countable_union D)) 
-    as (Un_cv seq_μC (μ (Countable_union D))). 
+    as (seq_μC converges to (μ (Countable_union D))). 
 By μ_is_measure_on_F it holds that 
   (μ is_σ-additive_on F) (μ_is_σ_additive). 
 By disj_seq_disjoint it holds that 
@@ -1571,7 +1581,7 @@ We need to show that (
 Take ε : ℝ; Assume ε_g0. 
 By μDn_is_μCUD it holds that (
   ∃ N : ℕ , ∀ n : ℕ,  (n ≥ N)%nat 
-    ⇒ R_dist (sum_f_R0 seq_μD n)
+    ⇒ R_dist (Σ of seq_μD up to n)
      (μ (Countable_union D)) < ε) (exists_N_μSumD_μCUD_l_ε).
 Choose N such that μSumN_μCU_l_ε 
   according to exists_N_μSumD_μCUD_l_ε.
@@ -1581,20 +1591,20 @@ We claim that (∀ n : ℕ,
     (μ (Countable_union D)) < ε) (holds_forall_n_geq_N). 
 Take n : ℕ; Assume n_geq_N.
 We claim that (μ(C n) = 
-  (sum_f_R0 seq_μD n) ) (μCn_is_sum_μDn). 
+  (Σ of seq_μD up to n) ) (μCn_is_sum_μDn). 
 By FUn_disj_is_Cn it holds that 
   (finite_union_up_to D (S n) = C n) (FUD_is_C).
 Write goal using (C n = finite_union_up_to D (S n))
   as (μ (finite_union_up_to D (S n)) 
-    = sum_f_R0 seq_μD n). 
+    = Σ of seq_μD up to n). 
 By finite_additivity_meas it holds that 
   (μ (finite_union_up_to D (S n)) 
-    = sum_f_R0 (fun (n : ℕ) ↦ μ (D n)) n) (xx); Apply xx. 
+    = Σ of (fun (n : ℕ) ↦ μ (D n)) up to n) (xx); Apply xx. 
 
-Write goal using (μ (C n) = sum_f_R0 seq_μD n) 
-  as (R_dist (sum_f_R0 ｛ n0 : ℕ | μ (D n0) ｝ n) 
+Write goal using (μ (C n) = Σ of seq_μD up to n) 
+  as (R_dist (Σ of seq_μD up to n) 
     (μ (Countable_union D)) < ε).
-It holds that (R_dist (sum_f_R0 seq_μD n) 
+It holds that (R_dist (Σ of seq_μD up to n) 
   (μ (Countable_union D)) < ε). 
 It follows that (∃ N0 : ℕ ,
    ∀ n : ℕ, (n ≥ N0)%nat 
