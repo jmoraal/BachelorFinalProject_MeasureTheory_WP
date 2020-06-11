@@ -1020,12 +1020,8 @@ Require Import Reals.
 Record σ_algebra := make_sigma_algebra
   { underlying_set_of_subsets : setOfSubsets U;
     proof_is_sigma_algebra : is_σ_algebra underlying_set_of_subsets}.
-
-
 Variable G : σ_algebra.
-
 Coercion underlying_set_of_subsets : σ_algebra >-> setOfSubsets.
-
 Definition F : setOfSubsets U := G.
 Hint Resolve proof_is_sigma_algebra : measure_theory.
 Hint Resolve underlying_set_of_subsets : measure_theory.
@@ -1053,6 +1049,25 @@ Notation "｜ x - y ｜" := (R_dist x y) (at level 20).
 
 Definition is_measure_on (F : setOfSubsets U) (μ : (subset U → ℝ)) : Prop := 
   is_σ_algebra F ∧ μ ∅ = 0 ∧ μ is_σ-additive_on F.
+
+Definition set_function {U} := (subset U ⇨ ℝ).
+
+Record measure_on {F} := make_measure 
+  { underlying_function : set_function; 
+    proof_is_measure : is_measure_on F underlying_function}.
+Variable ν : @measure_on F.
+Coercion underlying_function : measure_on >-> set_function.
+Definition μ : set_function := ν.
+Hint Resolve underlying_function : measure_theory.
+Hint Resolve proof_is_measure : measure_theory.
+
+Lemma μ_is_measure_on_F : is_measure_on F μ.
+
+Proof. 
+It holds that (is_measure_on F (underlying_function ν)) (xx). 
+It holds that (is_measure_on F μ).
+Qed.
+Hint Resolve μ_is_measure_on_F : measure_theory.
 
 Definition is_probability_measure_on (F : setOfSubsets U) (μ : (subset U → ℝ)) 
   : Prop := 
