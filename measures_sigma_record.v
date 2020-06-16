@@ -372,7 +372,6 @@ Definition setOfSubsets (U : Type) :=
 
 Variable U : Type. 
 
-
 Notation "∅" := 
   (Empty_set U). 
 
@@ -1016,27 +1015,87 @@ Qed.
 (***********************************************************)
 Require Import Reals. 
 
-(*** NEW ***)
-Record σ_algebra := make_sigma_algebra
-  { underlying_set_of_subsets : setOfSubsets U;
-    proof_is_sigma_algebra : is_σ_algebra underlying_set_of_subsets}.
-Variable G : σ_algebra.
-Coercion underlying_set_of_subsets : σ_algebra >-> setOfSubsets.
-Definition F : setOfSubsets U := G.
-Hint Resolve proof_is_sigma_algebra : measure_theory.
-Hint Resolve underlying_set_of_subsets : measure_theory.
 
-Lemma F_is_σ_algebra : is_σ_algebra F.
+(*** NEW ***)
+Record π_system := make_pi_system
+  { underlying_set_of_subsets_pi : setOfSubsets U;
+    proof_is_pi_system : is_π_system underlying_set_of_subsets_pi}.
+Coercion underlying_set_of_subsets_pi : π_system >-> setOfSubsets.
+Hint Resolve proof_is_pi_system : measure_theory.
+Hint Resolve underlying_set_of_subsets_pi : measure_theory.
+
+Variable Π : π_system.
+
+Lemma Π_is_π_system : is_π_system Π.
 
 Proof. 
-It holds that (is_σ_algebra (underlying_set_of_subsets G)) (xx). 
+It holds that (is_π_system Π).
+Qed.
+Hint Resolve Π_is_π_system : measure_theory.
+
+
+Record λ_system := make_lambda_system
+  { underlying_set_of_subsets_lambda : setOfSubsets U;
+    proof_is_lambda_system : is_λ_system underlying_set_of_subsets_lambda}.
+(*Variable L : λ_system.*)
+Coercion underlying_set_of_subsets_lambda : λ_system >-> setOfSubsets.
+(*Definition Λ : setOfSubsets U := L.*)
+Hint Resolve proof_is_lambda_system : measure_theory.
+Hint Resolve underlying_set_of_subsets_lambda : measure_theory.
+Variable L : λ_system.
+Lemma Λ_is_λ_system : is_λ_system L.
+
+Proof. 
+It holds that (is_λ_system L).
+Qed.
+Hint Resolve Λ_is_λ_system : measure_theory.
+
+(*
+Record π_and_λ_system := make_pi_and_lambda_system
+  { underlying_set_of_subsets_pi_and_lambda : setOfSubsets U;
+    proof_is_pi_and_lambda_system : (is_λ_system underlying_set_of_subsets_pi_and_lambda 
+                                  /\ is_π_system underlying_set_of_subsets_pi_and_lambda)}.
+Variable J : π_and_λ_system.
+Coercion underlying_set_of_subsets_pi_and_lambda : π_and_λ_system >-> setOfSubsets.
+Definition K : setOfSubsets U := J.
+Hint Resolve proof_is_pi_and_lambda_system : measure_theory.
+Hint Resolve underlying_set_of_subsets_pi_and_lambda : measure_theory.
+
+Lemma Λ_is_π_and_λ_system : (is_λ_system K /\ is_π_system K).
+
+Proof. 
+It holds that ((is_λ_system (underlying_set_of_subsets_pi_and_lambda J))
+            /\ (is_π_system (underlying_set_of_subsets_pi_and_lambda J))) (xx). 
+It holds that (is_λ_system K /\ is_π_system K).
+Qed.
+Hint Resolve Λ_is_π_and_λ_system : measure_theory.
+*)
+
+
+Record σ_algebra := make_sigma_algebra
+  { underlying_set_of_subsets_sigma : setOfSubsets U;
+    proof_is_sigma_algebra : is_σ_algebra underlying_set_of_subsets_sigma}.
+Coercion underlying_set_of_subsets_sigma : σ_algebra >-> setOfSubsets.
+
+Hint Resolve proof_is_sigma_algebra : measure_theory.
+Hint Resolve underlying_set_of_subsets_sigma : measure_theory.
+
+
+Section σ_algebra_record_test.
+Variable F : σ_algebra.
+(*
+Lemma F_is_σ_algebra : forall F : σ_algebra, is_σ_algebra F.
+
+Proof. 
+(*It holds that (is_σ_algebra (underlying_set_of_subsets_sigma G)) (xx). *)
+Take F : σ_algebra.
 It holds that (is_σ_algebra F).
 Qed.
 Hint Resolve F_is_σ_algebra : measure_theory.
+*)
 
-
-Definition σ_additive_on F (μ : (subset U ⇨ ℝ)) : Prop := 
-  ∀C : (ℕ → (subset U)), (∀n : ℕ, C n ∈ F) 
+Definition σ_additive_on F (*F : σ_algebra*) (μ : (subset U ⇨ ℝ)) : Prop := 
+  ∀C : (ℕ → (subset U)), (∀n : ℕ, (C n)  ∈ F) 
     ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
       ⇒ infinite_sum (fun (n:ℕ) ↦ (μ (C n))) (μ (Countable_union C)).
 (*infinite_sum fn l is the proposition 'the sum of all terms of fn converges to l'*)
@@ -1044,18 +1103,24 @@ Definition σ_additive_on F (μ : (subset U ⇨ ℝ)) : Prop :=
 Notation "μ is_σ-additive_on F" := 
   (σ_additive_on F μ) (at level 50). 
 
-Notation "｜ x - y ｜" := (R_dist x y) (at level 20).
 
-
-Definition is_measure_on (F : setOfSubsets U) (μ : (subset U → ℝ)) : Prop := 
-  is_σ_algebra F ∧ μ ∅ = 0 ∧ μ is_σ-additive_on F.
+Definition is_measure_on F (μ : (subset U → ℝ)) : Prop := 
+(*  is_σ_algebra F ∧*) μ ∅ = 0 ∧ μ is_σ-additive_on F.
+End σ_algebra_record_test.
 
 Definition set_function {U} := (subset U ⇨ ℝ).
 
-Record measure_on {F} := make_measure 
+Chapter measure_record_test.
+Section measure_def.
+Variable F : σ_algebra.
+
+Record measure_on F := make_measure 
   { underlying_function : set_function; 
     proof_is_measure : is_measure_on F underlying_function}.
-Variable ν : @measure_on F.
+End measure_def.
+Section measure_variable.
+Variable F : σ_algebra.
+Variable ν : measure_on F.
 Coercion underlying_function : measure_on >-> set_function.
 Definition μ : set_function := ν.
 Hint Resolve underlying_function : measure_theory.
