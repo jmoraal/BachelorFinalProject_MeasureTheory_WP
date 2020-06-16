@@ -1080,63 +1080,78 @@ Coercion underlying_set_of_subsets_sigma : σ_algebra >-> setOfSubsets.
 Hint Resolve proof_is_sigma_algebra : measure_theory.
 Hint Resolve underlying_set_of_subsets_sigma : measure_theory.
 
+  
 
-Section σ_algebra_record_test.
+
+Chapter σ_algebra_record_test.
+Section σ_additivity.
 Variable F : σ_algebra.
-(*
-Lemma F_is_σ_algebra : forall F : σ_algebra, is_σ_algebra F.
 
+Lemma sig_to_underlying_sets : 
+  underlying_set_of_subsets_sigma F = F.
 Proof. 
-(*It holds that (is_σ_algebra (underlying_set_of_subsets_sigma G)) (xx). *)
-Take F : σ_algebra.
-It holds that (is_σ_algebra F).
+trivial. 
 Qed.
-Hint Resolve F_is_σ_algebra : measure_theory.
-*)
+Hint Rewrite sig_to_underlying_sets.
 
-Definition σ_additive_on F (*F : σ_algebra*) (μ : (subset U ⇨ ℝ)) : Prop := 
-  ∀C : (ℕ → (subset U)), (∀n : ℕ, (C n)  ∈ F) 
+Definition σ_additive_on (F : σ_algebra) (μ : (subset U ⇨ ℝ)) : Prop := 
+  ∀C : (ℕ → (subset U)), (∀n : ℕ, (C n)  ∈ underlying_set_of_subsets_sigma F) 
     ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
       ⇒ infinite_sum (fun (n:ℕ) ↦ (μ (C n))) (μ (Countable_union C)).
 (*infinite_sum fn l is the proposition 'the sum of all terms of fn converges to l'*)
+Check σ_additive_on.
+End σ_additivity.
 
 Notation "μ is_σ-additive_on F" := 
-  (σ_additive_on F μ) (at level 50). 
+  (@σ_additive_on F μ) (at level 50). 
 
-
-Definition is_measure_on F (μ : (subset U → ℝ)) : Prop := 
+Section meas_def.
+Variable F : σ_algebra.
+Definition is_measure_on  (F : σ_algebra) (μ : (subset U → ℝ)) : Prop := 
 (*  is_σ_algebra F ∧*) μ ∅ = 0 ∧ μ is_σ-additive_on F.
+Check is_measure_on.
+End meas_def.
 End σ_algebra_record_test.
 
 Definition set_function {U} := (subset U ⇨ ℝ).
+
 
 Chapter measure_record_test.
 Section measure_def.
 Variable F : σ_algebra.
 
-Record measure_on F := make_measure 
+Record measure_on {F} := make_measure 
   { underlying_function : set_function; 
     proof_is_measure : is_measure_on F underlying_function}.
 End measure_def.
+
+
 Section measure_variable.
-Variable F : σ_algebra.
-Variable ν : measure_on F.
+Variable F : σ_algebra. 
+Variable μ : @measure_on F.
+Check measure_on.
 Coercion underlying_function : measure_on >-> set_function.
-Definition μ : set_function := ν.
+(*Definition μ : set_function := ν.*)
 Hint Resolve underlying_function : measure_theory.
 Hint Resolve proof_is_measure : measure_theory.
-
-Lemma μ_is_measure_on_F : is_measure_on F μ.
+Lemma meas_to_und_function : 
+  underlying_function μ = μ.
+Proof. 
+trivial. 
+Qed.
+Hint Rewrite meas_to_und_function.
+(*
+Lemma μ_is_measure_on_F : @is_measure_on F μ.
 
 Proof. 
 It holds that (is_measure_on F (underlying_function ν)) (xx). 
 It holds that (is_measure_on F μ).
 Qed.
 Hint Resolve μ_is_measure_on_F : measure_theory.
-
-Definition is_probability_measure_on (F : setOfSubsets U) (μ : (subset U → ℝ)) 
+*)
+Definition is_probability_measure_on F (*F : σ_algebra*) (μ : @measure_on F) 
   : Prop := 
-    is_measure_on F μ ∧ μ Ω = 1.
+    is_measure_on F (underlying_function μ) ∧ (underlying_function μ) Ω = 1.
 
 Definition is_increasing_seq_sets (C : (ℕ → (subset U)))
   : Prop := 
