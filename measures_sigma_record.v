@@ -1083,8 +1083,8 @@ Hint Resolve underlying_set_of_subsets_sigma : measure_theory.
   
 
 
-Chapter σ_algebra_record_test.
-Section σ_additivity.
+Declare Scope measure_theory_scope.
+(*Section σ_additivity.*)
 Variable F : σ_algebra.
 
 Lemma sig_to_underlying_sets : 
@@ -1094,13 +1094,33 @@ trivial.
 Qed.
 Hint Rewrite sig_to_underlying_sets.
 
+Lemma F_is_σ_algebra : forall F : σ_algebra, is_σ_algebra F.
+Proof.
+Take F : σ_algebra.
+It holds that (is_σ_algebra F).
+Qed.
+Hint Resolve F_is_σ_algebra : measure_theory.
+
+
+(*
+Definition is_in (V : Type) (F : Type) (A : Type) := 
+  match V with 
+    σ_algebra => In _ (underlying_set_of_subsets_sigma F) A
+  | (Ensemble => In _ F A
+  end.
+*)
+
+Notation "A ∈ F" := 
+  (A ∈ underlying_set_of_subsets_sigma F) (at level 55) : measure_theory_scope. 
+Open Scope measure_theory_scope.
+
 Definition σ_additive_on (F : σ_algebra) (μ : (subset U ⇨ ℝ)) : Prop := 
-  ∀C : (ℕ → (subset U)), (∀n : ℕ, (C n)  ∈ underlying_set_of_subsets_sigma F) 
+  ∀C : (ℕ → (subset U)), (∀n : ℕ, (C n)  ∈  F) 
     ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
       ⇒ infinite_sum (fun (n:ℕ) ↦ (μ (C n))) (μ (Countable_union C)).
 (*infinite_sum fn l is the proposition 'the sum of all terms of fn converges to l'*)
 Check σ_additive_on.
-End σ_additivity.
+(*End σ_additivity.*)
 
 Notation "μ is_σ-additive_on F" := 
   (@σ_additive_on F μ) (at level 50). 
@@ -1111,22 +1131,24 @@ Definition is_measure_on  (F : σ_algebra) (μ : (subset U → ℝ)) : Prop :=
 (*  is_σ_algebra F ∧*) μ ∅ = 0 ∧ μ is_σ-additive_on F.
 Check is_measure_on.
 End meas_def.
-End σ_algebra_record_test.
+
 
 Definition set_function {U} := (subset U ⇨ ℝ).
 
 
 Chapter measure_record_test.
-Section measure_def.
 Variable F : σ_algebra.
 
 Record measure_on {F} := make_measure 
   { underlying_function : set_function; 
     proof_is_measure : is_measure_on F underlying_function}.
-End measure_def.
+End measure_record_test.
+
+Notation "μ 'is' 'a' 'measure' 'on' F" := 
+  (is_measure_on F (underlying_function μ)) (at level 50). 
 
 
-Section measure_variable.
+Chapter measure_variable.
 Variable F : σ_algebra. 
 Variable μ : @measure_on F.
 Check measure_on.
@@ -1187,26 +1209,30 @@ It holds that (C (S n) ⊂ C (S n)).
 Qed.   
 
 
+Open Scope measure_theory_scope.
+
 
 Lemma empty_in_σ : 
-  F is_a_σ-algebra ⇒ ∅ ∈ F. 
+  (*F is_a_σ-algebra ⇒*) ∅ ∈ F. 
 
 Proof.  
 (*Assume F_is_σ_algebra. *)
 By complement_full_is_empty it holds that 
   (∅ = (Ω \ Ω)) (comp_full_empty).
 Write goal using (∅ = (Ω \ Ω)) as ((Ω \ Ω) ∈ F). 
-By F_is_σ_algebra it holds that ((Ω \ Ω) ∈ F) which concludes the proof. 
-Qed.  
+By F_is_σ_algebra it holds that (is_σ_algebra F) (F_is_sig). 
+It holds that ((Ω \ Ω) ∈ F). 
+(*It holds that ((Ω \ Ω) ∈ F).*)
+Qed.
 
-
+  
 Lemma unions_in_σ : 
-  F is_a_σ-algebra
-    ⇒  ∀ A B : subset U, A ∈ F ∧ B ∈ F
+  (*F is_a_σ-algebra
+    ⇒  *)∀ A B : subset U, A ∈ F ∧ B ∈ F
       ⇒ A ∪ B ∈ F.
 
 Proof. 
-Assume F_is_σ_algebra. 
+(*Assume F_is_σ_algebra. *)
 Take A B : (subset U). 
 Assume A_and_B_in_F. 
 
@@ -1226,19 +1252,21 @@ By CU_aux_is_union it holds that
   (A ∪ B = Countable_union (aux_seq A B)) (union_to_CU). 
 Write goal using (A ∪ B = Countable_union (aux_seq A B))
   as (Countable_union (aux_seq A B) ∈ F).
-It holds that (Countable_union (aux_seq A B) ∈ F). 
+By F_is_σ_algebra it holds that 
+  (Countable_union (aux_seq A B) ∈ F) 
+    which concludes the proof. 
 Qed.
 
 
 
 
 Lemma FU_in_sigma : 
-  F is_a_σ-algebra
-    ⇒ ∀ C : (ℕ → (subset U)), (∀ n : ℕ, (C n) ∈ F) 
+  (*F is_a_σ-algebra
+    ⇒ *)∀ C : (ℕ → (subset U)), (∀ n : ℕ, (C n) ∈ F) 
       ⇒ ∀ n : ℕ, (finite_union_up_to C n) ∈ F.
 
 Proof. 
-Assume F_is_σ.  
+(*Assume F_is_σ.  *)
 Take C : (ℕ ⇨ subset U). 
 Assume all_Cn_in_F.
 Take n : ℕ. 
@@ -1248,7 +1276,7 @@ By FU_up_to_0_empty it holds that
   (finite_union_up_to C 0 = ∅) (FU0_is_empty). 
 Write goal using (finite_union_up_to C 0 = ∅) 
   as (∅ ∈ F). 
-Apply empty_in_σ; Apply F_is_σ. 
+Apply empty_in_σ; Apply F_is_σ_algebra. 
 (* Induction step: *)
 By FU_S_as_union it holds that 
   (finite_union_up_to C (S n) 
@@ -1261,15 +1289,17 @@ By all_Cn_in_F it holds that (C n ∈ F) (Cn_in_F).
 By unions_in_σ it holds that 
   ((finite_union_up_to C n ∪ C n) ∈ F) (xx); Apply xx. 
 Qed. 
+End measure_variable.
 
 Chapter add_and_cont. 
+Check F.
 Variable μ : (subset U → ℝ).
  
 Section finite_additivity. 
 Variable A B : subset U.
 
 Lemma aux_additive : 
-  is_measure_on F μ 
+  is_measure_on F μ
     ⇒ A ∈ F ⇒ B ∈ F
       ⇒ Disjoint _ A B  
          ⇒ (infinite_sum (fun (n:ℕ) ↦ (μ ((aux_seq A B) n))) 
@@ -1290,6 +1320,7 @@ We prove by induction on n.
 It holds that (C 1%nat ∈ F).
 
 It holds that (C (S (S n)) = ∅) (CSS_empty). 
+It holds that (is_σ_algebra F) (F_is_σ).
 By empty_in_σ it holds that 
   (C (S (S n)) ∈ F) which concludes the proof. 
  
