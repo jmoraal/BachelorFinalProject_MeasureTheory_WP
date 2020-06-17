@@ -1059,7 +1059,7 @@ Notation "C 'is' 'an' 'increasing' 'sequence' 'of' 'sets'" (* (C : (ℕ → (sub
 
 Lemma increasing_seq_mn : 
      ∀ C : (ℕ → (subset U)), 
-      is_increasing_seq_sets C 
+      C is an increasing sequence of sets 
         ⇒ (∀m n : ℕ, (m ≤ n)%nat 
           ⇒ C m ⊂ C n).
 
@@ -1396,7 +1396,7 @@ Qed.
 
 
 Lemma FUn_disj_is_Cn : 
-  ∀C : (ℕ → (subset U)), is_increasing_seq_sets C
+  ∀C : (ℕ → (subset U)), C is an increasing sequence of sets
     ⇒ ∀ n : ℕ, finite_union_up_to (disjoint_seq C) (S n) = C n.
 
 Proof. 
@@ -1523,7 +1523,7 @@ Qed.
 
 Lemma disj_seq_in_F : 
   F is_a_σ-algebra 
-    ⇒ ∀C : (ℕ → (subset U)), is_increasing_seq_sets C
+    ⇒ ∀C : (ℕ → (subset U)), C is an increasing sequence of sets
       ⇒ (∀ n : ℕ, C n ∈ F)
         ⇒ (∀n : ℕ, (disjoint_seq C) n ∈ F). 
 
@@ -1548,7 +1548,7 @@ Qed.
 (*D naar D_ nog aanpassen*)
 Lemma incr_cont_meas : 
   is_measure_on F μ 
-    ⇒ ∀ C_ : (ℕ → (subset U)), is_increasing_seq_sets C_
+    ⇒ ∀ C_ : (ℕ → (subset U)), C_ is an increasing sequence of sets
       ⇒ (∀ n : ℕ, C_ n ∈ F)
         ⇒ (fun (n : ℕ) ↦ (μ (C_ n))) converges 
           to (μ (Countable_union C_)). 
@@ -1581,35 +1581,35 @@ By μ_is_σ_additive it holds that
 We need to show that (
   ∀ ε : ℝ, ε > 0
     ⇒ ∃ N : ℕ , ∀ n : ℕ,  (n ≥ N)%nat 
-      ⇒ R_dist (μ (C n)) (μ (Countable_union D)) < ε).
+      ⇒ R_dist (μ (C_ n)) (μ(D)) < ε).
 Take ε : ℝ; Assume ε_g0. 
 By μDn_is_μCUD it holds that (
   ∃ N : ℕ , ∀ n : ℕ,  (n ≥ N)%nat 
     ⇒ R_dist (Σ of seq_μD up to n)
-     (μ (Countable_union D)) < ε) (exists_N_μSumD_μCUD_l_ε).
+     (μ D) < ε) (exists_N_μSumD_μCUD_l_ε).
 Choose N such that μSumN_μCU_l_ε 
   according to exists_N_μSumD_μCUD_l_ε.
 
 It suffices to show that (∀ n : ℕ,
-  (n ≥ N)%nat ⇨ R_dist (μ (C n)) 
-    (μ (Countable_union D)) < ε). 
+  (n ≥ N)%nat ⇨ R_dist (μ(C_ n)) 
+    (μ(D)) < ε). 
 Take n : ℕ; Assume n_geq_N.
-We claim that (μ(C n) = 
+We claim that (μ(C_ n) = 
   (Σ of seq_μD up to n) ) (μCn_is_sum_μDn). 
 By FUn_disj_is_Cn it holds that 
-  (finite_union_up_to D (S n) = C n) (FUD_is_C).
-Write goal using (C n = finite_union_up_to D (S n))
-  as (μ (finite_union_up_to D (S n)) 
+  (finite_union_up_to D_ (S n) = C_ n) (FUD_is_C).
+Write goal using (C_ n = finite_union_up_to D_ (S n))
+  as (μ (finite_union_up_to D_ (S n)) 
     = Σ of seq_μD up to n). 
 By finite_additivity_meas it holds that 
-  (μ (finite_union_up_to D (S n)) 
-    = Σ of (fun (n : ℕ) ↦ μ (D n)) up to n) (xx); Apply xx. 
+  (μ(finite_union_up_to D_ (S n)) 
+    = Σ of (fun (n : ℕ) ↦ μ(D_ n)) up to n) (xx); Apply xx. 
 
-Write goal using (μ (C n) = Σ of seq_μD up to n) 
+Write goal using (μ(C_ n) = Σ of seq_μD up to n) 
   as (R_dist (Σ of seq_μD up to n) 
-    (μ (Countable_union D)) < ε).
+    (μ(D)) < ε).
 It holds that (R_dist (Σ of seq_μD up to n) 
-  (μ (Countable_union D)) < ε). 
+  (μ(D)) < ε). 
 Qed. 
 
 
