@@ -388,8 +388,8 @@ Notation "A \ B" :=
   (Setminus _ A B) (at level 50). 
 
 Notation "x ∈ A" := 
-  (In _ A x) (at level 55). 
-
+  (In _ A x) (at level 55) : sets. 
+Open Scope sets.
 Notation "x ∉ A" :=  
   (¬ In _ A x) (at level 55). 
 
@@ -1084,7 +1084,7 @@ Hint Resolve underlying_set_of_subsets_sigma : measure_theory.
 
 
 Declare Scope measure_theory_scope.
-(*Section σ_additivity.*)
+Section σ_additivity.
 Variable F : σ_algebra.
 
 Lemma sig_to_underlying_sets : 
@@ -1100,18 +1100,44 @@ Take F : σ_algebra.
 It holds that (is_σ_algebra F).
 Qed.
 Hint Resolve F_is_σ_algebra : measure_theory.
-
-
 (*
-Definition is_in (V : Type) (F : Type) (A : Type) := 
+Definition inn (V : Type) (A : Type) (x : Type)  := 
   match V with 
-    σ_algebra => In _ (underlying_set_of_subsets_sigma F) A
-  | (Ensemble => In _ F A
+    σ_algebra => True
+  | λ_system => True
   end.
-*)
 
+Definition innn (V : Type) (A : Type) (x : Type) := 
+  
+
+Definition inn (G : σ_algebra) (A : subset U) := 
+  A ∈ underlying_set_of_subsets_sigma G.
+
+
+Notation "A 'is_in' a F" := 
+  match a with 
+    0 => In _ F A
+  | (S n) => inn F A
+  end (at level 50).
+Variable A : Ensemble U. 
+Variable G : Ensemble (Ensemble U). 
+Lemma test : A is_in 0 G.
+
+Notation "A 'is' 'in' F" := 
+  A is in _ F (at level 50). 
+
+
+Definition elem {G : σ_algebra} := true.
+Definition elem {H : setOfSubsets U} := true.
+*)
 Notation "A ∈ F" := 
   (A ∈ underlying_set_of_subsets_sigma F) (at level 55) : measure_theory_scope. 
+(*
+Notation "A ∈ G" := true.
+Check In.
+Definition Inn (A:Ensemble U) (x:U) : Prop := A x.
+Definition Inn (G: Ensemble (Ensemble U)) (A:(Ensemble U)) : Prop := G A.
+*)
 Open Scope measure_theory_scope.
 
 Definition σ_additive_on (F : σ_algebra) (μ : (subset U ⇨ ℝ)) : Prop := 
@@ -1124,6 +1150,7 @@ Check σ_additive_on.
 
 Notation "μ is_σ-additive_on F" := 
   (@σ_additive_on F μ) (at level 50). 
+End σ_additivity.
 
 Section meas_def.
 Variable F : σ_algebra.
@@ -1292,7 +1319,7 @@ Qed.
 End measure_variable.
 
 Chapter add_and_cont. 
-Check F.
+Variable F : .
 Variable μ : (subset U → ℝ).
  
 Section finite_additivity. 
@@ -1351,6 +1378,7 @@ It holds that (∅ = ∅).
 Qed. 
 
 
+Variable C : (ℕ → (subset U)).
 Lemma FUn_disj_is_Cn : 
   is_increasing_seq_sets C
     ⇒ ∀ n : ℕ, finite_union_up_to (disjoint_seq C) (S n) = C n.
@@ -1362,6 +1390,7 @@ Take n : ℕ.
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_FU. 
 Choose n0 such that x_in_Dn0 according to x_in_FU. 
+Open Scope sets.
 By x_in_Dn0 it holds that 
   (x ∈ C n0) (x_in_Cn0).
 (*It holds that ((n0 < n)%nat) (n0_l_n). 
@@ -1397,11 +1426,9 @@ Qed.
 
 
 Lemma intersection_to_complement : 
-   ∀ A B : subset U, 
-    A ∩ B = Ω \ ((Ω \ A) ∪ (Ω \ B)). 
+   A ∩ B = Ω \ ((Ω \ A) ∪ (Ω \ B)). 
 
 Proof. (*analogous to complement_as_union_intersection, could be combined? *)
-Take A B : (subset U). 
 We prove equality by proving two inclusions. 
 Take x : U; Assume x_in_lhs. 
 destruct x_in_lhs. (*"Because x_in_rhs both x_in_comp_A and x_in_B" doesn't work*)
@@ -1434,21 +1461,21 @@ By H1 it holds that (x ∈ Ω \ B) (x_in_compB).
 Contradiction. 
 It follows that (x ∈ A ∩ B). 
 Qed.  
-
-
+End finite_additivity.
+Open Scope measure_theory_scope.
 Lemma intersections_in_σ : 
-  F is_a_σ-algebra 
-    ⇒  ∀ A B : subset U, A ∈ F ∧ B ∈ F
+  (*F is_a_σ-algebra 
+    ⇒  *)∀ A B : subset U, A ∈ F ∧ B ∈ F
       ⇒ A ∩ B ∈ F.
 
 Proof. 
-Assume F_is_σ_algebra. 
 Take A B : (subset U). 
 Assume A_and_B_in_F. 
 By intersection_to_complement it holds that 
   (A ∩ B = Ω \ ((Ω \ A) ∪ (Ω \ B))) (int_is_comp). 
 Write goal using (A ∩ B = Ω \ ((Ω \ A) ∪ (Ω \ B)))
   as (Ω \ ((Ω \ A) ∪ (Ω \ B)) ∈ F). 
+It holds that (F is_a_σ-algebra) (F_is_sig).
 By unions_in_σ it holds that 
  ((Ω \ A) ∪ (Ω \ B) ∈ F) (compA_compB_in_F). 
 It follows that (Ω \ ((Ω \ A) ∪ (Ω \ B)) ∈ F).
