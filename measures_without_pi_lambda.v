@@ -368,10 +368,10 @@ Variable U : Type.
 
 
 Notation "∅" := 
-  (Empty_set _). 
+  (Empty_set U). 
 
 Notation "'Ω'" := 
-  (Full_set _) (at level 0). 
+  (Full_set U) (at level 0). 
 
 Notation "A ∩ B" := 
   (Intersection _ A B) (at level 50). 
@@ -391,8 +391,11 @@ Notation "x ∉ A" :=
 Notation "A ⊂ B" := 
   (Included _ A B) (at level 50). 
 
-Notation "A B 'are disjoint'" := 
+Notation "A 'and' B 'are' 'disjoint'" := 
   (Disjoint _ A B) (at level 50). 
+
+Notation "C 'is' 'a' 'disjoint' 'sequence'" := 
+  (∀ m n : ℕ, m ≠ n ⇒ (C m) and (C n) are disjoint) (at level 50).
 
 Notation "｛ x : T | P ｝" := 
   (fun (x : T) ↦ P) (x at level 99).
@@ -1050,9 +1053,9 @@ Definition is_probability_measure_on (F : setOfSubsets U) (μ : (subset U → �
   : Prop := 
     is_measure_on F μ ∧ μ Ω = 1.
 
-Definition is_increasing_seq_sets (C : (ℕ → (subset U)))
-  : Prop := 
-    ∀n : ℕ, (C n) ⊂ C (S n).
+Notation "C 'is' 'an' 'increasing' 'sequence' 'of' 'sets'" (* (C : (ℕ → (subset U)))
+  : Prop*) := 
+    (∀n : ℕ, (C n) ⊂ C (S n)) (at level 50).
 
 Lemma increasing_seq_mn : 
      ∀ C : (ℕ → (subset U)), 
@@ -1322,7 +1325,7 @@ Qed.
 Lemma finite_additivity_meas : 
   is_measure_on F μ 
     ⇒ ∀ C : (ℕ → (subset U)), (∀n : ℕ, C n ∈ F) 
-      ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n))  
+      ⇒ C is a disjoint sequence  
          ⇒ ∀ N : ℕ,  μ (finite_union_up_to C (S N))
           = Σ of (fun (n : ℕ) ↦ (μ (C n))) up to N.
 
@@ -1542,37 +1545,38 @@ By complements_in_σ it holds that
   (C n \ finite_union_up_to C n ∈ F) which concludes the proof.
 Qed. 
 
-
+(*D naar D_ nog aanpassen*)
 Lemma incr_cont_meas : 
   is_measure_on F μ 
-    ⇒ ∀C : (ℕ → (subset U)), is_increasing_seq_sets C
-      ⇒ (∀ n : ℕ, C n ∈ F)
-        ⇒ (fun (n : ℕ) ↦ (μ (C n))) converges 
-          to (μ (Countable_union C)). 
+    ⇒ ∀ C_ : (ℕ → (subset U)), is_increasing_seq_sets C_
+      ⇒ (∀ n : ℕ, C_ n ∈ F)
+        ⇒ (fun (n : ℕ) ↦ (μ (C_ n))) converges 
+          to (μ (Countable_union C_)). 
 (*Un_cv Cn l is the proposition 'sequence Cn converges to limit l'*)
 (*Proof using alternative sequence from pi-lambda proof; not the one in lecture notes*)
 Proof. 
 Assume μ_is_measure_on_F. 
-Take C : (ℕ ⇨ subset U) . 
+Take C_ : (ℕ ⇨ subset U) . 
 Assume C_is_incr_seq.
 Assume all_Cn_in_F.
-Define D := (disjoint_seq C). 
-Define seq_μC := (fun (n : ℕ) ↦ μ (C n)). 
-Define seq_μD := (fun (n : ℕ) ↦ μ (D n)).
+Define D_ := (disjoint_seq C_). 
+Define D := (Countable_union D_).
+Define seq_μC := (fun (n : ℕ) ↦ μ (C_ n)). 
+Define seq_μD := (fun (n : ℕ) ↦ μ (D_ n)).
 By CU_sets_disjointsets_equal it holds that 
-  ((Countable_union C) = (Countable_union D)) (CUC_is_CUD).
+  ((Countable_union C_) = D) (CUC_is_CUD).
 Write goal using 
-  ((Countable_union C) = (Countable_union D)) 
-    as (seq_μC converges to (μ (Countable_union D))). 
+  ((Countable_union C_) = D) 
+    as (seq_μC converges to (μ (D))). 
 By μ_is_measure_on_F it holds that 
   (μ is_σ-additive_on F) (μ_is_σ_additive). 
 By disj_seq_disjoint it holds that 
-  (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (D m) (D n)) (D_disj). 
+  (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (D_ m) (D_ n)) (D_disj). 
 By disj_seq_in_F it holds that 
-  (∀n : ℕ, D n ∈ F) (all_Dn_in_F).
+  (∀n : ℕ, D_ n ∈ F) (all_Dn_in_F).
 By μ_is_σ_additive it holds that 
-  (infinite_sum (fun (n:ℕ) ↦ (μ (D n))) 
-    (μ (Countable_union D))) (μDn_is_μCUD).
+  (infinite_sum seq_μD
+    (μ (D))) (μDn_is_μCUD).
 
 We need to show that (
   ∀ ε : ℝ, ε > 0
@@ -1586,9 +1590,9 @@ By μDn_is_μCUD it holds that (
 Choose N such that μSumN_μCU_l_ε 
   according to exists_N_μSumD_μCUD_l_ε.
 
-We claim that (∀ n : ℕ,
+It suffices to show that (∀ n : ℕ,
   (n ≥ N)%nat ⇨ R_dist (μ (C n)) 
-    (μ (Countable_union D)) < ε) (holds_forall_n_geq_N). 
+    (μ (Countable_union D)) < ε). 
 Take n : ℕ; Assume n_geq_N.
 We claim that (μ(C n) = 
   (Σ of seq_μD up to n) ) (μCn_is_sum_μDn). 
@@ -1606,9 +1610,6 @@ Write goal using (μ (C n) = Σ of seq_μD up to n)
     (μ (Countable_union D)) < ε).
 It holds that (R_dist (Σ of seq_μD up to n) 
   (μ (Countable_union D)) < ε). 
-It follows that (∃ N0 : ℕ ,
-   ∀ n : ℕ, (n ≥ N0)%nat 
-    ⇒ R_dist (μ (C n)) (μ (Countable_union D)) < ε). 
 Qed. 
 
 
