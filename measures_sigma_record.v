@@ -1015,61 +1015,7 @@ Qed.
 (***********************************************************)
 Require Import Reals. 
 
-
 (*** NEW ***)
-Record π_system := make_pi_system
-  { underlying_set_of_subsets_pi : setOfSubsets U;
-    proof_is_pi_system : is_π_system underlying_set_of_subsets_pi}.
-Coercion underlying_set_of_subsets_pi : π_system >-> setOfSubsets.
-Hint Resolve proof_is_pi_system : measure_theory.
-Hint Resolve underlying_set_of_subsets_pi : measure_theory.
-
-Variable Π : π_system.
-
-Lemma Π_is_π_system : is_π_system Π.
-
-Proof. 
-It holds that (is_π_system Π).
-Qed.
-Hint Resolve Π_is_π_system : measure_theory.
-
-
-Record λ_system := make_lambda_system
-  { underlying_set_of_subsets_lambda : setOfSubsets U;
-    proof_is_lambda_system : is_λ_system underlying_set_of_subsets_lambda}.
-(*Variable L : λ_system.*)
-Coercion underlying_set_of_subsets_lambda : λ_system >-> setOfSubsets.
-(*Definition Λ : setOfSubsets U := L.*)
-Hint Resolve proof_is_lambda_system : measure_theory.
-Hint Resolve underlying_set_of_subsets_lambda : measure_theory.
-Variable L : λ_system.
-Lemma Λ_is_λ_system : is_λ_system L.
-
-Proof. 
-It holds that (is_λ_system L).
-Qed.
-Hint Resolve Λ_is_λ_system : measure_theory.
-
-(*
-Record π_and_λ_system := make_pi_and_lambda_system
-  { underlying_set_of_subsets_pi_and_lambda : setOfSubsets U;
-    proof_is_pi_and_lambda_system : (is_λ_system underlying_set_of_subsets_pi_and_lambda 
-                                  /\ is_π_system underlying_set_of_subsets_pi_and_lambda)}.
-Variable J : π_and_λ_system.
-Coercion underlying_set_of_subsets_pi_and_lambda : π_and_λ_system >-> setOfSubsets.
-Definition K : setOfSubsets U := J.
-Hint Resolve proof_is_pi_and_lambda_system : measure_theory.
-Hint Resolve underlying_set_of_subsets_pi_and_lambda : measure_theory.
-
-Lemma Λ_is_π_and_λ_system : (is_λ_system K /\ is_π_system K).
-
-Proof. 
-It holds that ((is_λ_system (underlying_set_of_subsets_pi_and_lambda J))
-            /\ (is_π_system (underlying_set_of_subsets_pi_and_lambda J))) (xx). 
-It holds that (is_λ_system K /\ is_π_system K).
-Qed.
-Hint Resolve Λ_is_π_and_λ_system : measure_theory.
-*)
 
 
 Record σ_algebra := make_sigma_algebra
@@ -1080,31 +1026,9 @@ Coercion underlying_set_of_subsets_sigma : σ_algebra >-> setOfSubsets.
 Hint Resolve proof_is_sigma_algebra : measure_theory.
 Hint Resolve underlying_set_of_subsets_sigma : measure_theory.
 
-Ltac in_ens_sig := 
   
 
 
-Definition my_in {V : Type} (A : Type) (x : Type) := 
-  
-
-(*
-Module ensemble.
-Definition Inn {V : Type} (A : Ensemble V) (x : V) := In V A x.
-End ensemble. 
-Module ensensemble.
-Definition Inn {V : Type} (F : Ensemble (Ensemble V)) (A : Ensemble V) := In (Ensemble V) F A.
-End ensensemble.
-
-Import ensemble.
-Import ensensemble.
-
-Notation "x 'inn' A" := (@Inn _ A x) (at level 50).
-
-Variable x : U.
-Variable A : Ensemble U. 
-Variable G : Ensemble (Ensemble U).
-Lemma test : x inn A.
-*)
 
 Declare Scope measure_theory_scope.
 Notation "A ∈ F" := 
@@ -1128,45 +1052,81 @@ It holds that (is_σ_algebra F).
 Qed.
 Hint Resolve F_is_σ_algebra : measure_theory.
 
+(** Progress: this notation now works for sigma-algebra 
+    and set_of_subsets! Only not yet for subset. **)
+Variable H : setOfSubsets U.
 
-(*
-Definition inn (V : Type) (A : Type) (x : Type)  := 
-  match (type of V) with 
-    σ_algebra => True
-  | λ_system => True
-  end.
-
-Definition innn (V : Type) (A : Type) (x : Type) := 
-  
-
-Definition inn (G : σ_algebra) (A : subset U) := 
-  A ∈ underlying_set_of_subsets_sigma G.
-
-
-Notation "A 'is_in' a F" := 
-  match a with 
-    0 => In _ F A
-  | (S n) => inn F A
-  end (at level 50).
-Variable A : Ensemble U. 
-Variable G : Ensemble (Ensemble U). 
-Lemma test : A is_in 0 G.
-
-Notation "A 'is' 'in' F" := 
-  A is in _ F (at level 50). 
-
-
-Definition elem {G : σ_algebra} := true.
-Definition elem {H : setOfSubsets U} := true.
-*)
-
-(*
-Notation "A ∈ G" := true.
-Check In.
-Definition Inn (A:Ensemble U) (x:U) : Prop := A x.
-Definition Inn (G: Ensemble (Ensemble U)) (A:(Ensemble U)) : Prop := G A.
-*)
+(*Usual definition of In: *)
+Open Scope sets.
+Fail Lemma empty_in_F : (Empty_set U) ∈ F. 
+Lemma empty_in_H : (Empty_set U) ∈ H.
+Admitted. 
+ 
+ 
+(* sigma-algebra definition of In: *)
 Open Scope measure_theory_scope.
+Lemma empty_in_F : (Empty_set U) ∈ F. 
+Admitted. 
+Fail Lemma empty_in_H : (Empty_set U) ∈ H.
+
+(*New definition: *)
+Definition my_in {U} (G : setOfSubsets U) (A : Ensemble U) 
+  := In (Ensemble U) G A.
+Hint Unfold my_in : measure_theory.  (*doesn't work like this? *)
+(* should also work for pi- and lambda-systems, or 
+   anything with similar coercions. *)
+
+Check my_in H.
+Check my_in F.
+
+Lemma empty_in_F2 : my_in F (Empty_set U). 
+Admitted.
+Lemma empty_in_H2 : my_in H (Empty_set U).
+Admitted.
+
+(** Can make notation for this definition: **)
+Declare Scope both.
+Notation "A ∈ G" := (@my_in _ G A) (at level 55).
+Open Scope both.
+Lemma empty_in_F3 : (Empty_set U) ∈ F. 
+Admitted.
+Lemma empty_in_H3 : (Empty_set U) ∈ H.
+Admitted.
+
+
+(** But somehow, does not work directly in notation form: **)
+Declare Scope both2.
+Notation "A ∈ G" := (In (Ensemble U) G A) : both2. 
+Open Scope both2.
+Fail Lemma empty_in_F4 : (Empty_set U) ∈ F. 
+Lemma empty_in_H4 : (Empty_set U) ∈ H. 
+Admitted.
+
+
+(* Attempt at more general definition: *)
+Definition my_in2 {V : Type} (G : Ensemble V) (A : V) 
+  := In V G A.
+
+Check @my_in2 U.
+Check @my_in2 (subset U).
+Check @my_in U.
+Check @my_in2 (Ensemble U).
+
+Lemma empty_in_F2 : my_in2 F (Empty_set U). 
+Admitted.
+Lemma empty_in_H2 : my_in2 H (Empty_set U).
+Admitted.
+
+(** Can make notation for this definition: **)
+Declare Scope both.
+Notation "A ∈ G" := (@my_in2 _ G A) (at level 55).
+Open Scope both.
+
+Lemma empty_in_F3 : (Empty_set U) ∈ F. 
+Admitted.
+Lemma empty_in_H3 : (Empty_set U) ∈ H.
+Admitted.
+ 
 
 Definition σ_additive_on (F : σ_algebra) (μ : (subset U ⇨ ℝ)) : Prop := 
   ∀C : (ℕ → (subset U)), (∀n : ℕ, (C n)  ∈  F) 
