@@ -1080,10 +1080,38 @@ Coercion underlying_set_of_subsets_sigma : σ_algebra >-> setOfSubsets.
 Hint Resolve proof_is_sigma_algebra : measure_theory.
 Hint Resolve underlying_set_of_subsets_sigma : measure_theory.
 
+Ltac in_ens_sig := 
   
 
 
+Definition my_in {V : Type} (A : Type) (x : Type) := 
+  
+
+(*
+Module ensemble.
+Definition Inn {V : Type} (A : Ensemble V) (x : V) := In V A x.
+End ensemble. 
+Module ensensemble.
+Definition Inn {V : Type} (F : Ensemble (Ensemble V)) (A : Ensemble V) := In (Ensemble V) F A.
+End ensensemble.
+
+Import ensemble.
+Import ensensemble.
+
+Notation "x 'inn' A" := (@Inn _ A x) (at level 50).
+
+Variable x : U.
+Variable A : Ensemble U. 
+Variable G : Ensemble (Ensemble U).
+Lemma test : x inn A.
+*)
+
 Declare Scope measure_theory_scope.
+Notation "A ∈ F" := 
+  (A ∈ underlying_set_of_subsets_sigma F) 
+    (at level 55) : measure_theory_scope. 
+
+
 Section σ_additivity.
 Variable F : σ_algebra.
 
@@ -1094,15 +1122,16 @@ trivial.
 Qed.
 Hint Rewrite sig_to_underlying_sets.
 
-Lemma F_is_σ_algebra : forall F : σ_algebra, is_σ_algebra F.
+Lemma F_is_σ_algebra : is_σ_algebra F.
 Proof.
-Take F : σ_algebra.
 It holds that (is_σ_algebra F).
 Qed.
 Hint Resolve F_is_σ_algebra : measure_theory.
+
+
 (*
 Definition inn (V : Type) (A : Type) (x : Type)  := 
-  match V with 
+  match (type of V) with 
     σ_algebra => True
   | λ_system => True
   end.
@@ -1130,8 +1159,7 @@ Notation "A 'is' 'in' F" :=
 Definition elem {G : σ_algebra} := true.
 Definition elem {H : setOfSubsets U} := true.
 *)
-Notation "A ∈ F" := 
-  (A ∈ underlying_set_of_subsets_sigma F) (at level 55) : measure_theory_scope. 
+
 (*
 Notation "A ∈ G" := true.
 Check In.
@@ -1148,9 +1176,9 @@ Definition σ_additive_on (F : σ_algebra) (μ : (subset U ⇨ ℝ)) : Prop :=
 Check σ_additive_on.
 (*End σ_additivity.*)
 
+End σ_additivity.
 Notation "μ is_σ-additive_on F" := 
   (@σ_additive_on F μ) (at level 50). 
-End σ_additivity.
 
 Section meas_def.
 Variable F : σ_algebra.
@@ -1176,6 +1204,7 @@ Notation "μ 'is' 'a' 'measure' 'on' F" :=
 
 
 Chapter measure_variable.
+Section meas_def.
 Variable F : σ_algebra. 
 Variable μ : @measure_on F.
 Check measure_on.
@@ -1201,10 +1230,13 @@ Hint Resolve μ_is_measure_on_F : measure_theory.
 Definition is_probability_measure_on F (*F : σ_algebra*) (μ : @measure_on F) 
   : Prop := 
     is_measure_on F (underlying_function μ) ∧ (underlying_function μ) Ω = 1.
-
+Check is_probability_measure_on.
 Definition is_increasing_seq_sets (C : (ℕ → (subset U)))
   : Prop := 
     ∀n : ℕ, (C n) ⊂ C (S n).
+End meas_def.
+
+Variable F : σ_algebra. 
 
 Lemma increasing_seq_mn : 
      ∀ C : (ℕ → (subset U)), 
@@ -1235,7 +1267,7 @@ Write goal using (m = S n)
 It holds that (C (S n) ⊂ C (S n)). 
 Qed.   
 
-
+Close Scope sets.
 Open Scope measure_theory_scope.
 
 
@@ -1319,11 +1351,12 @@ Qed.
 End measure_variable.
 
 Chapter add_and_cont. 
-Variable F : .
+Variable F : σ_algebra.
 Variable μ : (subset U → ℝ).
  
 Section finite_additivity. 
 Variable A B : subset U.
+Open Scope measure_theory_scope.
 
 Lemma aux_additive : 
   is_measure_on F μ
@@ -1377,13 +1410,17 @@ Contradiction.
 It holds that (∅ = ∅). 
 Qed. 
 
+End finite_additivity.
 
-Variable C : (ℕ → (subset U)).
+Section set_prep_cont_meas.
+(*Variable C : (ℕ → (subset U)).*)
+Open Scope sets.
 Lemma FUn_disj_is_Cn : 
-  is_increasing_seq_sets C
+  ∀ C : (ℕ → (subset U)), is_increasing_seq_sets C
     ⇒ ∀ n : ℕ, finite_union_up_to (disjoint_seq C) (S n) = C n.
 
 Proof. 
+Take C : (ℕ → (subset U)).
 Assume C_is_incr_seq.
 Define D := (disjoint_seq C). 
 Take n : ℕ. 
@@ -1426,6 +1463,7 @@ Qed.
 
 
 Lemma intersection_to_complement : 
+  ∀ A B : subset U,
    A ∩ B = Ω \ ((Ω \ A) ∪ (Ω \ B)). 
 
 Proof. (*analogous to complement_as_union_intersection, could be combined? *)
@@ -1461,8 +1499,10 @@ By H1 it holds that (x ∈ Ω \ B) (x_in_compB).
 Contradiction. 
 It follows that (x ∈ A ∩ B). 
 Qed.  
-End finite_additivity.
+End set_prep_cont_meas.
+
 Open Scope measure_theory_scope.
+
 Lemma intersections_in_σ : 
   (*F is_a_σ-algebra 
     ⇒  *)∀ A B : subset U, A ∈ F ∧ B ∈ F
@@ -1476,22 +1516,24 @@ By intersection_to_complement it holds that
 Write goal using (A ∩ B = Ω \ ((Ω \ A) ∪ (Ω \ B)))
   as (Ω \ ((Ω \ A) ∪ (Ω \ B)) ∈ F). 
 It holds that (F is_a_σ-algebra) (F_is_sig).
+It holds that ((Ω \ A) ∈ F ∧ (Ω \ B) ∈ F) (comps_in_F).
+
 By unions_in_σ it holds that 
- ((Ω \ A) ∪ (Ω \ B) ∈ F) (compA_compB_in_F). 
+ ((Ω \ A) ∪ (Ω \ B) ∈ F) (compA_compB_in_F).
 It follows that (Ω \ ((Ω \ A) ∪ (Ω \ B)) ∈ F).
 Qed.
+End add_and_cont.
 
-
+Variable F : σ_algebra.
+Open Scope measure_theory_scope.
 Lemma complements_in_σ : 
-  F is_a_σ-algebra
-    ⇒ ∀ A B : subset U, A ∈ F ∧ B ∈ F
-      ⇒ A \ B ∈ F. 
+  ∀ A B : subset U, A ∈ F ∧ B ∈ F
+    ⇒ A \ B ∈ F. 
 
 Proof. 
-Assume F_is_σ.
 Take A B : (subset U). 
 Assume A_and_B_in_F. 
-By F_is_σ it holds that 
+By F_is_σ_algebra it holds that 
   (Ω \ B ∈ F) (comp_B_in_F). 
 By intersections_in_σ it holds that 
   ((Ω \ B) ∩ A ∈ F) (set_in_F). 
@@ -1504,13 +1546,11 @@ Qed.
 
 
 Lemma disj_seq_in_F : 
-  F is_a_σ-algebra 
-    ⇒ ∀C : (ℕ → (subset U)), is_increasing_seq_sets C
-      ⇒ (∀ n : ℕ, C n ∈ F)
-        ⇒ (∀n : ℕ, (disjoint_seq C) n ∈ F). 
+  ∀C : (ℕ → (subset U)), is_increasing_seq_sets C
+    ⇒ (∀ n : ℕ, C n ∈ F)
+      ⇒ (∀n : ℕ, (disjoint_seq C) n ∈ F). 
 
 Proof. 
-Assume F_is_σ. 
 Take C : (ℕ ⇨ subset U) . 
 Assume C_is_incr_seq.
 Assume all_Cn_in_F.
@@ -1520,7 +1560,6 @@ Take n : ℕ.
 We need to show that (C n \ (finite_union_up_to C n) ∈ F).
 We claim that ((finite_union_up_to C n) ∈ F) (FU_in_F). 
 Apply FU_in_sigma.
-Apply F_is_σ. 
 Apply all_Cn_in_F. 
 It holds that (C n ∈ F) (Cn_in_F).
 By complements_in_σ it holds that 
@@ -1528,7 +1567,9 @@ By complements_in_σ it holds that
 Qed. 
 
 
-
+Section additivity_measure.
+Variable μ : (subset U → ℝ).
+Variable A B : (subset U).
 Lemma additivity_meas : 
   is_measure_on F μ 
     ⇒ A ∈ F ⇒ B ∈ F
@@ -1546,8 +1587,13 @@ By CU_aux_is_union it holds that
 Write goal using (A ∪ B = Countable_union C)
   as (μ (Countable_union C) = μ A + μ B).
 By aux_additive it holds that 
-  (infinite_sum seq_μC 
+  (infinite_sum (fun (n:ℕ) ↦ (μ ((aux_seq A B) n))) 
+  (μ (Countable_union (aux_seq A B))))
+  (*(infinite_sum seq_μC 
+    (μ (Countable_union C)))*) (sum_meas_is_meas_CU_aux).
+It holds that (infinite_sum seq_μC 
     (μ (Countable_union C))) (sum_meas_is_meas_CU).
+
 
 We claim that (infinite_sum seq_μC 
   (μ A + μ B)) (series_is_sumAB). 
@@ -1614,13 +1660,14 @@ By uniqueness_sum it holds that
   (μ (Countable_union C) = μ A + μ B) which concludes the proof.
 Qed.
 
-End finite_additivity. 
+End additivity_measure. 
 
 
 
 Section finite_additivityy.
 Variable C : (ℕ → (subset U)).
-
+Variable μ : (subset U → ℝ).
+Open Scope sets.
 
 Lemma FU_up_to_1_is_0 : 
   finite_union_up_to C 1 = C 0%nat.
@@ -1638,6 +1685,7 @@ Take x : U; Assume x_in_C0.
 It holds that (x ∈ finite_union_up_to C 1). 
 Qed. 
 
+Open Scope measure_theory_scope.
 Lemma finite_additivity_meas : 
   is_measure_on F μ 
     ⇒ (∀n : ℕ, C n ∈ F) 
@@ -1673,6 +1721,7 @@ By FU_S_as_union it holds that
 We claim that (Disjoint _ 
   (FU_C (S N)) (C (S N))) (FUSn_CSn_disj). 
 We argue by contradiction. 
+Open Scope sets.
 By H it holds that (∃ x : U, 
   x ∈ ((FU_C (S N)) ∩ (C (S N)))) (int_not_empty).
 Choose x such that x_in_int 
@@ -1689,6 +1738,7 @@ By not_x_in_int_Cn0_CSN it holds that
   (¬ (x ∈ C n0 ∧ x ∈ C (S N))) (not_x_in_Cn0_and_CSN).
 Contradiction. 
 (*now show: both sets in F *)
+Open Scope measure_theory_scope.
 It holds that (C (S N) ∈ F) (CSN_in_F). 
 By FU_in_sigma it holds that 
   (FU_C (S N) ∈ F) (FU_C_in_F). 
@@ -1709,7 +1759,7 @@ It holds that (μ (FU_C (S N)) + μ (C (S N))
   = sum_f_R0 seq_μC N + seq_μC (S N)). 
 Qed.
 
-
+End finite_additivityy.
 
 Lemma incr_cont_meas : 
   ∀μ : (subset U → ℝ), is_measure_on F μ 
