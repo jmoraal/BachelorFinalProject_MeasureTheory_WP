@@ -37,6 +37,7 @@ Variable my_in : @set_of_subsets V -> Prop.
 Definition my_in (G : @set_of_subsets V) (A : Ensemble V) : Prop := 
   G A.
 Variable A : Ensemble V.
+Variable H : @set_of_subsets V.
 Lemma empty_in_G : Prop.
 exact (my_in G A).
 Qed.
@@ -55,11 +56,14 @@ Definition my_ensemble_in
 Lemma empty_in_σ : my_ensemble_in F (Empty_set V). 
 *)
 Definition my_in2 {V} (G : @set_of_subsets V) (A : Ensemble V) 
-  
     := In (Ensemble V) G A.
 Check my_in. 
 Check my_in2.
 Lemma empty_in_σ : my_in2 F (Empty_set V). 
+Admitted.
+Lemma empty_in_H : my_in2 H (Empty_set V). 
+
+
 
 
 
