@@ -1,3 +1,24 @@
+
+
+Require Import Sets.Ensembles.
+Require Import Sets.Classical_sets.
+Require Import Sets.Powerset.
+Require Import Logic. 
+Require Import ClassicalFacts. 
+Require Import Omega. 
+Require Import Coq.Arith.Wf_nat. 
+
+Hint Unfold In Included Same_set Strict_Included Add Setminus Subtract: sets.
+
+Hint Resolve Union_introl Union_intror Intersection_intro In_singleton
+  Couple_l Couple_r Triple_l Triple_m Triple_r Disjoint_intro
+  Extensionality_Ensembles: sets.
+Hint Resolve Full_intro : measure_theory.  (*nieuwe database measure theory*)
+Hint Resolve Intersection_intro : measure_theory. 
+Hint Resolve Union_introl Union_intror : measure_theory. 
+Hint Resolve Disjoint_intro : measure_theory. 
+
+
 (**** WP tactics library ****)
 Require Import Rbase.
 Require Import Rfunctions.
@@ -391,24 +412,21 @@ Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
 
 (*** NEW ***)
 
-
-Require Import Sets.Ensembles.
-Require Import Sets.Classical_sets.
-Require Import Sets.Powerset.
-Require Import Logic. 
-Require Import ClassicalFacts. 
-Require Import Omega. 
-Require Import Coq.Arith.Wf_nat. 
-
-Hint Unfold In Included Same_set Strict_Included Add Setminus Subtract: sets.
-
-Hint Resolve Union_introl Union_intror Intersection_intro In_singleton
-  Couple_l Couple_r Triple_l Triple_m Triple_r Disjoint_intro
-  Extensionality_Ensembles: sets.
+(*
+Ltac destruct_intersec := 
+match goal with
+    | [ |- _ ∈ ?X ∩ _ ⇨ _ ] => intro X; destruct X
+  end.
+*)
+Ltac destruct_intersec :=
+  match goal with 
+    | [H : _ ∈ _ ∩ _  |- _] => destruct H
+  end.
 
 Ltac trivial_set_inclusion := 
   try intro x;
   try intro H;
+  try destruct_intersec;
   try contradiction;
   first [wp_power | fail "This inclusion is not trivial (enough)."].
 
@@ -453,38 +471,29 @@ This equality is trivial.
 Qed. 
 
 
+
 Lemma intersection_full : 
   ∀ A : subset U, (Ω ∩ A) = A. 
 
 Proof. 
-Fail This equality is trivial.
-Take A : (subset U). 
-We prove equality by proving two inclusions. 
-Take x : U; Assume x_in_intersection. 
-destruct x_in_intersection. 
-It holds that (x ∈ A). 
-
-Take x : U; Assume x_in_A. 
-Admitted. (*
-It holds that (x ∈ Ω) (x_in_omega). 
-It follows that (x ∈ (Ω ∩ A)). 
-Qed. *)
+This equality is trivial.
+Qed.
 
 
 Lemma intersection_empty : 
   ∀ A : subset U, (A ∩ ∅) = ∅. 
 
 Proof. 
-Take A : (subset U). 
-We prove equality by proving two inclusions. 
-Take x : U; Assume x_in_intersection. 
-destruct x_in_intersection. 
-Contradiction. 
-
-Take x : U; Assume x_in_empty. 
-Contradiction. 
+This equality is trivial.
 Qed. 
 
+
+
+Ltac disjoint_tool :=
+match goal with 
+  | [|- Disjoint ?U ?X ?Y] => enough (forall x : U, x ∉ (X ∩ Y)) by wp_power 
+end.
+(* may add (wp... || "error message") *)
 
 Lemma empty_disjoint : 
   ∀ A : subset U, Disjoint _ A ∅. 
@@ -503,33 +512,7 @@ Lemma intersection_symmetric :
   ∀ A B : subset U, A ∩ B = B ∩ A. 
 
 Proof. 
-(*set_equality.*)
-(*try intro A.
-try intro B.
-apply Extensionality_Ensembles.
-  unfold Same_set.
-  unfold Included.
-  split.
-  intro x.
-  intro H1.
-  try wp_power. 
-  try contradiction.
-intro x.
-intro H2.
-try destruct H2.
-try wp_power.
-try contradiction.
-*)
-Take A : (subset U). 
-Take B : (subset U). 
-We prove equality by proving two inclusions. 
-Take x : U; Assume x_in_AB. 
-destruct x_in_AB. 
-It holds that (x ∈ (B ∩ A)). 
-
-Take x : U; Assume x_in_BA. 
-destruct x_in_BA. 
-It holds that (x ∈ (A ∩ B)). 
+This equality is trivial.
 Qed. 
 Hint Resolve intersection_symmetric : sets.
 
@@ -603,34 +586,5 @@ Lemma complement_as_intersection :
     A \ B = (Ω \ B) ∩ A. 
 
 Proof. 
-try intro A.
-try intro B.
-try apply Extensionality_Ensembles.
-try  unfold Same_set.
-try  unfold Included.
-(*try unfold Setminus.*)
-try   split.
-try   intro x.
-try   intro H1.
-try   try wp_power. 
-try  contradiction.
-try intro x.
-try intro H2.
-try destruct H2.
-try wp_power.
-try contradiction.
-
-set_equality.
-Take A B : (subset U). 
-We prove equality by proving two inclusions. 
-
-Take x : U. 
-Assume x_in_A_without_B. 
-It holds that (x ∈ ((Ω \ B) ∩ A)). 
-
-Take x : U. 
-Assume x_in_rhs. 
-By x_in_rhs it holds that 
-  (x ∈ (Ω \ B) ∧ (x ∈ A)) (x_in_A_and_comp_B). 
-It holds that (x ∈ (A \ B)). 
+This equality is trivial.
 Qed. 
