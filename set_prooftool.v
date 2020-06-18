@@ -453,7 +453,7 @@ Lemma complement_empty_is_full :
 Proof. 
 This equality is trivial.
 Qed. 
-
+Hint Rewrite <- complement_empty_is_full.
 
 Lemma complement_full_is_empty : 
   ∅ = (Ω \ Ω). 
@@ -461,7 +461,7 @@ Lemma complement_full_is_empty :
 Proof. 
 This equality is trivial.
 Qed.
-
+Hint Rewrite <- complement_full_is_empty.
 
 Lemma setminus_empty : 
   ∀ A : subset U, A \ ∅ = A. 
@@ -469,7 +469,7 @@ Lemma setminus_empty :
 Proof. 
 This equality is trivial.
 Qed. 
-
+Hint Rewrite setminus_empty.
 
 
 Lemma intersection_full : 
@@ -478,7 +478,7 @@ Lemma intersection_full :
 Proof. 
 This equality is trivial.
 Qed.
-
+Hint Rewrite intersection_full.
 
 Lemma intersection_empty : 
   ∀ A : subset U, (A ∩ ∅) = ∅. 
@@ -486,7 +486,16 @@ Lemma intersection_empty :
 Proof. 
 This equality is trivial.
 Qed. 
+Hint Rewrite intersection_empty.
 
+
+Lemma complement_as_intersection : 
+  ∀ A B : subset U, 
+    A \ B = (Ω \ B) ∩ A. 
+
+Proof. 
+This equality is trivial.
+Qed. 
 
 
 Ltac disjoint_tool :=
@@ -499,9 +508,11 @@ Lemma empty_disjoint :
   ∀ A : subset U, Disjoint _ A ∅. 
 
 Proof. 
-Take A : (subset U).
-It suffices to show that (∀ x:U, x ∉ (A ∩ ∅)).
-Take x : U. 
+try intro A;
+try intro B; 
+disjoint_tool;
+intros x.
+(*try rewrite using .*)
 By intersection_empty it holds that 
   ((A ∩ ∅) = ∅) (int_empty). 
 Write goal using ((A ∩ ∅) = ∅) as (x ∉ ∅). 
@@ -531,22 +542,31 @@ Write H using ((A ∩ B) = (B ∩ A))
   as (∀ x : U, x ∉ (B ∩ A)). 
 It follows that (Disjoint U B A). 
 Qed. 
+Hint Resolve disjoint_symmetric : sets.
 (*include last two in library? Should be trivial. *)
+
+Ltac destruct_element := 
+  match goal with 
+    | [H : ?v ∈ ?A |- _ ] 
+      => destruct H; wp_power; try wp_power
+  end.
+
+Ltac sets_to_logic := 
+  try intro A;
+  try intro B;
+  try intro C;
+  try intro H;
+  try destruct_element; 
+  try contra.
 
 Lemma union_to_or : 
   ∀ A B : (subset U), ∀ x : U, 
     x ∈ (A ∪ B) ⇒ (x ∈ A ∨ x ∈ B).
 
 Proof. 
-Take A : (subset U); 
-Take B : (subset U).
-Take x : U; Assume x_in_union. 
-destruct x_in_union. 
-(* x ∈ A: *)
-It follows that (x ∈ A ∨ x ∈ B).
-(* x ∈ B: *) 
-It follows that (x ∈ A ∨ x ∈ B). 
+sets_to_logic.
 Qed. 
+
 
 
 Lemma not_in_comp : 
@@ -554,37 +574,19 @@ Lemma not_in_comp :
     x ∉ (Ω \ A) ⇒ x ∈ A.
 
 Proof. 
-(*try intro A.
-try intro B.
-try apply Extensionality_Ensembles.
-try  unfold Same_set.
-try  unfold Included.
-try unfold Setminus.
-try   split.
-try   intro x.
-try   intro H1.
-try   try wp_power. 
-try  contradiction.
-try intro x.
-try intro H2.
-try destruct H2.
-try wp_power.
-try contradiction.
-set_equality.*)
+try intro A.
+  try intro B.
+  try intro C.
+  try intro H.
+  try destruct_element.
+  try contra.
+  try contradiction.
+sets_to_logic.
 Take A : (subset U); Take x : U. 
 Assume x_not_in_complement. 
 We argue by contradiction.
-(*
+
 It holds that (x ∈ (Ω \ A)) (x_in_complement).
 
 Contradiction. 
-Qed. *) Admitted.
-
-
-Lemma complement_as_intersection : 
-  ∀ A B : subset U, 
-    A \ B = (Ω \ B) ∩ A. 
-
-Proof. 
-This equality is trivial.
-Qed. 
+Qed.
