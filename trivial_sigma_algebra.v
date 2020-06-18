@@ -1,3 +1,4 @@
+
 (*Version 1.5.8 - 24-04-2020
   Last readability corrections in proof
   Notations made more intuitive
@@ -6,20 +7,16 @@ Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
 Require Import wplib.Tactics.Tactics.
 Require Import wplib.Tactics.TacticsContra.
-Require Import Sets.Powerset.
 Require Import Coq.Logic.Classical_Pred_Type. 
 
 Variable U : Type. 
 
 (*For notations: change level if brackets occur in wrong places*)
 Notation "∅" := 
-  (Empty_set U). 
-(*Watch out: type Ensemble _, not Ensemble Ensemble _. 
-  But the latter is (almost) never needed, 
-  so this difference should not cause problems. *)
+  (Empty_set _). 
 
 Notation "'Ω'" := 
-  (Full_set U) (at level 0). 
+  (Full_set _) (at level 0). 
 
 Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
    apply Extensionality_Ensembles; 
@@ -37,21 +34,21 @@ Notation "A \ B" :=
   (Setminus _ A B) (at level 50). 
 
 Notation "x ∈ A" := 
-  (In _ A x) (at level 50). 
+  (In _ A x) (at level 55). 
 (*notation already used in 'Notations', but differently*)
 
 Notation "A ⊂ B" := 
-  (Included _ A B) (at level 50). 
+  (Included _ A B) (at level 55). 
 
 Definition is_π_system (Π : Ensemble (Ensemble U)) 
   : Prop := 
     ∀ A : Ensemble U, A ∈ Π ⇒ 
       ∀ B : Ensemble U, B ∈ Π ⇒ 
-         (A ∩ B) ∈ Π. 
+         A ∩ B ∈ Π. 
 
-Definition Countable_union (A : (ℕ → Ensemble U)) 
+Definition Countable_union (C : (ℕ → Ensemble U)) 
   : Ensemble U := 
-    fun (x:U) ↦ ∃n : ℕ, x ∈ (A n).
+    fun (x:U) ↦ ∃ n : ℕ, x ∈ (C n).
 
 Definition full_set_in_set (Λ : Ensemble (Ensemble U)) 
   : Prop :=
