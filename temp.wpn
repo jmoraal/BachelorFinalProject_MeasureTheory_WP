@@ -1,0 +1,9 @@
+{
+  "exerciseSheet": false,
+  "blocks": [
+    {
+      "type": "code",
+      "text": "Require Import wplib.Notebooks.Continuity_of_measures.\nRequire Import ClassicalFacts. \nRequire Import Coq.Arith.Wf_nat. \nRequire Import Logic. \nRequire Import Omega. \nRequire Import Reals.\nRequire Import Sets.Classical_sets.\nRequire Import Sets.Ensembles.\nRequire Import Sets.Powerset.\nRequire Import wplib.Lib.measure_theory.\nRequire Import wplib.Lib.sets.\nRequire Import wplib.Notations.Notations.\nRequire Import wplib.Notations.SetNotations.\nRequire Import wplib.Tactics.Tactics.\nRequire Import wplib.Tactics.TacticsContra.\n\n\nCheck σ_additive_on.\nCheck empty_in_σ."
+    }
+  ]
+}
