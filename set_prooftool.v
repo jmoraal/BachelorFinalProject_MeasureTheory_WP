@@ -3,21 +3,36 @@
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
 Require Import Sets.Powerset.
-Require Import Logic. 
+Require Import Logic.  
 Require Import ClassicalFacts. 
 Require Import Omega. 
 Require Import Coq.Arith.Wf_nat. 
-
+(*
+Hint Unfold In Included Same_set Strict_Included Add Setminus Subtract : sets.
+(*Hint Constructors Union Intersection Disjoint Full_set : sets.*)
+Hint Resolve Union_introl Union_intror Intersection_intro In_singleton
+  Couple_l Couple_r Triple_l Triple_m Triple_r Disjoint_intro
+  Extensionality_Ensembles Full_intro: sets.
+Hint Resolve Setminus Extensionality_Ensembles : sets.
+*)
+(*
 Hint Unfold In Included Same_set Strict_Included Add Setminus Subtract: sets.
 
 Hint Resolve Union_introl Union_intror Intersection_intro In_singleton
   Couple_l Couple_r Triple_l Triple_m Triple_r Disjoint_intro
   Extensionality_Ensembles: sets.
-Hint Resolve Full_intro : measure_theory.  (*nieuwe database measure theory*)
-Hint Resolve Intersection_intro : measure_theory. 
-Hint Resolve Union_introl Union_intror : measure_theory. 
-Hint Resolve Disjoint_intro : measure_theory. 
-
+*)
+Hint Constructors Union Intersection Disjoint Full_set : sets.
+(*
+Hint Resolve Setminus : sets.
+Hint Resolve Union_introl Union_intror Intersection_intro In_singleton
+  Couple_l Couple_r Triple_l Triple_m Triple_r Disjoint_intro
+  Extensionality_Ensembles: sets.
+Hint Resolve Full_intro : sets.  
+Hint Resolve Intersection_intro : sets. 
+Hint Resolve Union_introl Union_intror : sets. 
+Hint Resolve Disjoint_intro : sets. 
+*)
 
 (**** WP tactics library ****)
 Require Import Rbase.
@@ -104,6 +119,46 @@ Ltac wp_power :=
         | solve [eauto with *]
         | solve [firstorder (auto with *)]
         | solve [firstorder (eauto with *)]]).
+
+Ltac set_power :=
+  timeout 1 (first [ solve [auto with sets]
+        | solve [eauto with sets]
+        | solve [firstorder (auto with sets)]
+        | solve [firstorder (eauto with sets)]]).
+
+
+(*** NEW ***)
+Ltac destruct_intersec :=
+  match goal with 
+    | [H : In _ (Intersection _ _ _) _  |- _] => destruct H
+    | [H : In _ (Union _ _ _) _  |- _] => destruct H; try set_power
+  end.
+(*_ ∈ _ ∩ _*)
+Ltac trivial_set_inclusion := 
+  try intro x;
+  try intro H;
+  try destruct_intersec;
+  try contradiction;
+  try set_power.
+
+Ltac trivial_set_equality := 
+  try intros A;
+  try intros B;
+  try apply Extensionality_Ensembles;
+  try unfold Same_set;
+  try unfold Included;
+  split;
+  trivial_set_inclusion;
+  trivial_set_inclusion.
+(*To do: 
+    destruct
+    error message if no succes
+*)
+Tactic Notation "This" "equality" "is" "trivial" := 
+   trivial_set_equality.
+
+Hint Extern 5 (_ = _) => trivial_set_equality : sets. 
+
 
 Ltac intro_strict s t :=
   match goal with
@@ -410,122 +465,85 @@ Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
    unfold Included;
    split.
 
-(*** NEW ***)
-
-(*
-Ltac destruct_intersec := 
-match goal with
-    | [ |- _ ∈ ?X ∩ _ ⇨ _ ] => intro X; destruct X
-  end.
-*)
-Ltac destruct_intersec :=
-  match goal with 
-    | [H : _ ∈ _ ∩ _  |- _] => destruct H
-  end.
-
-Ltac trivial_set_inclusion := 
-  try intro x;
-  try intro H;
-  try destruct_intersec;
-  try contradiction;
-  first [wp_power | fail "This inclusion is not trivial (enough)."].
-
-Ltac trivial_set_equality := 
-  try intros A;
-  try intros B;
-  try apply Extensionality_Ensembles;
-  try unfold Same_set;
-  try unfold Included;
-  split;
-  trivial_set_inclusion;
-  trivial_set_inclusion.
-(*To do: 
-    destruct
-    error message if no succes
-*)
-Tactic Notation "This" "equality" "is" "trivial" := 
-   trivial_set_equality.
 
 
 Lemma complement_empty_is_full : 
   Ω = (Ω \ ∅). 
-
-Proof. 
-This equality is trivial.
+It holds that (Ω = (Ω \ ∅)). 
 Qed. 
-Hint Rewrite <- complement_empty_is_full.
 
 Lemma complement_full_is_empty : 
   ∅ = (Ω \ Ω). 
-
-Proof. 
 This equality is trivial.
 Qed.
-Hint Rewrite <- complement_full_is_empty.
 
 Lemma setminus_empty : 
   ∀ A : subset U, A \ ∅ = A. 
-
-Proof. 
 This equality is trivial.
 Qed. 
-Hint Rewrite setminus_empty.
-
 
 Lemma intersection_full : 
   ∀ A : subset U, (Ω ∩ A) = A. 
-
-Proof. 
 This equality is trivial.
 Qed.
-Hint Rewrite intersection_full.
 
 Lemma intersection_empty : 
   ∀ A : subset U, (A ∩ ∅) = ∅. 
-
-Proof. 
 This equality is trivial.
 Qed. 
-Hint Rewrite intersection_empty.
-
 
 Lemma complement_as_intersection : 
   ∀ A B : subset U, 
     A \ B = (Ω \ B) ∩ A. 
-
-Proof. 
 This equality is trivial.
 Qed. 
 
+Lemma intersection_symmetric : 
+  ∀ A B : subset U, A ∩ B = B ∩ A. 
+This equality is trivial.
+Qed. 
 
-Ltac disjoint_tool :=
-match goal with 
-  | [|- Disjoint ?U ?X ?Y] => enough (forall x : U, x ∉ (X ∩ Y)) by wp_power 
-end.
-(* may add (wp... || "error message") *)
+Section set_lemmas.
+Variable A B : subset U.
+Lemma sets_1 : A ∪ B = B ∪ A.
+This equality is trivial.
+Qed.
+
+Lemma sets_2 : Ω ∪ A = Ω.
+This equality is trivial.
+Qed.
+
+Lemma sets_3 : ∅ ∪ A = A.
+This equality is trivial.
+Qed.
+End set_lemmas.
+
+(*
+Hint Rewrite intersection_empty.
+Hint Rewrite <- complement_full_is_empty.
+Hint Rewrite <- complement_empty_is_full.
+Hint Rewrite setminus_empty.
+Hint Rewrite intersection_full.
+Hint Resolve intersection_symmetric : sets.
+*)
 
 Lemma empty_disjoint : 
-  ∀ A : subset U, Disjoint _ A ∅. 
+  ∀ A B : subset U, Disjoint _ A ∅. 
 
 Proof. 
 try intro A;
-try intro B; 
-disjoint_tool;
-intros x.
+try intro B(*; 
+disjoint_tool;*)
+(*intros x*).
+We claim that (A ∩ B = B ∩ A) (xx).
+This equality is trivial.
 (*try rewrite using .*)
-By intersection_empty it holds that 
+It holds that 
   ((A ∩ ∅) = ∅) (int_empty). 
 Write goal using ((A ∩ ∅) = ∅) as (x ∉ ∅). 
 It holds that (x ∉ ∅). 
 Qed. 
 
-Lemma intersection_symmetric : 
-  ∀ A B : subset U, A ∩ B = B ∩ A. 
-
-Proof. 
-This equality is trivial.
-Qed. 
-Hint Resolve intersection_symmetric : sets.
 
 
 Lemma disjoint_symmetric : 
@@ -535,9 +553,9 @@ Proof.
 Take A : (subset U). 
 Take B : (subset U). 
 Assume A_B_disjoint. 
-destruct A_B_disjoint.
 It holds that 
   ((A ∩ B) = (B ∩ A)) (AB_is_BA).
+destruct A_B_disjoint.
 Write H using ((A ∩ B) = (B ∩ A)) 
   as (∀ x : U, x ∉ (B ∩ A)). 
 It follows that (Disjoint U B A). 
@@ -575,17 +593,17 @@ Lemma not_in_comp :
 
 Proof. 
 try intro A.
-  try intro B.
+  try intro x.
   try intro C.
   try intro H.
   try destruct_element.
-  try contra.
+  try contra. (*
   try contradiction.
 sets_to_logic.
 Take A : (subset U); Take x : U. 
 Assume x_not_in_complement. 
 We argue by contradiction.
-
+*)
 It holds that (x ∈ (Ω \ A)) (x_in_complement).
 
 Contradiction. 
