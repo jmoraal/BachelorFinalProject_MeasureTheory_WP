@@ -20,11 +20,22 @@ Require Import Rtrigo.
 Require Import Ranalysis.
 Require Import Integration.
 Require Import micromega.Lra.
-Require Import Omega.
+Require Import Omega. 
 Require Import Max.
 (* Require Import Unicode.Utf8. *)
 Require Import Sets.Ensembles.
 Require Import Sets.Classical_sets.
+
+
+Hint Unfold In Included Same_set Strict_Included Add Setminus Subtract: sets.
+
+Hint Resolve Union_introl Union_intror Intersection_intro In_singleton
+  Couple_l Couple_r Triple_l Triple_m Triple_r Disjoint_intro
+  Extensionality_Ensembles: sets.
+Hint Resolve Full_intro : measure_theory.  (*nieuwe database measure theory*)
+Hint Resolve Intersection_intro : measure_theory. 
+Hint Resolve Union_introl Union_intror : measure_theory. 
+Hint Resolve Disjoint_intro : measure_theory. 
 
 (** Guarantee indentation and introduce custom notation for forall *)
 Notation "'for' 'all' x .. y , P" := (forall x, .. (forall y, P) ..)
@@ -1024,6 +1035,7 @@ Apply empty_disjoint.
 Qed. 
 
 (***********************************************************)
+(*** NEW ***)
 Require Import Reals. 
 
 
@@ -1068,28 +1080,29 @@ Definition my_class := setOfSubsets U ⇨ subset U.
 
 Coercion in_salg : salg_class >-> my_class.
 *)
-(*
+
 Declare Scope measure_theory_scope.
 Notation "A ∈ F" := 
   (A ∈ underlying_set_of_subsets_sigma F) 
-    (at level 55) : measure_theory_scope. *)
-
+    (at level 55) : measure_theory_scope. 
+Open Scope measure_theory_scope.
 Lemma empty_in_σ : 
-  (*F is_a_σ-algebra ⇒ *)∅ ∈ underlying_set_of_subsets_sigma F. 
+  (*F is_a_σ-algebra ⇒ *)∅ ∈  F. 
 
 Proof.  
 (*Assume F_is_σ_algebra. *)
 By complement_full_is_empty it holds that 
   (∅ = (Ω \ Ω)) (comp_full_empty).
 Write goal using (∅ = (Ω \ Ω)) as ((Ω \ Ω) ∈ F). 
-It holds that ((Ω \ Ω) ∈ F). 
+By F_is_σ_algebra it holds that ((Ω \ Ω) ∈ F)
+  which concludes the proof.
 Qed.  
 
 
 
 
 
-Variable F : σ_algebra. 
+(*Variable F : σ_algebra. *)
 Variable μ : (subset U ⇨ ℝ).
 Check μ.
 Notation "'Σ' Cn 'equals' x" := 
@@ -1115,9 +1128,9 @@ Notation "｜ x - y ｜" := (R_dist x y) (at level 20).
 
 
 Definition is_measure_on F μ : Prop := 
-  is_σ_algebra F ∧ μ ∅ = 0 ∧ μ is_σ-additive_on F.
+   μ ∅ = 0 ∧ μ is_σ-additive_on F.
 
-Definition is_probability_measure_on (F : setOfSubsets U) (μ : (subset U → ℝ)) 
+Definition is_probability_measure_on F (μ : (subset U → ℝ)) 
   : Prop := 
     is_measure_on F μ ∧ μ Ω = 1.
 
@@ -1153,19 +1166,6 @@ Write goal using (m = S n)
   as (C (S n) ⊂ C (S n)). 
 It holds that (C (S n) ⊂ C (S n)). 
 Qed.   
-
-
-
-Lemma empty_in_σ : 
-  F is_a_σ-algebra ⇒ ∅ ∈ F. 
-
-Proof.  
-Assume F_is_σ_algebra. 
-By complement_full_is_empty it holds that 
-  (∅ = (Ω \ Ω)) (comp_full_empty).
-Write goal using (∅ = (Ω \ Ω)) as ((Ω \ Ω) ∈ F). 
-It holds that ((Ω \ Ω) ∈ F). 
-Qed.  
 
 
 Lemma unions_in_σ : 
@@ -1370,7 +1370,7 @@ By uniqueness_sum it holds that
   (μ (Countable_union C) = μ A + μ B) which concludes the proof.
 Qed.
 
-
+Open Scope ensemble_scope.
 Lemma FU_up_to_1_is_0 : 
   ∀ C : (ℕ → (subset U)), 
       finite_union_up_to C 1 = C 0%nat.

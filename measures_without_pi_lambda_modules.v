@@ -444,21 +444,14 @@ Hint Resolve Intersection_intro : measure_theory.
 Hint Resolve Union_introl Union_intror : measure_theory. 
 Hint Resolve Disjoint_intro : measure_theory. 
 End Notations.
-(*
-Notation "∅" := empty.
-Notation "'Ω'" := full (at level 0).
-*)
 Import Notations.
 
 Module definitions.
 Variable U : Type.
-(*
-Notation "∅" := 
-  (Empty_set U). 
 
-Notation "'Ω'" := 
-  (Full_set U) (at level 0).
-Check Ω.
+(*
+Notation "∅" := (Empty_set U).
+Notation "'Ω'" := (Full_set U) (at level 0).
 *)
 Definition is_π_system {U} (Π : setOfSubsets U) 
   : Prop := 
@@ -546,6 +539,16 @@ End definitions.
 Import definitions.
 
 Module set_lemmas.
+(*first some definitions: *)
+Fixpoint aux_seq {U : Type} (A B : subset U) (n : ℕ) {struct n}
+  : (subset U) :=
+    match n with 
+      0 => A 
+    | 1 => B
+    | n => ∅ 
+    end. 
+
+Section lemmas.
 Variable U : Type.
 (*
 Notation "∅" := 
@@ -554,7 +557,6 @@ Notation "∅" :=
 Notation "'Ω'" := 
   (Full_set U) (at level 0). 
 *)
-
 Lemma intersection_empty : ∀A : subset U, 
   (A ∩ ∅) = ∅. 
 
@@ -959,13 +961,6 @@ By unions_in_π_and_λ it holds that
   
 Qed. 
 
-Fixpoint aux_seq (A B : subset U) (n : ℕ) {struct n}
-  : (subset U) :=
-    match n with 
-      0 => A 
-    | 1 => B
-    | n => ∅ 
-    end. 
 
 
 Lemma CU_aux_is_union : 
@@ -1052,15 +1047,17 @@ By disjoint_symmetric it holds that
 It suffices to show that (Disjoint U (aux_seq A B n) ∅). 
 Apply empty_disjoint. 
 Qed. 
+End lemmas.
 End set_lemmas.
 (***********************************************************)
 Import set_lemmas.
+
+Module proofs.
 Require Import Reals. 
 
 Variable U : Type.
 Variable F : setOfSubsets U. 
 Variable μ : (subset U ⇨ ℝ).
-Check μ.
 (*Definition σ_algebras := (sig (is_σ_algebra)). *)
 Notation "'Σ' Cn 'equals' x" := 
   (infinite_sum Cn x) (at level 50). 
@@ -1131,7 +1128,8 @@ Write goal using (m = S n)
 It holds that (C (S n) ⊂ C (S n)). 
 Qed.   
 
-
+Check complement_full_is_empty.
+Check ∅.
 
 Lemma empty_in_σ : 
   F is_a_σ-algebra ⇒ ∅ ∈ F. 
@@ -1139,8 +1137,8 @@ Lemma empty_in_σ :
 Proof.  
 Assume F_is_σ_algebra. 
 By complement_full_is_empty it holds that 
-  (∅ = (Ω \ Ω)) (comp_full_empty).
-Write goal using (∅ = (Ω \ Ω)) as ((Ω \ Ω) ∈ F). 
+  (@empty U = (Ω \ Ω)) (comp_full_empty).
+Write goal using (@empty U = (Ω \ Ω)) as ((Ω \ Ω) ∈ F). 
 It holds that ((Ω \ Ω) ∈ F). 
 Qed.  
 
@@ -1259,7 +1257,7 @@ Contradiction.
 We prove by induction on n. 
 It holds that (¬(1 > 1)%nat) (not_1_g_1). 
 Contradiction. 
-It holds that (∅ = ∅). 
+It holds that (@empty U = @ empty U). 
 Qed. 
 
 Lemma additivity_meas : 

@@ -48,13 +48,7 @@ Qed.
 
 Lemma empty_in_F2 : my_in F (Empty_set V).
 Admitted.
-(*
-Definition my_ensemble := V -> Prop.
-Definition my_ensemble_in 
-  (A:my_ensemble) (x:V) : Prop := A x.
 
-Lemma empty_in_σ : my_ensemble_in F (Empty_set V). 
-*)
 Definition my_in2 {V} (G : @set_of_subsets V) (A : Ensemble V) 
     := In (Ensemble V) G A.
 Check my_in. 

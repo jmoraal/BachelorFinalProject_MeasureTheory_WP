@@ -518,13 +518,18 @@ Notation "x ∈ A" := (@is_in _ A x) (at level 50) : analysis_scope.
 (** # Set notations
 For Coq's Ensembles library*)
 Require Import Sets.Ensembles. 
-
+(*
 Definition subset (U : Type) := 
   (Ensemble U). 
 
 Definition set_of_subsets (U : Type) := 
   (Ensemble (subset U)).
+*)
+Notation "'subset' U" := 
+  (Ensemble U) (at level 50). 
 
+Notation "'set_of_subsets' U" := 
+  (Ensemble (subset U)) (at level 50). 
 Variable U : Type.
 
 Notation "∅" := 
@@ -660,6 +665,7 @@ Notation "σ( A )" :=
 (** TO DO: The following four procedures are completely analogous. More efficient way?
 
 π-systems:*)
+(*
 Record π_system := make_π_system
   { underlying_set_of_subsets_π : set_of_subsets U;
     proof_is_π_system : is_π_system underlying_set_of_subsets_π}.
@@ -670,112 +676,56 @@ Coercion underlying_set_of_subsets_π :
 Hint Resolve proof_is_π_system : measure_theory.
 Hint Resolve underlying_set_of_subsets_π : measure_theory.
 
-Variable P : π_system.
-
-Definition Π : set_of_subsets U := P.
-
-
-Lemma Π_is_π_system : is_π_system Π.
-
-Proof. 
-It holds that (is_π_system (underlying_set_of_subsets_π P)) (xx). 
-It holds that (is_π_system Π).
-Qed.
-Hint Resolve Π_is_π_system : measure_theory.
-(** λ-systems:*)
 
 Record λ_system := make_λ_system
   { underlying_set_of_subsets_λ : set_of_subsets U;
     proof_is_λ_system : is_λ_system underlying_set_of_subsets_λ}.
     
-Variable L : λ_system.
-
 Coercion underlying_set_of_subsets_λ : 
   λ_system >-> set_of_subsets.
 
-Definition Λ : set_of_subsets U := L.
 
 Hint Resolve proof_is_λ_system : measure_theory.
 Hint Resolve underlying_set_of_subsets_λ : measure_theory.
 
 
-Lemma Λ_is_λ_system : is_λ_system L.
-
-Proof. 
-It holds that (is_λ_system (underlying_set_of_subsets_λ L)) (xx). 
-It holds that (is_λ_system Λ).
-Qed.
-Hint Resolve Λ_is_λ_system : measure_theory.
-
+*)
 (** σ-algebras:*)
 Record σ_algebra := make_σ_algebra
-  { underlying_set_of_subsets_σ : set_of_subsets U;
+  { underlying_set_of_subsets_σ : Ensemble (Ensemble U);
     proof_is_σ_algebra : is_σ_algebra underlying_set_of_subsets_σ}.
 
 
-Variable G : σ_algebra.
-
 Coercion underlying_set_of_subsets_σ : 
-  σ_algebra >-> set_of_subsets.
+  σ_algebra >-> Ensemble.
 
-Definition F : set_of_subsets U := G.
 Hint Resolve proof_is_σ_algebra : measure_theory.
 Hint Resolve underlying_set_of_subsets_σ : measure_theory.
 
+(*
+Declare Scope measure_theory_scope.
+Notation "A ∈ F" := 
+  (A ∈ underlying_set_of_subsets_σ F) 
+    (at level 50) : measure_theory_scope. 
 
-Lemma F_is_σ_algebra : is_σ_algebra F.
-
-Proof. 
-It holds that (is_σ_algebra (underlying_set_of_subsets_σ G)) (G_sets_σ). 
-It holds that (is_σ_algebra F).
-Qed.
+Open Scope measure_theory_scope.
+*)
 (** A collection that is both a π-system and a λ-system (mostly for proof of π_and_λ_is_σ): *)
-Record π_and_λ_system := make_π_and_λ_system
-  { underlying_set_of_subsets_π_and_λ : set_of_subsets U;
-    proof_is_π_and_λ_system : (is_λ_system underlying_set_of_subsets_π_and_λ 
-      /\ is_π_system underlying_set_of_subsets_π_and_λ)}.
-      
-Variable J : π_and_λ_system.
 
-Coercion underlying_set_of_subsets_π_and_λ : 
-  π_and_λ_system >-> set_of_subsets.
-
-Definition K : set_of_subsets U := J. 
-
-Hint Resolve proof_is_π_and_λ_system : measure_theory.
-Hint Resolve underlying_set_of_subsets_π_and_λ : measure_theory.
-
-
-Lemma K_is_π_system : (is_π_system K).
-
-Proof. 
-It holds that ((is_λ_system (underlying_set_of_subsets_π_and_λ J))
-            /\ (is_π_system (underlying_set_of_subsets_π_and_λ J))) (xx). 
-It holds that (is_π_system K).
-Qed.
-Hint Resolve K_is_π_system : measure_theory.
-
-
-Lemma K_is_λ_system : (is_λ_system K).
-
-Proof. 
-It holds that ((is_λ_system (underlying_set_of_subsets_π_and_λ J))
-            /\ (is_π_system (underlying_set_of_subsets_π_and_λ J))) (xx). 
-It holds that (is_λ_system K).
-Qed.
-Hint Resolve K_is_λ_system : measure_theory.
 (** ## Measures*)
 (** ### Definitions 
 Of σ-additivity, measure and probability measure:*)
-Definition σ_additive_on F (μ : (subset U ⇨ ℝ)) : Prop := 
+Notation "'set_function'" := (subset U ⇨ ℝ) (at level 50).
+
+Definition σ_additive_on (F : σ_algebra) (μ : set_function) : Prop := 
   ∀ C : (ℕ → (subset U)), (∀ n : ℕ, C n ∈ F) 
     ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
       ⇒ infinite_sum (fun (n:ℕ) ↦ (μ (C n))) (μ (countable_union C)).
       
-Definition is_measure_on F (μ : (subset U → ℝ)) : Prop := 
+Definition is_measure_on (F : σ_algebra) (μ : set_function) : Prop := 
   μ ∅ = 0 ∧ σ_additive_on F μ.
   
-Definition is_probability_measure_on F (μ : (subset U → ℝ)) 
+Definition is_probability_measure_on F (μ : set_function) 
   : Prop := 
     is_measure_on F μ ∧ μ Ω = 1.
 (** ### Notations*)
@@ -785,35 +735,78 @@ Notation "μ 'is' 'σ-additive' 'on' F" :=
 Notation "μ 'is' 'a' 'measure' 'on' F" := 
   (is_measure_on F μ) (at level 50). 
 (** ### Measures as record types*)
+
+Record measure_on {F : σ_algebra} := make_measure 
+  { underlying_function : set_function; 
+    proof_is_measure : is_measure_on F underlying_function}.
+    
+
+Coercion underlying_function : measure_on >-> subset U ⇨ ℝ.
+
+Section meas_lemmas.
+Variable F : σ_algebra.
+Variable μ : measure_on F.
+Lemma meas_to_underlying_fct : 
+  underlying_function F μ = μ.
+Proof. 
+trivial. 
+Qed.
+(*
+Lemma μ_is_measure : is_measure_on F μ.
+Proof.
+It holds that (is_measure_on F μ).
+Qed.
+*)
+End meas_lemmas.
+(*
+
+Open Scope measure_theory_scope.
+Definition σ_additive_on (F : σ_algebra) (μ : (subset U ⇨ ℝ)) : Prop := 
+  ∀C : (ℕ → (subset U)), (∀n : ℕ, (C n)  ∈  F) 
+    ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
+      ⇒ infinite_sum (fun (n:ℕ) ↦ (μ (C n))) (μ (Countable_union C)).
+(*infinite_sum fn l is the proposition 'the sum of all terms of fn converges to l'*)
+Check σ_additive_on.
+(*End σ_additivity.*)
+
+End σ_additivity.
+Notation "μ is_σ-additive_on F" := 
+  (@σ_additive_on F μ) (at level 50). 
+
+Section meas_def.
+Variable F : σ_algebra.
+Definition is_measure_on  (F : σ_algebra) (μ : (subset U → ℝ)) : Prop := 
+(*  is_σ_algebra F ∧*) μ ∅ = 0 ∧ μ is_σ-additive_on F.
+Check is_measure_on.
+End meas_def.
+
+
 Definition set_function {U} := (subset U ⇨ ℝ).
+
+
+Chapter measure_record_test.
+Variable F : σ_algebra.
 
 Record measure_on {F} := make_measure 
   { underlying_function : set_function; 
     proof_is_measure : is_measure_on F underlying_function}.
-    
-Variable ν : @measure_on F.
+End measure_record_test.
 
-Coercion underlying_function : measure_on >-> set_function.
+Notation "μ 'is' 'a' 'measure' 'on' F" := 
+  (is_measure_on F (underlying_function μ)) (at level 50). 
 
-Definition μ : set_function := ν.
+
+
+*)
 
 Hint Resolve underlying_function : measure_theory.
 Hint Resolve proof_is_measure : measure_theory.
 
-
-Lemma μ_is_measure_on_F : is_measure_on F μ.
-
-Proof. 
-It holds that (is_measure_on F (underlying_function ν)) (xx). 
-It holds that (is_measure_on F μ).
-Qed.
-Hint Resolve μ_is_measure_on_F : measure_theory.
 (** # Hints*)
 Hint Resolve Full_intro : measure_theory.  
 Hint Resolve Intersection_intro : measure_theory. 
 Hint Resolve Union_introl Union_intror : measure_theory. 
 Hint Resolve Disjoint_intro : measure_theory. 
-Hint Resolve F_is_σ_algebra : measure_theory.
 
 
 (** # Sets & sequences
@@ -1381,6 +1374,23 @@ Hint Resolve FU_S_as_union : sets.
 
 (*Possibly add disjoint_aux, increasing_seq_mn? *)
 
+Section sig_lemmas.
+Variable F : σ_algebra.
+Lemma sig_to_underlying_sets : 
+  underlying_set_of_subsets_σ F = F.
+Proof. 
+trivial. 
+Qed.
+
+Lemma F_is_σ_algebra : is_σ_algebra F.
+Proof.
+It holds that (is_σ_algebra F).
+Qed.
+End sig_lemmas.
+
+Hint Rewrite <- sig_to_underlying_sets.
+Hint Resolve F_is_σ_algebra : measure_theory.
+
 
 (** # Continuity of measure
 An extremely important result in measure theory is the continuity of measures. There are multiple formulations and variants to state it. The one that we aim to prove in this notebook is continuity from below, that is, continuity of measure for an increasing sequence of sets. This result is used over and over in measure theory, and for example forms the basis of the monotone convergence theorem. 
@@ -1405,7 +1415,7 @@ Open Scope nat.
 
 Variable F : σ_algebra.
 Variable μ : (@measure_on F).
-Open Scope measure_theory_scope.
+(*Open Scope measure_theory_scope.*)
 (** ## Finite unions in σ-algebras
 
 At several points of the upcoming proofs, we use finite unions. The following lemmas are similar to ones in the π-λ theorem proof, but are now stated for a σ-algebra, $F$. We want to prove that the finite union of elements of $F$ is again an element of $F$. For this, we first need two lemmas:*)
@@ -1415,8 +1425,8 @@ Lemma empty_in_σ :
 
 Proof.  
 Write goal using (∅ = (Ω \ Ω)) as ((Ω \ Ω) ∈ F). 
-By F_is_σ_algebra it holds that ((Ω \ Ω) ∈ F)
-  which concludes the proof. 
+It holds that (is_σ_algebra F) (F_is_sig).
+It holds that ((Ω \ Ω) ∈ F).
 Qed.  
 
 
@@ -1482,7 +1492,6 @@ Variable C : (ℕ → (subset U)).
 
 Section disjoint_sets.
 Variable A B : subset U.
-
 Lemma intersection_to_complement : 
   A ∩ B = Ω \ ((Ω \ A) ∪ (Ω \ B)). 
 
@@ -1520,6 +1529,24 @@ Contradiction.
 It follows that (x ∈ A ∩ B). 
 Qed.  
 
+
+Lemma complement_as_intersection : 
+  A \ B = (Ω \ B) ∩ A. 
+
+Proof. 
+We prove equality by proving two inclusions. 
+
+Take x : U. 
+Assume x_in_A_without_B. 
+It holds that (x ∈ ((Ω \ B) ∩ A)). 
+
+Take x : U. 
+Assume x_in_rhs. 
+By x_in_rhs it holds that 
+  (x ∈ (Ω \ B) ∧ (x ∈ A)) (x_in_A_and_comp_B). 
+It holds that (x ∈ (A \ B)). 
+Qed. 
+
 Lemma intersections_in_σ : 
   A ∈ F ∧ B ∈ F
     ⇒ A ∩ B ∈ F.
@@ -1538,22 +1565,6 @@ It follows that (Ω \ ((Ω \ A) ∪ (Ω \ B)) ∈ F).
 Qed.
 (** These now serve to prove that $F$ is also closed under taking complements. We need one more lemma for this, which rewrites the complement of a set with respect to another set. *)
 
-Lemma complement_as_intersection : 
-  A \ B = (Ω \ B) ∩ A. 
-
-Proof. 
-We prove equality by proving two inclusions. 
-
-Take x : U. 
-Assume x_in_A_without_B. 
-It holds that (x ∈ ((Ω \ B) ∩ A)). 
-
-Take x : U. 
-Assume x_in_rhs. 
-By x_in_rhs it holds that 
-  (x ∈ (Ω \ B) ∧ (x ∈ A)) (x_in_A_and_comp_B). 
-It holds that (x ∈ (A \ B)). 
-Qed. 
 
 End disjoint_sets.
 
@@ -1603,6 +1614,7 @@ Qed.
 (** ### Finite unions of the disjoint sequence
 A useful consequence of the construction of a disjoint sequence using `disjoint_seq` is that, when given some sequence of sets $(C_n)$, the union of the first $n$ elements of this sequence is equal to the set $C_n$ itself. This will come in handy during our final proof, when rewriting the measure of some set $C_n$ to a sum of measures of disjoint sets. *)
 Open Scope nat.
+Open Scope ensemble_scope.
 Lemma FUn_disj_is_Cn : 
   is_increasing_seq_sets C
     ⇒ ∀ n : ℕ, finite_union_up_to (disjoint_seq C) (S n) = C n.
@@ -1657,11 +1669,13 @@ Variable A B : subset U.
 Open Scope nat.
 
 
+
+
 Lemma aux_additive : 
   A ∈ F ⇒ B ∈ F
     ⇒ A and B are disjoint 
-      ⇒ (Σ (fun (n:ℕ) ↦ (μ ((aux_seq A B) n))) 
-        equals (μ (countable_union (aux_seq A B)))).
+      ⇒ (Σ (fun (n:ℕ) ↦ ((underlying_function F μ) ((aux_seq A B) n))) 
+        equals ((underlying_function F μ) (countable_union (aux_seq A B)))).
 
 Proof. 
 Assume A_in_F; Assume B_in_F.

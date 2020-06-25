@@ -1217,6 +1217,9 @@ Contradiction.
 It holds that (∅ = ∅). 
 Qed. 
 
+Notation "μ ◦ C" := 
+  (fun (n:ℕ) ↦ (μ (C n))) (at level 45).
+
 Lemma additivity_meas : 
   is_measure_on F μ 
     ⇒ ∀ A B : subset U, A ∈ F ⇒ B ∈ F
@@ -1229,26 +1232,26 @@ Take A B : (subset U).
 Assume A_in_F; Assume B_in_F.
 Assume A_B_disjoint.
 Define C := (aux_seq A B).
-Define seq_μC := (fun (n:ℕ) ↦ (μ (C n))).
+(*Define (μ ◦ C) := (fun (n:ℕ) ↦ (μ (C n))).*)
 By CU_aux_is_union it holds that 
   (A ∪ B = Countable_union C) (union_is_CU).
 Write goal using (A ∪ B = Countable_union C)
   as (μ (Countable_union C) = μ A + μ B).
 By aux_additive it holds that 
-  (infinite_sum seq_μC 
+  (infinite_sum (μ ◦ C)
     (μ (Countable_union C))) (sum_meas_is_meas_CU).
 
-We claim that (infinite_sum seq_μC 
+We claim that (infinite_sum (μ ◦ C) 
   (μ A + μ B)) (series_is_sumAB). 
 We need to show that (
    ∀ ε : ℝ, ε > 0
     ⇒ ∃ N : ℕ ,
        ∀ n : ℕ, (n ≥ N)%nat 
-        ⇒ R_dist (Σ of seq_μC up to n) (μ A + μ B) < ε).
+        ⇒ R_dist (Σ of (μ ◦ C) up to n) (μ A + μ B) < ε).
 Take ε : R; Assume ε_g0. 
 
 We claim that ( ∀ n : ℕ, (n ≥ 1)%nat 
-  ⇒ R_dist (Σ of seq_μC up to n) 
+  ⇒ R_dist (Σ of (μ ◦ C) up to n) 
     (μ A + μ B) < ε) (holds_for_ge_1).
 We prove by induction on n. 
 (* n=0: *)
@@ -1263,9 +1266,9 @@ Because n_0_or_n_g0 either n_0 or n_g0.
 It holds that (S n = 1%nat) (Sn_is_1).
 Write goal using (S n = 1%nat)
   as ((1 ≥ 1)%nat 
-  ⇒ R_dist (Σ of seq_μC up to 1) 
+  ⇒ R_dist (Σ of (μ ◦ C) up to 1) 
     (μ A + μ B) < ε).
-Write goal using (Σ of seq_μC up to 1 = μ A + μ B)
+Write goal using (Σ of (μ ◦ C) up to 1 = μ A + μ B)
   as (R_dist (μ A + μ B) (μ A + μ B) < ε). 
 By R_dist_eq it holds that 
   (R_dist (μ A + μ B)  (μ A + μ B) = 0) (dist_is_0).
@@ -1273,8 +1276,8 @@ It follows that (R_dist (μ A + μ B) (μ A + μ B) < ε).
 (* n>0: *)
 It holds that ((n ≥ 1)%nat) (n_geq_1).
 By IHn it holds that 
-  (R_dist (Σ of seq_μC up to n) (μ A + μ B) < ε) (dist_l_eps). 
-We claim that (seq_μC (S n) = 0) (µSn_0).
+  (R_dist (Σ of (μ ◦ C) up to n) (μ A + μ B) < ε) (dist_l_eps). 
+We claim that ( (μ ◦ C) (S n) = 0) (µSn_0).
 By aux_ge2_empty it holds that 
   (C (S n) = ∅) (CSn_empty).
 By μ_is_measure_on_F it holds that 
@@ -1284,19 +1287,19 @@ Write goal using (C (S n) = ∅)
   as (μ ∅ = 0).
 Apply µ_empty_0. 
 
-Write goal using (Σ of seq_μC up to (S n)
-  = Σ of seq_μC up to n + seq_μC (S n))
-    as (R_dist (Σ of seq_μC up to n + seq_μC (S n)) 
+Write goal using (Σ of (μ ◦ C) up to (S n)
+  = Σ of (μ ◦ C) up to n + (μ ◦ C) (S n))
+    as (R_dist (Σ of (μ ◦ C) up to n + (μ ◦ C) (S n)) 
       (μ A + μ B) < ε). 
-Write goal using (seq_μC (S n) = 0) 
-  as (R_dist (Σ of seq_μC up to n + 0) (μ A + μ B) < ε).
-Write goal using (Σ of seq_μC up to n + 0 = Σ of seq_μC up to n)
-  as (R_dist (Σ of seq_μC up to n ) (μ A + μ B) < ε).
+Write goal using ((μ ◦ C) (S n) = 0) 
+  as (R_dist (Σ of (μ ◦ C) up to n + 0) (μ A + μ B) < ε).
+Write goal using (Σ of (μ ◦ C) up to n + 0 = Σ of (μ ◦ C) up to n)
+  as (R_dist (Σ of (μ ◦ C) up to n ) (μ A + μ B) < ε).
 Apply dist_l_eps.
 
 It follows that (∃ N : ℕ ,
   ∀ n : ℕ, (n ≥ N)%nat 
-    ⇒ R_dist (Σ of seq_μC up to n) 
+    ⇒ R_dist (Σ of (μ ◦ C) up to n) 
       (μ A + μ B) < ε). 
 By uniqueness_sum it holds that 
   (μ (Countable_union C) = μ A + μ B) which concludes the proof.
@@ -1334,7 +1337,6 @@ Assume μ_is_measure_on_F.
 Take C : (ℕ ⇨ subset U).
 Assume all_Cn_in_F.  
 Assume C_n_disjoint. 
-Define seq_μC := (fun (n : ℕ) ↦ μ (C n)). 
 Define FU_C := (finite_union_up_to C). 
 Take N : ℕ.
 We prove by induction on N. 
@@ -1342,15 +1344,15 @@ We prove by induction on N.
 By FU_up_to_1_is_0 it holds that 
   (finite_union_up_to C 1 = C 0%nat) (FU1_is_C0).
 Write goal using (FU_C 1%nat = C 0%nat)
-  as (μ (C 0%nat) = Σ of seq_μC up to 0%nat).
-It holds that (μ (C 0%nat) = Σ of seq_μC up to 0). 
+  as (μ (C 0%nat) = Σ of (μ ◦ C) up to 0%nat).
+It holds that (μ (C 0%nat) = Σ of (μ ◦ C) up to 0). 
 (*Induction step: *)
-It holds that (Σ of seq_μC up to (S N) 
-  = Σ of seq_μC up to N + seq_μC (S N)) (sum_to_sum).
-Write goal using (Σ of seq_μC up to (S N) 
-  = Σ of seq_μC up to N + seq_μC (S N)) 
+It holds that (Σ of (μ ◦ C) up to (S N) 
+  = Σ of (μ ◦ C) up to N + (μ ◦ C) (S N)) (sum_to_sum).
+Write goal using (Σ of (μ ◦ C) up to (S N) 
+  = Σ of (μ ◦ C) up to N + (μ ◦ C) (S N)) 
     as (μ (FU_C (S (S N)))
-      = Σ of seq_μC up to N + seq_μC (S N)). 
+      = Σ of (μ ◦ C) up to N + (μ ◦ C) (S N)). 
 
 By FU_S_as_union it holds that 
   (FU_C (S (S N)) 
@@ -1385,13 +1387,13 @@ By additivity_meas it holds that
 Write goal using (FU_C (S (S N)) 
   = (FU_C (S N)) ∪ (C (S N)))
     as (μ ((FU_C (S N)) ∪ (C (S N))) 
-      = Σ of seq_μC up to N + seq_μC (S N)).
+      = Σ of (μ ◦ C) up to N + (μ ◦ C) (S N)).
 Write goal using (μ ((FU_C (S N)) ∪ (C (S N))) 
   = μ (FU_C (S N)) + μ (C (S N)))
     as (μ (FU_C (S N)) + μ (C (S N)) 
-      = Σ of seq_μC up to N + seq_μC (S N)). 
+      = Σ of (μ ◦ C) up to N + (μ ◦ C) (S N)). 
 It holds that (μ (FU_C (S N)) + μ (C (S N)) 
-  = Σ of seq_μC up to N + seq_μC (S N)). 
+  = Σ of (μ ◦ C) up to N + (μ ◦ C) (S N)). 
 Qed.
 
 
@@ -1561,13 +1563,12 @@ Assume C_is_incr_seq.
 Assume all_Cn_in_F.
 Define D_ := (disjoint_seq C_). 
 Define D := (Countable_union D_).
-Define seq_μC := (fun (n : ℕ) ↦ μ (C_ n)). 
 Define seq_μD := (fun (n : ℕ) ↦ μ (D_ n)).
 By CU_sets_disjointsets_equal it holds that 
   ((Countable_union C_) = D) (CUC_is_CUD).
 Write goal using 
   ((Countable_union C_) = D) 
-    as (seq_μC converges to (μ (D))). 
+    as ((μ ◦ C_) converges to (μ (D))). 
 By μ_is_measure_on_F it holds that 
   (μ is_σ-additive_on F) (μ_is_σ_additive). 
 By disj_seq_disjoint it holds that 

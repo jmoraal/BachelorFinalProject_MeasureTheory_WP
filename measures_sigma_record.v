@@ -357,19 +357,19 @@ Hint Resolve all_not_not_ex : contra_hints.
 
 (********* own notations *************)
 
-(*
+
 Notation "'subset' U" := 
   (Ensemble U) (at level 50). 
 
 Notation "'setOfSubsets' U" := 
-  (Ensemble (subset U)) (at level 50). *)
-
+  (Ensemble (subset U)) (at level 50). 
+(*
 Definition subset (U : Type) := 
   (Ensemble U). 
 
 Definition setOfSubsets (U : Type) := 
   (Ensemble (subset U)).
-
+*)
 Variable U : Type. 
 
 Notation "∅" := 
@@ -1019,22 +1019,22 @@ Require Import Reals.
 
 
 Record σ_algebra := make_sigma_algebra
-  { underlying_set_of_subsets_sigma : setOfSubsets U;
+  { underlying_set_of_subsets_sigma : Ensemble (Ensemble U);
     proof_is_sigma_algebra : is_σ_algebra underlying_set_of_subsets_sigma}.
-Coercion underlying_set_of_subsets_sigma : σ_algebra >-> setOfSubsets.
 
+Coercion underlying_set_of_subsets_sigma : σ_algebra >-> Ensemble.
+
+Check underlying_set_of_subsets_sigma.
 Hint Resolve proof_is_sigma_algebra : measure_theory.
 Hint Resolve underlying_set_of_subsets_sigma : measure_theory.
 
   
-
-
-
+(*
 Declare Scope measure_theory_scope.
 Notation "A ∈ F" := 
   (A ∈ underlying_set_of_subsets_sigma F) 
     (at level 55) : measure_theory_scope. 
-
+*)
 
 Section σ_additivity.
 Variable F : σ_algebra.
@@ -1055,19 +1055,16 @@ Hint Resolve F_is_σ_algebra : measure_theory.
 (** Progress: this notation now works for sigma-algebra 
     and set_of_subsets! Only not yet for subset. **)
 Variable H : setOfSubsets U.
-
+(*
 (*Usual definition of In: *)
 Open Scope sets.
-Fail Lemma empty_in_F : (Empty_set U) ∈ F. 
-Lemma empty_in_H : (Empty_set U) ∈ H.
-Admitted. 
- 
- 
+Fail Check (Empty_set U) ∈ F. 
+Check (Empty_set U) ∈ H.
+
 (* sigma-algebra definition of In: *)
 Open Scope measure_theory_scope.
-Lemma empty_in_F : (Empty_set U) ∈ F. 
-Admitted. 
-Fail Lemma empty_in_H : (Empty_set U) ∈ H.
+Check (Empty_set U) ∈ F. 
+Fail Check (Empty_set U) ∈ H.
 
 (*New definition: *)
 Definition my_in {U} (G : setOfSubsets U) (A : Ensemble U) 
@@ -1079,6 +1076,7 @@ Hint Unfold my_in : measure_theory.  (*doesn't work like this? *)
 Check my_in H.
 Check my_in F.
 
+
 Lemma empty_in_F2 : my_in F (Empty_set U). 
 Admitted.
 Lemma empty_in_H2 : my_in H (Empty_set U).
@@ -1088,19 +1086,16 @@ Admitted.
 Declare Scope both.
 Notation "A ∈ G" := (@my_in _ G A) (at level 55).
 Open Scope both.
-Lemma empty_in_F3 : (Empty_set U) ∈ F. 
-Admitted.
-Lemma empty_in_H3 : (Empty_set U) ∈ H.
-Admitted.
+Check (Empty_set U) ∈ F. 
+Check (Empty_set U) ∈ H.
 
 
 (** But somehow, does not work directly in notation form: **)
 Declare Scope both2.
 Notation "A ∈ G" := (In (Ensemble U) G A) : both2. 
 Open Scope both2.
-Fail Lemma empty_in_F4 : (Empty_set U) ∈ F. 
-Lemma empty_in_H4 : (Empty_set U) ∈ H. 
-Admitted.
+Fail Check (Empty_set U) ∈ F. 
+Check (Empty_set U) ∈ H. 
 
 
 (* Attempt at more general definition: *)
@@ -1112,23 +1107,12 @@ Check @my_in2 (subset U).
 Check @my_in U.
 Check @my_in2 (Ensemble U).
 
-Lemma empty_in_F2 : my_in2 F (Empty_set U). 
-Admitted.
-Lemma empty_in_H2 : my_in2 H (Empty_set U).
-Admitted.
+Fail Check my_in2 F (Empty_set U). 
+Check my_in2 H (Empty_set U).
 
-(** Can make notation for this definition: **)
-Declare Scope both.
-Notation "A ∈ G" := (@my_in2 _ G A) (at level 55).
-Open Scope both.
-
-Lemma empty_in_F3 : (Empty_set U) ∈ F. 
-Admitted.
-Lemma empty_in_H3 : (Empty_set U) ∈ H.
-Admitted.
- 
-
-Definition σ_additive_on (F : σ_algebra) (μ : (subset U ⇨ ℝ)) : Prop := 
+*)
+Variable μ : σ_algebra -> R.
+Definition σ_additive_on (F : σ_algebra) μ (*μ : (σ_algebra ⇨ ℝ)*) : Prop := 
   ∀C : (ℕ → (subset U)), (∀n : ℕ, (C n)  ∈  F) 
     ⇒ (∀ m n : ℕ, m ≠ n ⇒ Disjoint _ (C m) (C n)) 
       ⇒ infinite_sum (fun (n:ℕ) ↦ (μ (C n))) (μ (Countable_union C)).
@@ -1227,9 +1211,6 @@ Write goal using (m = S n)
 It holds that (C (S n) ⊂ C (S n)). 
 Qed.   
 
-Close Scope sets.
-Open Scope measure_theory_scope.
-
 
 Lemma empty_in_σ : 
   (*F is_a_σ-algebra ⇒*) ∅ ∈ F. 
@@ -1312,11 +1293,10 @@ End measure_variable.
 
 Chapter add_and_cont. 
 Variable F : σ_algebra.
-Variable μ : (subset U → ℝ).
+Variable μ : (σ_algebra → ℝ).
  
 Section finite_additivity. 
 Variable A B : subset U.
-Open Scope measure_theory_scope.
 
 Lemma aux_additive : 
   is_measure_on F μ
