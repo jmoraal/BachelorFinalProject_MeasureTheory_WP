@@ -3,25 +3,24 @@
 (* This file contains all notebooks discussed in the report, 
    together with all Waterproof libraries needed to run them. 
    
-   In Waterproof, we already included some developments in 
-   built-in libraries. Here, to clearly distinguish between 
-   existing libraries and our own new work, some sections differ 
-   from the notebooks as available in the report appendix or on 
-   GitHub. Also, implementation differs slightly from Waterproof. 
+   Each separate file has its own 'Module' environment, and can
+   be executed step by step by ctrl + up/down arrows, or up to 
+   the cursor using ctrl + left arrow. The proof context and 
+   goal(s) are in the right upper window. 
    
    For navigation of this file, using ctrl+F in combinations with 
    the following search terms is most convenient. The libraries 
    developed prior to our work are not included in these search terms, 
-   as they may be skipped. 
-    - 
-    - 
-    - 
-    - Set notations
-    - Sets & sequences
-    - Measure theory definitions & notations
-    - The trivial σ-algebra
-    - The π-λ theorem
-    - Continuity of measure
+   as they may be skipped; our work is done in the following modules: 
+    - extension_notations_library. 
+    - set_notations_library.
+    - extension_tactics_library.
+    - set_equality_proof_tool.
+    - sets_library.
+    - measure_theory_library.
+    - trivial_sigma_algebra_proof.
+    - pi_lambda_theorem_proof.
+    - continuity_of_measure_proof.
 *)
 
 
@@ -494,7 +493,7 @@ Import Notations_library.
 (******************)
 
 
-Module Added_Notations.
+Module extension_notations_library.
 (*# Further Notations 
   As extension to the 'Notations' library*)
 (*## Sequences*) 
@@ -514,10 +513,10 @@ Notation "'Σ' 'of' Cn 'up' 'to' n" :=
 Notation "μ ◦ C" := 
   (fun (n:ℕ) ↦ (μ (C n))) (at level 45).  
 
-End Added_Notations. 
-Import Added_Notations.
+End extension_notations_library. 
+Import extension_notations_library.
 
-Module Set_Notations.
+Module set_notations_library.
 (*# Set notations
 For Coq's Ensembles library*) 
 Notation "'subset' U" := 
@@ -567,10 +566,42 @@ Tactic Notation "We" "prove" "equality" "by" "proving" "two" "inclusions" :=
   
 Open Scope ensemble_scope. 
 
-End Set_Notations.
-Import Set_Notations.
+End set_notations_library.
+Import set_notations_library.
 
-Module Set_equality_proof_tool.
+
+
+Module extension_tactics_library. 
+
+(** Taking two elements of the same type.*)
+Ltac intros_strict x y t :=
+  match goal with
+    | [ |- forall _ _ : t, _] => intros x y
+  end.
+
+Tactic Notation "Take" ident(x) ident(y) ":" constr(t):=
+  intros_strict x y t. 
+
+(** Now a somewhat creative and non-standard notation to 
+    resolve a goal using another assumption/lemma. The usual 
+    `By ... it holds that ...` does not do this, even without 
+    adding a name.*)
+
+Tactic Notation "By" constr(u) "it" "holds" "that" constr(t) "which" "concludes" ident(the) "proof":= 
+  By u it holds that t (the); 
+  apply the. 
+
+(** ## Proving by induction *)
+Tactic Notation "We" "prove" "by" "induction" "on" ident(x) := 
+  induction x. 
+
+
+End extension_tactics_library.
+Import extension_tactics_library.
+
+
+
+Module set_equality_proof_tool.
 (*# Set equality proof tool *)
 
 Ltac set_power :=
@@ -608,10 +639,10 @@ Tactic Notation "This" "equality" "is" "trivial" :=
    
 Hint Constructors Union Intersection Disjoint Full_set : sets.    
 
-End Set_equality_proof_tool.
-Import Set_equality_proof_tool.
+End set_equality_proof_tool.
+Import set_equality_proof_tool.
 
-Module Sets_Library.
+Module sets_library.
 (*# Sets & sequences
 In this document, we state and prove lemmas that have to do with sets, 
 collections of sets and sequences of sets. : 
@@ -1235,12 +1266,12 @@ Hint Resolve FU_up_to_0_empty : sets.
 Hint Resolve FU_up_to_1_is_0 : sets. 
 Hint Resolve FU_S_as_union : sets.
 
-End Sets_Library.
-Import Sets_Library.
+End sets_library.
+Import sets_library.
 
 
 
-Module Measure_Theory_library.
+Module measure_theory_library.
 (*# Measure theory definitions & notations*) 
 
 Open Scope ensemble_scope.
@@ -1358,12 +1389,12 @@ Hint Resolve underlying_set_of_subsets_λ : measure_theory.
 Hint Resolve proof_is_σ_algebra : measure_theory.
 Hint Resolve underlying_set_of_subsets_σ : measure_theory.
 
-End Measure_Theory_library.
-Import Measure_Theory_library.
+End measure_theory_library.
+Import measure_theory_library.
 
 
 
-Module Trivial_sigma_algebra_proof.
+Module trivial_sigma_algebra_proof.
 (*# The trivial σ-algebra
 In this notebook, we will prove that the trivial σ-algebra on some set Ω, the 
 set $\{Ω,∅\}$, is indeed a σ-algebra. *) 
@@ -1472,7 +1503,7 @@ It holds that ((C n1) ⊂ (countable_union C)).
 Qed.
 
 End trivial_σ_algebra. 
-End Trivial_sigma_algebra_proof.
+End trivial_sigma_algebra_proof.
 
 
 
@@ -2203,7 +2234,7 @@ End pi_lambda_theorem_proof.
 
 
 
-Module Continuity_of_measure_proof.
+Module continuity_of_measure_proof.
 (*# Continuity of measure
 An extremely important result in measure theory is the continuity of measures. 
 There are multiple formulations and variants to state it. The one that we aim to
@@ -2219,22 +2250,6 @@ the π-λ theorem. Then we show that measures are finitely additive and finally,
 use all prior results to prove our main result, the lemma `incr_cont_meas`. 
 
 We begin with importing some libraries and introducing some variables. *) 
-
-Import ClassicalFacts. 
-Import Coq.Arith.Wf_nat. 
-Import Logic. 
-Import Omega. 
-Import Reals.
-Import Sets.Classical_sets.
-Import Sets.Ensembles.
-Import Sets.Powerset.
-Import wplib.Lib.measure_theory.
-Import wplib.Lib.sets.
-Import wplib.Notations.Notations.
-Import wplib.Notations.SetNotations.
-Import wplib.Tactics.Tactics.
-Import wplib.Tactics.TacticsContra.
-
 Chapter continuity_of_measure.
 Open Scope nat.
 
@@ -2823,4 +2838,4 @@ It holds that (｜ (Σ of (μ ◦ D_) up to n) -
 Qed. 
 
 End continuity_of_measure.
-End Continuity_of_measure_proof.
+End continuity_of_measure_proof.
