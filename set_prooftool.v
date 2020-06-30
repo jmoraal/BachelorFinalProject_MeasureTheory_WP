@@ -139,7 +139,7 @@ Ltac trivial_set_inclusion :=
   try intro H;
   try destruct_intersec;
   try contradiction;
-  try set_power.
+  set_power.
 
 Ltac trivial_set_equality := 
   try intros A;
@@ -509,13 +509,24 @@ Lemma sets_1 : A ∪ B = B ∪ A.
 This equality is trivial.
 Qed.
 
-Lemma sets_2 : Ω ∪ A = Ω.
+Lemma domination_union : Ω ∪ A = Ω.
 This equality is trivial.
 Qed.
 
 Lemma sets_3 : ∅ ∪ A = A.
 This equality is trivial.
 Qed.
+
+Lemma idempotent_union : A ∪ A = A.
+This equality is trivial.
+Qed. 
+
+Lemma idempotent_intersection : A ∩ A = A.
+This equality is trivial.
+Qed. 
+
+Lemma complement_law_union : A ∩ (Ω \ A) = Ω.
+This equality is trivial.
 End set_lemmas.
 
 (*
@@ -608,3 +619,37 @@ It holds that (x ∈ (Ω \ A)) (x_in_complement).
 
 Contradiction. 
 Qed.
+
+Chapter trivial_σ_algebra. 
+(*First of course we need to define $\{Ω,∅\}$: *) 
+
+Definition F := 
+    ｛ A : subset U | (A = Ω) ∨ (A = ∅)｝.  
+
+(*For ``F`` to be a σ-algebra, we need to check three conditions: Ω needs to be in the set, the set must be closed under taking complements and it must be closed under taking the countable union of a collection of sets. *) 
+
+Lemma trivial_salgebra : 
+  ∀ A  : subset U, A ∈ F 
+    ⇒ (Ω \ A) ∈ F.
+Proof.
+(* Second point: Prove that F is closed under complement*)
+We need to show that 
+  (∀ A  : subset U, A ∈ F 
+    ⇒ (Ω \ A) ∈ F). 
+Take A : (subset U). 
+Assume A_in_F : (A ∈ F). 
+Write A_in_F as 
+  ((A = Ω) ∨ (A = ∅)).
+Because A_in_F either A_is_full or A_is_empty. 
+(* A = Ω: *)
+Write goal using (A = Ω) 
+  as ((Ω \ Ω) ∈ F ). 
+Write goal using ((Ω \ Ω) = ∅) 
+  as (∅ ∈ F). 
+It holds that (∅ ∈ F). 
+
+(* A = ∅: *)
+Write goal using (A = ∅) 
+  as ((Ω \ ∅) ∈ F). 
+Write goal using (Ω \ ∅ = Ω) as (Ω ∈ F). 
+It holds that (Ω ∈ F). 
